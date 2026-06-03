@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
+import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { DashboardTopbar } from "./dashboard-topbar";
 import { MobileSidebar } from "./mobile-sidebar";
@@ -21,6 +23,7 @@ interface AppShellProps {
  */
 export function AppShell({ user, children }: AppShellProps) {
   const queryClient = useQueryClient();
+  const collapsed = useSidebarStore((s) => s.collapsed);
   // Seed the session cache exactly once (useState initializer runs a single
   // time) so client `useSession` consumers resolve without re-fetching /auth/me.
   useState(() => {
@@ -30,9 +33,14 @@ export function AppShell({ user, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-svh">
-      <aside className="border-sidebar-border hidden w-64 shrink-0 border-r lg:block">
+      <aside
+        className={cn(
+          "border-sidebar-border hidden shrink-0 border-r transition-[width] duration-200 lg:block",
+          collapsed ? "w-[72px]" : "w-64",
+        )}
+      >
         <div className="sticky top-0 h-svh">
-          <SidebarContent user={user} />
+          <SidebarContent user={user} collapsed={collapsed} />
         </div>
       </aside>
 

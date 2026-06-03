@@ -2,8 +2,8 @@ import {
   Bookmark,
   Briefcase,
   FileText,
-  History,
   MessageSquarePlus,
+  UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -28,7 +28,7 @@ const WORKER_NAV: NavItem[] = [
   },
   { label: "Applications", href: routes.applications, icon: FileText },
   { label: "Bookmarks", href: routes.bookmarks, icon: Bookmark },
-  { label: "Chat history", href: routes.history, icon: History },
+  { label: "Profile", href: routes.profile, icon: UserRound },
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
@@ -40,7 +40,7 @@ const EMPLOYER_NAV: NavItem[] = [
   },
   { label: "Vacancies", href: routes.vacancies, icon: Briefcase },
   { label: "Applicants", href: routes.applicants, icon: Users },
-  { label: "Chat history", href: routes.history, icon: History },
+  { label: "Profile", href: routes.profile, icon: UserRound },
 ];
 
 /** Sidebar nav for the given account type (admins see the worker layout). */

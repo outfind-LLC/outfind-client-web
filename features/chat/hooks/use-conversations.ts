@@ -52,3 +52,29 @@ export function useDeleteConversation() {
       queryClient.invalidateQueries({ queryKey: qk.conversations() }),
   });
 }
+
+/** Rename a conversation's title and refresh the affected caches. */
+export function useRenameConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { id: string; title: string }) =>
+      chatService.updateConversation(vars.id, { title: vars.title }),
+    onSuccess: (_conversation, vars) => {
+      queryClient.invalidateQueries({ queryKey: qk.conversations() });
+      queryClient.invalidateQueries({ queryKey: qk.conversation(vars.id) });
+    },
+  });
+}
+
+/** Pin or unpin a conversation (moves it in/out of the Pinned section). */
+export function usePinConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { id: string; isPinned: boolean }) =>
+      chatService.updateConversation(vars.id, { isPinned: vars.isPinned }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: qk.conversations() }),
+  });
+}

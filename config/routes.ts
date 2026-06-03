@@ -27,6 +27,7 @@ export const routes = {
   settings: "/settings",
   help: "/help",
   pricing: "/pricing",
+  upgrade: "/upgrade",
 } as const;
 
 /** Routes that require an authenticated session (enforced in proxy.ts). */
@@ -40,5 +41,6 @@ export const PROTECTED_PREFIXES = [
   "/history",
   "/settings",
   "/help",
+  "/upgrade",
   "/onboarding",
 ] as const;
