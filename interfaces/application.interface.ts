@@ -1,0 +1,65 @@
+/**
+ * Application contracts — mirror of the backend application module's worker- and
+ * employer-facing projections. Dates serialize to ISO strings over the wire.
+ */
+import type { ApplicationStatus, VacancyStatus } from "./enums";
+
+/** Vacancy fields embedded inside a worker's application view. */
+export interface ApplicationVacancyPreview {
+  id: string;
+  title: string;
+  country: string;
+  city: string | null;
+  status: VacancyStatus;
+  employerId: string | null;
+  companyName: string | null;
+}
+
+/** Worker's view of their own application. */
+export interface Application {
+  id: string;
+  userId: string;
+  vacancyId: string;
+  status: ApplicationStatus;
+  sendMethod: string | null;
+  coverLetterOriginal: string | null;
+  sentAt: string | null;
+  lastMessageAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  vacancy: ApplicationVacancyPreview;
+}
+
+/** Worker preview shown to the employer when listing applicants. */
+export interface ApplicantPreview {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  workerProfileId: string | null;
+  profession: string | null;
+}
+
+/** Employer's view of an application (with applicant + AI match score). */
+export interface EmployerApplication {
+  id: string;
+  vacancyId: string;
+  status: ApplicationStatus;
+  coverLetterOriginal: string | null;
+  sentAt: string | null;
+  lastMessageAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  applicant: ApplicantPreview;
+  matchScore: number | null;
+}
+
+export interface ListApplicationsQuery {
+  status?: ApplicationStatus;
+  limit?: number;
+  cursor?: string;
+}
+
+/** Body for `PATCH /employer/applications/:id/status`. */
+export interface UpdateApplicationStatusPayload {
+  status: ApplicationStatus;
+}

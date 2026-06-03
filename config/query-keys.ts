@@ -6,7 +6,9 @@
 export const qk = {
   session: ["session"] as const,
   myEntitlements: ["plan", "entitlements"] as const,
-  pricing: ["plan", "pricing"] as const,
+  pricing: (audience?: string) =>
+    ["plan", "pricing", audience ?? "all"] as const,
+  subscription: ["billing", "subscription"] as const,
 
   conversations: (audience?: string) =>
     ["chat", "conversations", audience ?? "all"] as const,
@@ -16,8 +18,7 @@ export const qk = {
 
   aiModels: (audience?: string) => ["ai-models", audience ?? "all"] as const,
 
-  applications: (status?: string) =>
-    ["applications", status ?? "all"] as const,
+  applications: (status?: string) => ["applications", status ?? "all"] as const,
   bookmarks: ["bookmarks"] as const,
 
   vacancies: (status?: string) => ["vacancies", status ?? "all"] as const,

@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
+import { OAuthRedirectListener } from "@/features/auth/components/oauth-redirect-listener";
 import { Toaster } from "@/ui/sonner";
 import { QueryProvider } from "./query-provider";
 import { ThemeProvider } from "./theme-provider";
@@ -17,6 +18,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     >
       <QueryProvider>
         {children}
+        {/* Suspense isolates useSearchParams so static pages aren't de-opted. */}
+        <Suspense fallback={null}>
+          <OAuthRedirectListener />
+        </Suspense>
         <Toaster />
       </QueryProvider>
     </ThemeProvider>

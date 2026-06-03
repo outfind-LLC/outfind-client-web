@@ -17,14 +17,16 @@ const parsed = clientEnvSchema.safeParse({
     process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1",
   NEXT_PUBLIC_APP_URL:
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  // Treat an empty string (unset-but-present in .env) as absent so the optional
+  // check passes instead of failing the `min(1)` rule.
   NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:
-    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || undefined,
 });
 
 if (!parsed.success) {
   throw new Error(
-    `Invalid public environment variables:\n${parsed.error
-      .issues.map((i) => ` - ${i.path.join(".")}: ${i.message}`)
+    `Invalid public environment variables:\n${parsed.error.issues
+      .map((i) => ` - ${i.path.join(".")}: ${i.message}`)
       .join("\n")}`,
   );
 }

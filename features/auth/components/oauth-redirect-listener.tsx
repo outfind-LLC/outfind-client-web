@@ -1,0 +1,58 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { qk } from "@/config/query-keys";
+import { routes } from "@/config/routes";
+import {
+  OAUTH_PARAMS,
+  OAUTH_RESULT,
+  resolveAuthErrorMessage,
+} from "@/features/auth/constants/auth.constants";
+
+/**
+ * Handles the OAuth return. The backend sets httpOnly cookies, then redirects to
+ * the app root with `?google_auth=success|error` (+ `isNewUser` / `code`). This
+ * listener — mounted once, globally, inside a Suspense boundary so it never
+ * de-opts static pages — surfaces a toast, refreshes the session cache, strips
+ * the params, and routes into the app. Real authz still happens server-side.
+ */
+export function OAuthRedirectListener() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+  const handled = useRef(false);
+
+  useEffect(() => {
+    const provider = searchParams.get(OAUTH_PARAMS.google)
+      ? OAUTH_PARAMS.google
+      : searchParams.get(OAUTH_PARAMS.telegram)
+        ? OAUTH_PARAMS.telegram
+        : null;
+
+    if (!provider || handled.current) return;
+    handled.current = true;
+
+    const result = searchParams.get(provider);
+
+    if (result === OAUTH_RESULT.success) {
+      toast.success("Signed in successfully");
+      queryClient.invalidateQueries({ queryKey: qk.session });
+      router.replace(routes.chat);
+      return;
+    }
+
+    if (result === OAUTH_RESULT.error) {
+      const code = searchParams.get(OAUTH_PARAMS.code);
+      toast.error(resolveAuthErrorMessage(code));
+      // Strip params; keep the user on the sign-in page to retry.
+      router.replace(routes.auth);
+    }
+  }, [searchParams, pathname, router, queryClient]);
+
+  return null;
+}

@@ -32,6 +32,40 @@ export const PLAN_AUDIENCE = {
 } as const;
 export type PlanAudience = (typeof PLAN_AUDIENCE)[keyof typeof PLAN_AUDIENCE];
 
+export const PLAN_TYPE = {
+  FREE: "FREE",
+  PRO: "PRO",
+  PREMIUM: "PREMIUM",
+  EMPLOYER_FREE: "EMPLOYER_FREE",
+  EMPLOYER_STARTER: "EMPLOYER_STARTER",
+  EMPLOYER_BUSINESS: "EMPLOYER_BUSINESS",
+  EMPLOYER_ENTERPRISE: "EMPLOYER_ENTERPRISE",
+} as const;
+export type PlanType = (typeof PLAN_TYPE)[keyof typeof PLAN_TYPE];
+
+export const MODEL_TIER = {
+  FREE: "FREE",
+  PRO: "PRO",
+  PREMIUM: "PREMIUM",
+} as const;
+export type ModelTier = (typeof MODEL_TIER)[keyof typeof MODEL_TIER];
+
+export const FEATURE_TYPE = {
+  METERED: "METERED",
+  BOOLEAN: "BOOLEAN",
+  TIERED: "TIERED",
+} as const;
+export type FeatureType = (typeof FEATURE_TYPE)[keyof typeof FEATURE_TYPE];
+
+export const ENTITLEMENT_PERIOD = {
+  DAY: "DAY",
+  MONTH: "MONTH",
+  BILLING_PERIOD: "BILLING_PERIOD",
+  LIFETIME: "LIFETIME",
+} as const;
+export type EntitlementPeriod =
+  (typeof ENTITLEMENT_PERIOD)[keyof typeof ENTITLEMENT_PERIOD];
+
 export const BILLING_INTERVAL = {
   MONTH: "MONTH",
   YEAR: "YEAR",
@@ -169,3 +203,19 @@ export const MODALITY = {
   FILE: "FILE",
 } as const;
 export type Modality = (typeof MODALITY)[keyof typeof MODALITY];
+
+export const WORKER_STATUS = {
+  ACTIVE: "ACTIVE",
+  PASSIVE: "PASSIVE",
+  OFFLINE: "OFFLINE",
+  BANNED: "BANNED",
+} as const;
+export type WorkerStatus = (typeof WORKER_STATUS)[keyof typeof WORKER_STATUS];
+
+export const EMPLOYER_VERIFICATION_STATUS = {
+  PENDING: "PENDING",
+  VERIFIED: "VERIFIED",
+  REJECTED: "REJECTED",
+} as const;
+export type EmployerVerificationStatus =
+  (typeof EMPLOYER_VERIFICATION_STATUS)[keyof typeof EMPLOYER_VERIFICATION_STATUS];

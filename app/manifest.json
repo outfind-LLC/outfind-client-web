@@ -1,6 +1,8 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Jobsterr — Your AI career partner",
+  "short_name": "Jobsterr",
+  "description": "AI-first job platform. Search jobs, build your CV, prepare for interviews, and hire — all inside one conversation.",
+  "start_url": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +17,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#4a49cf",
   "background_color": "#ffffff",
   "display": "standalone"
 }
