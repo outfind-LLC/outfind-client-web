@@ -17,13 +17,13 @@ const ROLE_OPTIONS: RoleOption[] = [
   {
     value: ACCOUNT_TYPE.WORKER,
     label: "Find work",
-    hint: "Search jobs, build your CV, prep interviews",
+    hint: "Jobs, CV & interviews",
     icon: UserRound,
   },
   {
     value: ACCOUNT_TYPE.EMPLOYER,
     label: "Hire talent",
-    hint: "Post vacancies, screen candidates with AI",
+    hint: "Post & screen with AI",
     icon: Briefcase,
   },
 ];
@@ -52,7 +52,7 @@ export function RoleToggle({ value, onChange }: RoleToggleProps) {
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all outline-none",
+              "flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all outline-none",
               "focus-visible:ring-ring/40 focus-visible:ring-[3px]",
               isSelected
                 ? "border-primary bg-primary/5 shadow-sm"
@@ -61,13 +61,13 @@ export function RoleToggle({ value, onChange }: RoleToggleProps) {
           >
             <span
               className={cn(
-                "flex size-9 items-center justify-center rounded-lg",
+                "mb-0.5 flex size-8 items-center justify-center rounded-lg",
                 isSelected
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground",
               )}
             >
-              <Icon className="size-5" />
+              <Icon className="size-4" />
             </span>
             <span className="text-sm font-semibold">{option.label}</span>
             <span className="text-muted-foreground text-xs leading-snug">

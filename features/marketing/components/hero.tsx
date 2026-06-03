@@ -47,7 +47,7 @@ export function Hero() {
           <Reveal delay={180}>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="xl" variant="brand">
-                <Link href={routes.auth}>
+                <Link href={routes.signup}>
                   Start for free
                   <ArrowRight className="size-4" />
                 </Link>

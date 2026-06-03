@@ -1,102 +1,95 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { siteConfig } from "@/config/site";
+import { BrandLogo } from "@/components/brand-logo";
 import { authService } from "@/features/auth/services/auth.service";
 import type { RegistrationAccountType } from "@/features/auth/services/auth.service";
 import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import { Button } from "@/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/card";
-import { Separator } from "@/ui/separator";
 import { RoleToggle } from "./role-toggle";
 import { TelegramLoginButton } from "./telegram-login-button";
 
+type Mode = "signin" | "signup";
+
 /**
- * Sign-in / sign-up card. The flow is one-shot: pick a role, then continue with
- * Google or Telegram. Google is a full-page redirect to the backend OAuth start
- * (which round-trips back with httpOnly cookies); Telegram uses its widget.
+ * Auth form with two modes:
+ *  - Sign in  → just "Continue with Google / Telegram" (existing accounts).
+ *  - Sign up  → choose Worker or Employer first, then continue.
+ *
+ * The backend OAuth start always needs an `accountType`, but it only applies it
+ * to brand-new accounts (an existing user's role is never overwritten), so the
+ * sign-in path safely passes a default role.
  */
-export function SignInCard() {
+export function SignInCard({ initialMode = "signin" }: { initialMode?: Mode }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [role, setRole] = useState<RegistrationAccountType>(
     ACCOUNT_TYPE.WORKER,
   );
   const [redirecting, setRedirecting] = useState(false);
 
+  const isSignup = mode === "signup";
+  const effectiveRole = isSignup ? role : ACCOUNT_TYPE.WORKER;
+
   const continueWithGoogle = () => {
     setRedirecting(true);
-    window.location.href = authService.googleAuthUrl(role);
+    window.location.href = authService.googleAuthUrl(effectiveRole);
   };
 
   return (
-    <Card className="border-border/60 w-full max-w-md shadow-xl">
-      <CardHeader className="items-center text-center">
-        <Link href="/" className="mb-2">
-          <Image
-            src="/full-logo.svg"
-            alt={siteConfig.name}
-            width={132}
-            height={32}
-            priority
-            className="h-8 w-auto"
-          />
-        </Link>
-        <CardTitle className="text-2xl">Welcome to {siteConfig.name}</CardTitle>
-        <CardDescription>
-          Your AI career partner. Sign in to start the conversation.
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-sm">
+      <div className="mb-8 flex flex-col items-center text-center lg:hidden">
+        <BrandLogo href="/" className="h-9" />
+      </div>
 
-      <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <p className="text-foreground text-sm font-medium">I want to</p>
+      <div className="space-y-2 text-center lg:text-left">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {isSignup ? "Create your account" : "Welcome back"}
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          {isSignup
+            ? "Choose what you're here for, then continue."
+            : "Sign in to pick up where you left off."}
+        </p>
+      </div>
+
+      {isSignup ? (
+        <div className="mt-6 space-y-2.5">
+          <p className="text-muted-foreground text-xs font-medium">I want to</p>
           <RoleToggle value={role} onChange={setRole} />
         </div>
+      ) : null}
 
-        <div className="space-y-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full"
-            onClick={continueWithGoogle}
-            disabled={redirecting}
-          >
-            <GoogleIcon className="size-5" />
-            Continue with Google
-          </Button>
+      <div className="mt-6 space-y-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full justify-center gap-3"
+          onClick={continueWithGoogle}
+          disabled={redirecting}
+        >
+          <GoogleIcon className="size-5" />
+          {isSignup ? "Sign up with Google" : "Sign in with Google"}
+        </Button>
 
-          <div className="relative">
-            <Separator />
-            <span className="bg-card text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs">
-              or
-            </span>
-          </div>
+        <TelegramLoginButton
+          accountType={effectiveRole}
+          label={isSignup ? "Sign up with Telegram" : "Sign in with Telegram"}
+        />
+      </div>
 
-          <TelegramLoginButton accountType={role} />
-        </div>
-
-        <p className="text-muted-foreground text-center text-xs leading-relaxed">
-          By continuing you agree to our{" "}
-          <Link href="/terms" className="underline underline-offset-2">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="underline underline-offset-2">
-            Privacy Policy
-          </Link>
-          .
-        </p>
-      </CardContent>
-    </Card>
+      <p className="text-muted-foreground mt-8 text-center text-sm">
+        {isSignup ? "Already have an account?" : "New to Jobsterr?"}{" "}
+        <button
+          type="button"
+          onClick={() => setMode(isSignup ? "signin" : "signup")}
+          className="text-primary font-medium underline-offset-4 hover:underline"
+        >
+          {isSignup ? "Sign in" : "Create one"}
+        </button>
+      </p>
+    </div>
   );
 }

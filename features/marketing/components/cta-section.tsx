@@ -31,7 +31,7 @@ export function CtaSection() {
                   size="xl"
                   className="text-brand bg-white hover:bg-white/90"
                 >
-                  <Link href={routes.auth}>
+                  <Link href={routes.signup}>
                     Get started free
                     <ArrowRight className="size-4" />
                   </Link>

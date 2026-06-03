@@ -109,7 +109,7 @@ function PricingGrid({ tiers }: { tiers: PricingTier[] }) {
               className="mt-8 w-full"
               variant={tier.featured ? "brand" : "outline"}
             >
-              <Link href={routes.auth}>{tier.cta}</Link>
+              <Link href={routes.signup}>{tier.cta}</Link>
             </Button>
           </div>
         </Reveal>

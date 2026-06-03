@@ -10,6 +10,9 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: z.string().min(1).optional(),
+  // Numeric bot id (the part before ":" in the bot token) — required for the
+  // in-page Telegram popup login. Optional; Telegram is hidden without it.
+  NEXT_PUBLIC_TELEGRAM_BOT_ID: z.coerce.number().int().positive().optional(),
 });
 
 const parsed = clientEnvSchema.safeParse({
@@ -21,6 +24,8 @@ const parsed = clientEnvSchema.safeParse({
   // check passes instead of failing the `min(1)` rule.
   NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:
     process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || undefined,
+  NEXT_PUBLIC_TELEGRAM_BOT_ID:
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_ID || undefined,
 });
 
 if (!parsed.success) {

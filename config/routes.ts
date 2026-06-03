@@ -5,6 +5,7 @@
 export const routes = {
   home: "/",
   auth: "/auth",
+  signup: "/auth?mode=signup",
   onboarding: "/onboarding",
 
   // Worker
@@ -41,6 +42,3 @@ export const PROTECTED_PREFIXES = [
   "/help",
   "/onboarding",
 ] as const;
-
-/** Routes only reachable when signed-out (redirect to app if authed). */
-export const AUTH_ROUTES = ["/auth"] as const;

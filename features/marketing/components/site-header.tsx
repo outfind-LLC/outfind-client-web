@@ -55,7 +55,7 @@ export function SiteHeader() {
             <Link href={routes.auth}>Sign in</Link>
           </Button>
           <Button asChild variant="brand" size="sm">
-            <Link href={routes.auth}>Get started</Link>
+            <Link href={routes.signup}>Get started</Link>
           </Button>
         </div>
 
@@ -95,7 +95,7 @@ export function SiteHeader() {
                 <Link href={routes.auth}>Sign in</Link>
               </Button>
               <Button asChild variant="brand">
-                <Link href={routes.auth}>Get started</Link>
+                <Link href={routes.signup}>Get started</Link>
               </Button>
             </div>
           </Container>

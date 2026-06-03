@@ -1,18 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { AUTH_ROUTES, PROTECTED_PREFIXES, routes } from "@/config/routes";
+import { PROTECTED_PREFIXES, routes } from "@/config/routes";
 
 /**
  * Next.js 16 renamed `middleware.ts` to `proxy.ts` (Node.js runtime only).
  *
  * This is a UX redirect layer, NOT the authorization boundary — the backend
  * validates every request against the httpOnly session cookie. Here we only
- * gate navigation on cookie *presence* to avoid flashing protected shells to
- * obviously signed-out visitors (and to bounce signed-in users off /auth).
+ * bounce visitors with no session cookie at all away from protected routes, to
+ * avoid flashing an app shell to obviously signed-out users.
  *
- * A present-but-expired token still reaches the page; the client API layer
- * performs the 401 → refresh → retry dance, and server fetches resolve the
- * real session. Never trust this check for data access.
+ * Crucially, we do NOT redirect cookie-bearing users away from `/auth`. Cookie
+ * *presence* is not proof of a valid session — an expired/stale cookie would
+ * otherwise ping-pong between `/auth` (proxy → app) and the app layout's
+ * server-side session check (app → `/auth`), causing a redirect loop. The
+ * `/auth` page performs the real `getServerSession()` check and redirects
+ * genuinely-authenticated users into the app itself.
  */
 const ACCESS_COOKIE = "access_token";
 const REFRESH_COOKIE = "refresh_token";
@@ -29,28 +32,14 @@ function isProtectedPath(pathname: string): boolean {
   );
 }
 
-function isAuthPath(pathname: string): boolean {
-  return AUTH_ROUTES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
-
 export function proxy(request: NextRequest): NextResponse {
   const { pathname, search } = request.nextUrl;
-  const authed = hasSessionCookie(request);
 
-  if (!authed && isProtectedPath(pathname)) {
+  if (!hasSessionCookie(request) && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = routes.auth;
     url.search = "";
     url.searchParams.set("redirect", `${pathname}${search}`);
-    return NextResponse.redirect(url);
-  }
-
-  if (authed && isAuthPath(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = routes.chat;
-    url.search = "";
     return NextResponse.redirect(url);
   }
 
