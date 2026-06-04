@@ -2,37 +2,32 @@
 
 import { Mic, Square } from "lucide-react";
 
-import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
 
 interface VoiceInputButtonProps {
-  onTranscript: (text: string) => void;
+  listening: boolean;
   disabled?: boolean;
+  onClick: () => void;
 }
 
-/** Mic toggle that streams recognised speech back to the composer. Renders
- * nothing where the Web Speech API is unsupported. */
+/** Presentational mic toggle. Recognition is owned by the composer so dictated
+ * text can be merged into the input field. */
 export function VoiceInputButton({
-  onTranscript,
+  listening,
   disabled,
+  onClick,
 }: VoiceInputButtonProps) {
-  const { supported, listening, start, stop } = useSpeechRecognition({
-    onResult: onTranscript,
-  });
-
-  if (!supported) return null;
-
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
       disabled={disabled}
-      aria-label={listening ? "Stop dictation" : "Start dictation"}
+      aria-label={listening ? "Stop dictation" : "Start voice input"}
       aria-pressed={listening}
-      onClick={listening ? stop : start}
-      className={cn(listening && "text-destructive")}
+      onClick={onClick}
+      className={cn(listening && "text-destructive animate-pulse")}
     >
       {listening ? (
         <Square className="size-4 fill-current" />

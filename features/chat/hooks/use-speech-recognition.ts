@@ -48,28 +48,45 @@ function getRecognitionCtor(): SpeechRecognitionCtor | null {
 }
 
 interface UseSpeechRecognitionOptions {
-  /** Called with each finalised transcript chunk to append to the input. */
-  onResult: (transcript: string) => void;
+  /** The full live transcript for the current dictation session (interim
+   * included), emitted on every update so the caller can mirror it live. */
+  onTranscript: (transcript: string) => void;
+  /** Called with the Web Speech error code (e.g. "not-allowed", "no-speech"). */
+  onError?: (code: string) => void;
+  /** BCP-47 language tag; defaults to the browser's language. */
   lang?: string;
 }
 
+function defaultLang(explicit?: string): string {
+  if (explicit) return explicit;
+  if (typeof navigator !== "undefined" && navigator.language) {
+    return navigator.language;
+  }
+  return "en-US";
+}
+
 /**
- * Speech-to-text via the browser's Web Speech API. `supported` is false where
- * the API is unavailable so the UI can hide the mic. Auto-stops on unmount.
+ * Speech-to-text via the browser's Web Speech API. Listens continuously and
+ * streams the whole session transcript (interim + final) so the composer can
+ * type it out live. `supported` is false where the API is unavailable so the UI
+ * can hide the mic. Auto-stops on unmount.
  */
 export function useSpeechRecognition({
-  onResult,
-  lang = "en-US",
+  onTranscript,
+  onError,
+  lang,
 }: UseSpeechRecognitionOptions) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const onResultRef = useRef(onResult);
+  const onTranscriptRef = useRef(onTranscript);
+  const onErrorRef = useRef(onError);
 
-  // Keep the latest callback without rebuilding the recognition instance.
+  // Keep the latest callbacks without rebuilding the recognition instance.
   useEffect(() => {
-    onResultRef.current = onResult;
-  }, [onResult]);
+    onTranscriptRef.current = onTranscript;
+    onErrorRef.current = onError;
+  }, [onTranscript, onError]);
 
   useEffect(() => {
     const Ctor = getRecognitionCtor();
@@ -80,19 +97,22 @@ export function useSpeechRecognition({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSupported(true);
     const recognition = new Ctor();
-    recognition.lang = lang;
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.lang = defaultLang(lang);
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
     recognition.onresult = (event) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        if (result.isFinal) transcript += result[0].transcript;
+      const parts: string[] = [];
+      for (let i = 0; i < event.results.length; i += 1) {
+        const chunk = event.results[i][0].transcript.trim();
+        if (chunk) parts.push(chunk);
       }
-      if (transcript.trim()) onResultRef.current(transcript.trim());
+      onTranscriptRef.current(parts.join(" "));
     };
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = (event) => {
+      setListening(false);
+      onErrorRef.current?.(event.error);
+    };
     recognition.onend = () => setListening(false);
 
     recognitionRef.current = recognition;
@@ -100,9 +120,10 @@ export function useSpeechRecognition({
   }, [lang]);
 
   const start = useCallback(() => {
-    if (!recognitionRef.current || listening) return;
+    const recognition = recognitionRef.current;
+    if (!recognition || listening) return;
     try {
-      recognitionRef.current.start();
+      recognition.start();
       setListening(true);
     } catch {
       setListening(false);

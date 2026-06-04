@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, type ComponentType } from "react";
 import {
   Brain,
+  BrainCircuit,
   Check,
   ChevronDown,
   FileText,
@@ -11,7 +12,6 @@ import {
   Maximize2,
   Minimize2,
   Search,
-  Sparkles,
   Wrench,
 } from "lucide-react";
 
@@ -168,7 +168,7 @@ export function ModelSelector({
           disabled={disabled}
           className="gap-1.5"
         >
-          <Sparkles className="text-brand-accent size-4" />
+          <BrainCircuit className="text-brand-accent size-4" />
           <span className="hidden max-w-32 truncate sm:inline">
             {triggerLabel}
           </span>

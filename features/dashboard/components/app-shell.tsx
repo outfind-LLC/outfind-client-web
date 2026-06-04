@@ -32,23 +32,25 @@ export function AppShell({ user, children }: AppShellProps) {
   });
 
   return (
-    <div className="flex min-h-svh">
+    <div className="flex h-svh overflow-hidden">
       <aside
         className={cn(
           "border-sidebar-border hidden shrink-0 border-r transition-[width] duration-200 lg:block",
           collapsed ? "w-[72px]" : "w-64",
         )}
       >
-        <div className="sticky top-0 h-svh">
+        <div className="h-svh">
           <SidebarContent user={user} collapsed={collapsed} />
         </div>
       </aside>
 
       <MobileSidebar user={user} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <DashboardTopbar />
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+        <main className="flex min-h-0 flex-1 scrollbar-thin flex-col overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
