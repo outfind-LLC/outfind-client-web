@@ -70,7 +70,7 @@ export function SidebarChats() {
       {conversations.length === 0 ? (
         <div className="flex flex-col gap-0.5">
           <GroupLabel>Chats</GroupLabel>
-          <p className="px-3 py-1.5 text-sm text-sidebar-foreground/50">
+          <p className="text-sidebar-foreground/50 px-3 py-1.5 text-sm">
             No chats yet
           </p>
         </div>
@@ -81,7 +81,7 @@ export function SidebarChats() {
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-3 pb-1 text-xs font-medium tracking-wide text-sidebar-foreground/50 uppercase">
+    <p className="text-sidebar-foreground/50 px-3 pb-1 text-xs font-medium tracking-wide uppercase">
       {children}
     </p>
   );
@@ -142,7 +142,7 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
         href={href}
         onClick={() => setMobileOpen(false)}
         aria-current={active ? "page" : undefined}
-        className="min-w-0 flex-1 truncate rounded-lg px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-sidebar-ring/40"
+        className="focus-visible:ring-sidebar-ring/40 min-w-0 flex-1 truncate rounded-lg px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px]"
       >
         {title}
       </Link>
@@ -150,7 +150,7 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Chat options"
-          className="mr-1 shrink-0 rounded p-1 text-sidebar-foreground/50 opacity-0 outline-none transition-opacity hover:text-sidebar-foreground group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+          className="text-sidebar-foreground/50 hover:text-sidebar-foreground mr-1 shrink-0 rounded p-1 opacity-0 transition-opacity outline-none group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreVertical className="size-4" />
         </DropdownMenuTrigger>
@@ -194,7 +194,7 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
         title="Delete chat?"
         description={
           <>
-            <span className="font-medium text-foreground">{title}</span> and all
+            <span className="text-foreground font-medium">{title}</span> and all
             of its messages will be permanently deleted. This can&apos;t be
             undone.
           </>

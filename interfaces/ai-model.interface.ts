@@ -5,7 +5,6 @@
  * than the standard `{ data, meta }` envelope. The shared `parseEnvelope` still
  * unwraps `data` correctly because it keys off `success`.
  */
-import type { ModelTier } from "./enums";
 
 export interface ModelCost {
   input?: number;
@@ -23,6 +22,14 @@ export interface ModelLimit {
   context?: number;
   input?: number;
   output?: number;
+}
+
+/** Per-token gateway pricing (string-encoded decimals) for custom-priced models. */
+export interface ModelPricing {
+  input: string;
+  output: string;
+  cachedInputTokens: string;
+  cacheCreationInputTokens: string;
 }
 
 /** A single selectable AI model. `id` is the gateway sdk model id (e.g. "openai/gpt-4.1"). */
@@ -43,10 +50,10 @@ export interface AiModel {
   description: string | null;
   recommendedFor: string | null;
   shortOrder: string | null;
-  isFree: boolean;
-  isPaid: boolean;
   openWweights: boolean;
-  tier: ModelTier;
+  pricing: ModelPricing | null;
+  /** Whether the caller's current subscription plan may select this model. */
+  isAllowed: boolean;
 }
 
 /** Models grouped under their provider, as returned by `GET /models`. */
@@ -61,9 +68,4 @@ export interface ModelProvider {
 export interface ListModelsQuery {
   search?: string;
   provider?: string;
-  isFree?: boolean;
-  isPaid?: boolean;
-  tier?: ModelTier;
-  /** Cumulative: every model a plan at this tier may select (at or below). */
-  planTier?: ModelTier;
 }
