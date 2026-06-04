@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useRef, useState, type ComponentType } from "react";
 import {
   Brain,
   Check,
@@ -24,13 +24,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { ScrollArea } from "@/ui/scroll-area";
 
 interface ModelSelectorProps {
-  /** Selected gateway model id, or `null` for the specialist's default. */
+  /** Selected gateway model id. */
   value: string | null;
-  onChange: (value: string | null) => void;
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
-
-const AUTO_LABEL = "Auto";
 
 type IconComponent = ComponentType<{ className?: string }>;
 interface Capability {
@@ -82,6 +80,7 @@ export function ModelSelector({
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeProviderId, setActiveProviderId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const list = useMemo(() => providers ?? [], [providers]);
   const query = search.trim().toLowerCase();
@@ -91,29 +90,23 @@ export function ModelSelector({
     [list, value],
   );
 
-  // Rail opens on the provider that owns the current selection, unless overridden.
-  const valueProviderId =
-    list.find((p) => p.models.some((m) => m.id === value))?.id ?? null;
-  const effectiveProviderId =
-    activeProviderId ?? valueProviderId ?? list[0]?.id ?? null;
+  // The rail tracks whichever provider section is at the top of the scroll.
+  const effectiveProviderId = activeProviderId ?? list[0]?.id ?? null;
   const activeProvider = list.find((p) => p.id === effectiveProviderId) ?? null;
 
-  // Search spans every provider; otherwise show the active provider's models.
-  const results = useMemo(() => {
-    if (query) {
-      return list
-        .flatMap((p) => p.models)
-        .filter((m) =>
-          `${m.name ?? ""} ${m.id} ${m.family ?? ""}`
-            .toLowerCase()
-            .includes(query),
-        );
-    }
-    return activeProvider?.models ?? [];
-  }, [query, list, activeProvider]);
+  // Search spans every provider; otherwise the full catalogue scrolls as one.
+  const searchResults = useMemo(() => {
+    if (!query) return [];
+    return list
+      .flatMap((p) => p.models)
+      .filter((m) =>
+        `${m.name ?? ""} ${m.id} ${m.family ?? ""}`
+          .toLowerCase()
+          .includes(query),
+      );
+  }, [query, list]);
 
-  const triggerLabel =
-    value === null ? AUTO_LABEL : (activeModel?.name ?? value);
+  const triggerLabel = activeModel?.name ?? value ?? "Model";
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
@@ -123,14 +116,38 @@ export function ModelSelector({
     }
   };
 
-  const select = (id: string | null) => {
+  const select = (id: string) => {
     onChange(id);
     setOpen(false);
   };
 
+  // Mark which provider section sits at the top of the viewport as we scroll.
+  const handleScroll = (container: HTMLDivElement) => {
+    const sections = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-provider-id]"),
+    );
+    const threshold = container.scrollTop + 16;
+    let current: string | undefined;
+    for (const section of sections) {
+      if (section.offsetTop <= threshold) current = section.dataset.providerId;
+      else break;
+    }
+    if (current && current !== activeProviderId) setActiveProviderId(current);
+  };
+
+  // Clicking a provider clears any search and scrolls its section to the top.
   const selectProvider = (id: string) => {
     setActiveProviderId(id);
-    setSearch("");
+    if (search) setSearch("");
+    requestAnimationFrame(() => {
+      const container = scrollRef.current;
+      const section = container?.querySelector<HTMLElement>(
+        `[data-provider-id="${id}"]`,
+      );
+      if (container && section) {
+        container.scrollTo({ top: section.offsetTop - 8, behavior: "smooth" });
+      }
+    });
   };
 
   const toggleSearch = () => {
@@ -164,8 +181,8 @@ export function ModelSelector({
         side="top"
         sideOffset={8}
         className={cn(
-          "flex h-[24rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden p-0",
-          expanded ? "w-[34rem]" : "w-[21rem]",
+          "flex h-[min(32rem,75vh)] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden p-0",
+          expanded ? "w-[37rem]" : "w-[24rem]",
         )}
       >
         {/* Header: active provider + search / expand toggles */}
@@ -227,49 +244,61 @@ export function ModelSelector({
             onSelect={selectProvider}
           />
 
-          <ScrollArea className="min-h-0 flex-1">
-            <div
-              className={cn("p-2", expanded ? "space-y-1.5" : "space-y-0.5")}
-            >
-              {!query ? (
-                <AutoOption
-                  expanded={expanded}
-                  selected={value === null}
-                  onSelect={() => select(null)}
-                />
-              ) : null}
-
-              {isLoading ? (
-                <p className="text-muted-foreground px-2 py-6 text-center text-sm">
-                  Loading models…
-                </p>
-              ) : null}
-
-              {results.map((model) =>
-                expanded ? (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    selected={value === model.id}
-                    onSelect={() => select(model.id)}
-                  />
+          <div
+            ref={scrollRef}
+            onScroll={(event) => handleScroll(event.currentTarget)}
+            className="relative min-h-0 flex-1 scrollbar-thin overflow-y-auto overscroll-contain"
+          >
+            {isLoading ? (
+              <p className="text-muted-foreground px-3 py-6 text-center text-sm">
+                Loading models…
+              </p>
+            ) : query ? (
+              <div
+                className={cn("p-2", expanded ? "space-y-1.5" : "space-y-0.5")}
+              >
+                {searchResults.length === 0 ? (
+                  <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+                    No models found
+                  </p>
                 ) : (
-                  <ModelRow
-                    key={model.id}
-                    model={model}
-                    selected={value === model.id}
-                    onSelect={() => select(model.id)}
-                  />
-                ),
-              )}
-
-              {!isLoading && results.length === 0 ? (
-                <p className="text-muted-foreground px-2 py-6 text-center text-sm">
-                  No models found
-                </p>
-              ) : null}
-            </div>
-          </ScrollArea>
+                  searchResults.map((model) => (
+                    <ModelEntry
+                      key={model.id}
+                      model={model}
+                      expanded={expanded}
+                      selected={value === model.id}
+                      onSelect={() => select(model.id)}
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4 p-2">
+                {list.map((provider) => (
+                  <section key={provider.id} data-provider-id={provider.id}>
+                    <ProviderSectionLabel provider={provider} />
+                    <div
+                      className={cn(
+                        "mt-1.5",
+                        expanded ? "space-y-1.5" : "space-y-0.5",
+                      )}
+                    >
+                      {provider.models.map((model) => (
+                        <ModelEntry
+                          key={model.id}
+                          model={model}
+                          expanded={expanded}
+                          selected={value === model.id}
+                          onSelect={() => select(model.id)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -306,7 +335,7 @@ function HeaderButton({
   );
 }
 
-/** Vertical, scrollable strip of provider logos. Clicking one filters the list. */
+/** Vertical, scrollable strip of provider logos; the active one glows green. */
 function ProviderRail({
   providers,
   activeId,
@@ -331,13 +360,20 @@ function ProviderRail({
               aria-pressed={active}
               onClick={() => onSelect(provider.id)}
               className={cn(
-                "flex size-9 items-center justify-center rounded-lg border bg-white transition-all",
+                "flex size-10 shrink-0 items-center justify-center rounded-lg transition-all",
                 active
-                  ? "border-primary ring-primary/30 ring-2"
-                  : "border-border/70 opacity-70 hover:opacity-100",
+                  ? "bg-success/15 ring-success/50 ring-2"
+                  : "hover:bg-muted opacity-70 hover:opacity-100",
               )}
             >
-              <ProviderLogo provider={provider} className="size-5" />
+              <span
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-md border bg-white",
+                  active ? "border-success/40" : "border-border/70",
+                )}
+              >
+                <ProviderLogo provider={provider} className="size-5" />
+              </span>
             </button>
           );
         })}
@@ -359,7 +395,7 @@ function ProviderLogo({
       <span
         aria-label={provider.provider}
         className={cn(
-          "text-muted-foreground flex items-center justify-center rounded bg-transparent text-[10px] font-semibold uppercase",
+          "text-muted-foreground flex items-center justify-center text-[10px] font-semibold uppercase",
           className,
         )}
       >
@@ -377,60 +413,35 @@ function ProviderLogo({
   );
 }
 
-/** "Auto" entry — defers to the active specialist's default model. */
-function AutoOption({
+function ProviderSectionLabel({ provider }: { provider: ModelProvider }) {
+  return (
+    <div className="flex items-center gap-2 px-1">
+      <span className="border-border/70 flex size-5 shrink-0 items-center justify-center rounded border bg-white">
+        <ProviderLogo provider={provider} className="size-3.5" />
+      </span>
+      <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+        {provider.provider}
+      </span>
+    </div>
+  );
+}
+
+/** A single model — expanded card or collapsed row, depending on the mode. */
+function ModelEntry({
+  model,
   expanded,
   selected,
   onSelect,
 }: {
+  model: AiModel;
   expanded: boolean;
   selected: boolean;
   onSelect: () => void;
 }) {
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        className={cn(
-          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-          selected ? "bg-success/10 text-success" : "hover:bg-accent",
-        )}
-      >
-        <Sparkles className="text-brand-accent size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate font-medium">
-          {AUTO_LABEL}
-        </span>
-        {selected ? <Check className="text-success size-4 shrink-0" /> : null}
-      </button>
-    );
-  }
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        "flex w-full items-start gap-2.5 rounded-lg border p-3 text-left transition-colors",
-        selected
-          ? "border-success/50 bg-success/10"
-          : "hover:border-border hover:bg-accent/50 border-transparent",
-      )}
-    >
-      <Sparkles className="text-brand-accent mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0 flex-1">
-        <p className={cn("text-sm font-medium", selected && "text-success")}>
-          {AUTO_LABEL}
-        </p>
-        <p className="text-muted-foreground text-xs">
-          Let the specialist pick the best model for the task.
-        </p>
-      </div>
-      {selected ? (
-        <Check className="text-success mt-0.5 size-4 shrink-0" />
-      ) : null}
-    </button>
+  return expanded ? (
+    <ModelCard model={model} selected={selected} onSelect={onSelect} />
+  ) : (
+    <ModelRow model={model} selected={selected} onSelect={onSelect} />
   );
 }
 
@@ -526,7 +537,7 @@ function ModelRow({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+        "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors",
         locked && "cursor-not-allowed opacity-55",
         selected
           ? "bg-success/10 text-success"

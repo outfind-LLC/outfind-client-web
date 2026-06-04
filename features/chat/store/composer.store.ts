@@ -2,6 +2,9 @@ import { create } from "zustand";
 
 import type { AiSpecialist } from "@/interfaces/enums";
 
+/** Default gateway model — a free-tier model selectable on every plan. */
+export const DEFAULT_MODEL_ID = "alibaba/qwen-3-14b";
+
 /**
  * Composer client state: the active specialist and optional model override, plus
  * a one-shot "pending message" used to hand the first message off from the new-
@@ -22,7 +25,7 @@ interface ComposerState {
 
 export const useComposerStore = create<ComposerState>((set, get) => ({
   specialist: null,
-  model: null,
+  model: DEFAULT_MODEL_ID,
   pending: {},
 
   setSpecialist: (specialist) => set({ specialist }),
