@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ComponentType } from "react";
+import { useMemo, useState, type ComponentType } from "react";
 import {
   Brain,
   BrainCircuit,
@@ -68,7 +68,7 @@ function formatPrice(perMillion?: number): string | null {
   return `$${Number(perMillion.toFixed(2))}`;
 }
 
-/** Model picker: provider rail + searchable, expandable/collapsible model list. */
+/** Model picker: click a provider in the rail to see its models; search spans all. */
 export function ModelSelector({
   value,
   onChange,
@@ -80,7 +80,6 @@ export function ModelSelector({
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeProviderId, setActiveProviderId] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const list = useMemo(() => providers ?? [], [providers]);
   const query = search.trim().toLowerCase();
@@ -90,21 +89,26 @@ export function ModelSelector({
     [list, value],
   );
 
-  // The rail tracks whichever provider section is at the top of the scroll.
-  const effectiveProviderId = activeProviderId ?? list[0]?.id ?? null;
+  // Default to the provider that owns the current model, else the first provider.
+  const valueProviderId =
+    list.find((p) => p.models.some((m) => m.id === value))?.id ?? null;
+  const effectiveProviderId =
+    activeProviderId ?? valueProviderId ?? list[0]?.id ?? null;
   const activeProvider = list.find((p) => p.id === effectiveProviderId) ?? null;
 
-  // Search spans every provider; otherwise the full catalogue scrolls as one.
-  const searchResults = useMemo(() => {
-    if (!query) return [];
-    return list
-      .flatMap((p) => p.models)
-      .filter((m) =>
-        `${m.name ?? ""} ${m.id} ${m.family ?? ""}`
-          .toLowerCase()
-          .includes(query),
-      );
-  }, [query, list]);
+  // Search spans every provider; otherwise show the selected provider's models.
+  const results = useMemo(() => {
+    if (query) {
+      return list
+        .flatMap((p) => p.models)
+        .filter((m) =>
+          `${m.name ?? ""} ${m.id} ${m.family ?? ""}`
+            .toLowerCase()
+            .includes(query),
+        );
+    }
+    return activeProvider?.models ?? [];
+  }, [query, list, activeProvider]);
 
   const triggerLabel = activeModel?.name ?? value ?? "Model";
 
@@ -121,33 +125,13 @@ export function ModelSelector({
     setOpen(false);
   };
 
-  // Mark which provider section sits at the top of the viewport as we scroll.
-  const handleScroll = (container: HTMLDivElement) => {
-    const sections = Array.from(
-      container.querySelectorAll<HTMLElement>("[data-provider-id]"),
-    );
-    const threshold = container.scrollTop + 16;
-    let current: string | undefined;
-    for (const section of sections) {
-      if (section.offsetTop <= threshold) current = section.dataset.providerId;
-      else break;
-    }
-    if (current && current !== activeProviderId) setActiveProviderId(current);
-  };
-
-  // Clicking a provider clears any search and scrolls its section to the top.
+  // Clicking a provider filters the list to that provider's models.
   const selectProvider = (id: string) => {
     setActiveProviderId(id);
-    if (search) setSearch("");
-    requestAnimationFrame(() => {
-      const container = scrollRef.current;
-      const section = container?.querySelector<HTMLElement>(
-        `[data-provider-id="${id}"]`,
-      );
-      if (container && section) {
-        container.scrollTo({ top: section.offsetTop - 8, behavior: "smooth" });
-      }
-    });
+    if (search) {
+      setSearch("");
+      setSearchOpen(false);
+    }
   };
 
   const toggleSearch = () => {
@@ -244,60 +228,30 @@ export function ModelSelector({
             onSelect={selectProvider}
           />
 
-          <div
-            ref={scrollRef}
-            onScroll={(event) => handleScroll(event.currentTarget)}
-            className="relative min-h-0 flex-1 scrollbar-thin overflow-y-auto overscroll-contain"
-          >
-            {isLoading ? (
-              <p className="text-muted-foreground px-3 py-6 text-center text-sm">
-                Loading models…
-              </p>
-            ) : query ? (
-              <div
-                className={cn("p-2", expanded ? "space-y-1.5" : "space-y-0.5")}
-              >
-                {searchResults.length === 0 ? (
-                  <p className="text-muted-foreground px-2 py-6 text-center text-sm">
-                    No models found
-                  </p>
-                ) : (
-                  searchResults.map((model) => (
-                    <ModelEntry
-                      key={model.id}
-                      model={model}
-                      expanded={expanded}
-                      selected={value === model.id}
-                      onSelect={() => select(model.id)}
-                    />
-                  ))
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4 p-2">
-                {list.map((provider) => (
-                  <section key={provider.id} data-provider-id={provider.id}>
-                    <ProviderSectionLabel provider={provider} />
-                    <div
-                      className={cn(
-                        "mt-1.5",
-                        expanded ? "space-y-1.5" : "space-y-0.5",
-                      )}
-                    >
-                      {provider.models.map((model) => (
-                        <ModelEntry
-                          key={model.id}
-                          model={model}
-                          expanded={expanded}
-                          selected={value === model.id}
-                          onSelect={() => select(model.id)}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            )}
+          <div className="min-h-0 flex-1 scrollbar-thin overflow-y-auto overscroll-contain">
+            <div
+              className={cn("p-2", expanded ? "space-y-1.5" : "space-y-0.5")}
+            >
+              {isLoading ? (
+                <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+                  Loading models…
+                </p>
+              ) : results.length === 0 ? (
+                <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+                  No models found
+                </p>
+              ) : (
+                results.map((model) => (
+                  <ModelEntry
+                    key={model.id}
+                    model={model}
+                    expanded={expanded}
+                    selected={value === model.id}
+                    onSelect={() => select(model.id)}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
       </PopoverContent>
@@ -410,19 +364,6 @@ function ProviderLogo({
       className={cn("bg-contain bg-center bg-no-repeat", className)}
       style={{ backgroundImage: `url("${provider.image}")` }}
     />
-  );
-}
-
-function ProviderSectionLabel({ provider }: { provider: ModelProvider }) {
-  return (
-    <div className="flex items-center gap-2 px-1">
-      <span className="border-border/70 flex size-5 shrink-0 items-center justify-center rounded border bg-white">
-        <ProviderLogo provider={provider} className="size-3.5" />
-      </span>
-      <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-        {provider.provider}
-      </span>
-    </div>
   );
 }
 
