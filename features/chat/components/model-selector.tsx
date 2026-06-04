@@ -76,7 +76,7 @@ export function ModelSelector({
 }: ModelSelectorProps) {
   const { data: providers, isLoading } = useModels();
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeProviderId, setActiveProviderId] = useState<string | null>(null);
@@ -161,12 +161,12 @@ export function ModelSelector({
       </PopoverTrigger>
 
       <PopoverContent
-        align="start"
+        align="end"
         side="top"
         sideOffset={8}
         className={cn(
-          "flex h-[min(32rem,75vh)] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden p-0",
-          expanded ? "w-[37rem]" : "w-[24rem]",
+          "flex h-[min(32rem,80vh)] w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden p-0",
+          expanded && "w-[min(37rem,calc(100vw-1.5rem))]",
         )}
       >
         {/* Header: active provider + search / expand toggles */}
@@ -316,14 +316,14 @@ function ProviderRail({
               className={cn(
                 "flex size-10 shrink-0 items-center justify-center rounded-lg transition-all",
                 active
-                  ? "bg-success/15 ring-success/50 ring-2"
+                  ? "bg-success/15"
                   : "hover:bg-muted opacity-70 hover:opacity-100",
               )}
             >
               <span
                 className={cn(
                   "flex size-8 items-center justify-center rounded-md border bg-white",
-                  active ? "border-success/40" : "border-border/70",
+                  "border-border/70",
                 )}
               >
                 <ProviderLogo provider={provider} className="size-5" />

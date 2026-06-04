@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import type { AccountType } from "@/interfaces/enums";
 import { Button } from "@/ui/button";
 import { ModelSelector } from "./model-selector";
-import { SpecialistSelector } from "./specialist-selector";
 import { VoiceInputButton } from "./voice-input-button";
 
 interface ChatComposerProps {
@@ -59,8 +58,6 @@ export function ChatComposer({
   const setSpecialist = useComposerStore((s) => s.setSpecialist);
   const model = useComposerStore((s) => s.model);
   const setModel = useComposerStore((s) => s.setModel);
-
-  const specialist = storeSpecialist ?? getDefaultSpecialist(accountType);
 
   const speech = useSpeechRecognition({
     onTranscript: (transcript) =>
@@ -118,49 +115,40 @@ export function ChatComposer({
         autoFocus={autoFocus}
         rows={1}
         placeholder={speech.listening ? "Listening…" : "Message Jobsterr…"}
-        className="placeholder:text-muted-foreground max-h-52 min-h-[3rem] w-full resize-none scrollbar-thin bg-transparent px-5 pt-4 text-[0.95rem] leading-relaxed outline-none"
+        className="placeholder:text-muted-foreground max-h-52 min-h-[4.5rem] w-full resize-none scrollbar-thin bg-transparent px-5 pt-5 text-[0.95rem] leading-relaxed outline-none"
       />
 
-      <div className="flex items-center gap-2 px-3 pb-3">
-        <SpecialistSelector
-          accountType={accountType}
-          value={specialist}
-          onChange={setSpecialist}
-          disabled={busy}
-        />
-
-        <div className="ml-auto flex items-center gap-1.5">
-          <ModelSelector value={model} onChange={setModel} disabled={busy} />
-          {speech.supported ? (
-            <VoiceInputButton
-              listening={speech.listening}
-              disabled={busy}
-              onClick={toggleDictation}
-            />
-          ) : null}
-          {busy ? (
-            <Button
-              type="button"
-              size="icon"
-              aria-label="Stop"
-              onClick={onStop}
-              className={cn("rounded-full")}
-            >
-              <Square className="size-4 fill-current" />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              size="icon"
-              aria-label="Send"
-              disabled={!input.trim()}
-              onClick={submit}
-              className="rounded-full"
-            >
-              <ArrowUp className="size-4" />
-            </Button>
-          )}
-        </div>
+      <div className="flex items-center justify-end gap-1.5 px-3 pb-3">
+        <ModelSelector value={model} onChange={setModel} disabled={busy} />
+        {speech.supported ? (
+          <VoiceInputButton
+            listening={speech.listening}
+            disabled={busy}
+            onClick={toggleDictation}
+          />
+        ) : null}
+        {busy ? (
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Stop"
+            onClick={onStop}
+            className={cn("rounded-full")}
+          >
+            <Square className="size-4 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Send"
+            disabled={!input.trim()}
+            onClick={submit}
+            className="rounded-full"
+          >
+            <ArrowUp className="size-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ function ChatRuntime({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <MessageList messages={chat.messages} status={chat.status} />
-      <div className="mx-auto w-full max-w-4xl px-4 pb-4">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-4 sm:pb-6">
         <ChatComposer
           accountType={accountType}
           busy={busy}

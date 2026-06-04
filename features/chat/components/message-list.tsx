@@ -52,7 +52,7 @@ export function MessageList({ messages, status }: MessageListProps) {
         onScroll={(event) => handleScroll(event.currentTarget)}
         className="h-full scrollbar-thin overflow-x-hidden overflow-y-auto overscroll-contain"
       >
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-4 sm:py-6">
           {messages.map((message, index) => (
             <MessageBubble
               key={message.id}

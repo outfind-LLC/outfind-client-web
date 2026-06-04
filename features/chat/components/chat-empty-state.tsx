@@ -35,26 +35,26 @@ export function ChatEmptyState({
     accountType === ACCOUNT_TYPE.EMPLOYER ? EMPLOYER_PROMPTS : WORKER_PROMPTS;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 text-center">
-      <span className="from-brand to-brand-2 shadow-primary/20 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg">
-        <Sparkles className="size-7" />
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 text-center sm:gap-6">
+      <span className="from-brand to-brand-2 shadow-primary/20 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg sm:size-14">
+        <Sparkles className="size-6 sm:size-7" />
       </span>
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold sm:text-3xl">
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold sm:text-3xl">
           Hi {firstName}, how can I help?
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm sm:text-base">
           Pick a starting point or just type your own message below.
         </p>
       </div>
 
-      <div className="grid w-full gap-2.5 sm:grid-cols-2">
+      <div className="grid w-full gap-2 sm:grid-cols-2 sm:gap-2.5">
         {prompts.map((prompt) => (
           <button
             key={prompt}
             type="button"
             onClick={() => onPick(prompt)}
-            className="border-border/70 bg-card hover:border-primary/40 hover:bg-muted/50 rounded-xl border p-3.5 text-left text-sm transition-colors"
+            className="border-border/70 bg-card hover:border-primary/40 hover:bg-muted/50 rounded-xl border p-3 text-left text-sm transition-colors sm:p-3.5"
           >
             {prompt}
           </button>
