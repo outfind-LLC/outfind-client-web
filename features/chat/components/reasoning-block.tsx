@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Brain, ChevronDown } from "lucide-react";
+import { Brain, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,31 +11,36 @@ interface ReasoningBlockProps {
   streaming?: boolean;
 }
 
-/** Collapsible "thinking" disclosure for assistant reasoning parts. */
+/** Collapsible "thinking" disclosure, visually distinct from the answer. */
 export function ReasoningBlock({ text, streaming }: ReasoningBlockProps) {
   const [open, setOpen] = useState(false);
   const expanded = open || streaming;
 
   return (
-    <div className="border-border/60 bg-muted/30 rounded-lg border">
+    <div className="text-muted-foreground">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="text-muted-foreground flex w-full items-center gap-2 px-3 py-2 text-xs font-medium"
+        className="hover:text-foreground flex items-center gap-1.5 text-xs font-medium transition-colors"
       >
-        <Brain className="size-3.5" />
-        {streaming ? "Thinking…" : "Reasoning"}
-        <ChevronDown
+        <Brain className={cn("size-3.5", streaming && "animate-pulse")} />
+        <span className={cn(streaming && "animate-pulse")}>
+          {streaming ? "Thinking…" : "Thought process"}
+        </span>
+        <ChevronRight
           className={cn(
-            "ml-auto size-3.5 transition-transform",
-            expanded && "rotate-180",
+            "size-3.5 transition-transform",
+            expanded && "rotate-90",
           )}
         />
       </button>
-      {expanded ? (
-        <p className="text-muted-foreground px-3 pb-3 text-xs leading-relaxed whitespace-pre-wrap">
-          {text}
-        </p>
+
+      {expanded && text ? (
+        <div className="border-border/60 mt-1.5 border-l-2 pl-3">
+          <p className="text-muted-foreground/80 text-xs leading-relaxed break-words whitespace-pre-wrap italic">
+            {text}
+          </p>
+        </div>
       ) : null}
     </div>
   );

@@ -10,6 +10,8 @@ export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
   const toolType =
     part.type === "dynamic-tool" ? `tool-${part.toolName}` : part.type;
 
+  // External job results are intentionally not surfaced in the chat.
+  if (toolType === "tool-searchExternalJobs") return null;
   if (!isJobSearchTool(toolType)) return null;
 
   if (part.state === "input-streaming" || part.state === "input-available") {

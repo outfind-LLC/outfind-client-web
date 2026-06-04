@@ -17,16 +17,20 @@ function toUIRole(role: ChatMessage["role"]): UIRole {
  * to scalar `content` + `reasoning` for older or user messages.
  */
 function toUIMessage(message: ChatMessage): UIMessage {
-  const parts: UIMessage["parts"] = [];
+  const role = toUIRole(message.role);
+  // Carry the saved reaction so the action bar can show it on reload.
+  const metadata = { reaction: message.reaction ?? null };
 
   if (Array.isArray(message.parts) && message.parts.length > 0) {
     return {
       id: message.id,
-      role: toUIRole(message.role),
+      role,
       parts: message.parts as UIMessage["parts"],
+      metadata,
     };
   }
 
+  const parts: UIMessage["parts"] = [];
   if (message.reasoning) {
     parts.push({ type: "reasoning", text: message.reasoning, state: "done" });
   }
@@ -34,11 +38,7 @@ function toUIMessage(message: ChatMessage): UIMessage {
     parts.push({ type: "text", text: message.content, state: "done" });
   }
 
-  return {
-    id: message.id,
-    role: toUIRole(message.role),
-    parts,
-  };
+  return { id: message.id, role, parts, metadata };
 }
 
 /**

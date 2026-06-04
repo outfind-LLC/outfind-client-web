@@ -69,5 +69,7 @@ export function useChatThread(
     id: conversationId,
     transport,
     messages: initialMessages,
+    // Batch token updates so the transcript paints smoothly instead of thrashing.
+    experimental_throttle: 50,
   });
 }

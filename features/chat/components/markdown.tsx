@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 
 /** Element styles for assistant markdown (no typography plugin — explicit map). */
 const COMPONENTS: Components = {
-  p: ({ children }) => <p className="leading-relaxed">{children}</p>,
+  p: ({ children }) => (
+    <p className="leading-relaxed break-words">{children}</p>
+  ),
   h1: ({ children }) => (
     <h1 className="mt-4 mb-2 text-lg font-semibold first:mt-0">{children}</h1>
   ),
@@ -27,7 +29,7 @@ const COMPONENTS: Components = {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="text-primary font-medium underline underline-offset-2"
+      className="text-primary font-medium break-words underline underline-offset-2"
     >
       {children}
     </a>
@@ -39,13 +41,13 @@ const COMPONENTS: Components = {
     const isBlock = className?.includes("language-");
     if (isBlock) {
       return (
-        <code className="bg-muted block overflow-x-auto rounded-lg p-3 font-mono text-xs">
+        <code className="bg-muted block max-w-full overflow-x-auto rounded-lg p-3 font-mono text-xs">
           {children}
         </code>
       );
     }
     return (
-      <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-[0.85em]">
+      <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-[0.85em] break-words">
         {children}
       </code>
     );
@@ -79,7 +81,7 @@ interface MarkdownProps {
 /** Renders assistant text as GitHub-flavoured markdown. */
 export function Markdown({ content, className }: MarkdownProps) {
   return (
-    <div className={cn("space-y-2 text-sm", className)}>
+    <div className={cn("min-w-0 space-y-2 text-sm break-words", className)}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={COMPONENTS}>
         {content}
       </ReactMarkdown>
