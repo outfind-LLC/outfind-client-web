@@ -63,3 +63,14 @@ export interface ListApplicationsQuery {
 export interface UpdateApplicationStatusPayload {
   status: ApplicationStatus;
 }
+
+/** How an application is delivered to the employer. */
+export type ApplicationSendMethod = "PLATFORM" | "DIRECT";
+
+/** Body for `POST /worker/vacancies/:vacancyId/apply` (all fields optional). */
+export interface ApplyToVacancyPayload {
+  coverLetter?: string | null;
+  coverLetterLang?: string | null;
+  cvId?: string | null;
+  sendMethod?: ApplicationSendMethod;
+}

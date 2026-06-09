@@ -2,6 +2,7 @@ import { api } from "@/lib/api/client";
 import { buildQuery } from "@/lib/api/query";
 import type {
   Application,
+  ApplyToVacancyPayload,
   EmployerApplication,
   ListApplicationsQuery,
   UpdateApplicationStatusPayload,
@@ -15,6 +16,17 @@ export const applicationsService = {
   // ─── Worker ──────────────────────────────────────────────────────────────
   async listOwn(query: ListApplicationsQuery = {}): Promise<Application[]> {
     return api.get<Application[]>(`/worker/applications${buildQuery(query)}`);
+  },
+
+  /** Apply to a vacancy (internal, or a saved external job — recorded either way). */
+  async apply(
+    vacancyId: string,
+    payload: ApplyToVacancyPayload = {},
+  ): Promise<Application> {
+    return api.post<Application>(
+      `/worker/vacancies/${vacancyId}/apply`,
+      payload,
+    );
   },
 
   async getOwn(id: string): Promise<Application> {

@@ -2,6 +2,7 @@ import { api } from "@/lib/api/client";
 import { buildQuery } from "@/lib/api/query";
 import type {
   Bookmark,
+  BookmarkPayload,
   ListBookmarksQuery,
 } from "@/interfaces/engagement.interface";
 
@@ -9,6 +10,14 @@ import type {
 export const bookmarksService = {
   async list(query: ListBookmarksQuery = {}): Promise<Bookmark[]> {
     return api.get<Bookmark[]>(`/worker/bookmarks${buildQuery(query)}`);
+  },
+
+  /** Add or update the bookmark for a vacancy (idempotent server-side). */
+  async add(vacancyId: string, payload: BookmarkPayload = {}): Promise<Bookmark> {
+    return api.post<Bookmark>(
+      `/worker/vacancies/${vacancyId}/bookmark`,
+      payload,
+    );
   },
 
   async remove(vacancyId: string): Promise<null> {

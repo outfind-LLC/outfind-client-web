@@ -4,13 +4,26 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
 import { bookmarksService } from "@/features/bookmarks/services/bookmarks.service";
-import type { Bookmark } from "@/interfaces/engagement.interface";
+import type {
+  Bookmark,
+  BookmarkPayload,
+} from "@/interfaces/engagement.interface";
 
 /** Worker: list saved vacancies. */
 export function useBookmarks() {
   return useQuery<Bookmark[]>({
     queryKey: qk.bookmarks,
     queryFn: () => bookmarksService.list(),
+  });
+}
+
+/** Worker: save (bookmark) a vacancy by id. */
+export function useAddBookmark() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { vacancyId: string; payload?: BookmarkPayload }) =>
+      bookmarksService.add(vars.vacancyId, vars.payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.bookmarks }),
   });
 }
 

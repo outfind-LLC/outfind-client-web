@@ -6,6 +6,7 @@ import { qk } from "@/config/query-keys";
 import { applicationsService } from "@/features/applications/services/applications.service";
 import type {
   Application,
+  ApplyToVacancyPayload,
   EmployerApplication,
   UpdateApplicationStatusPayload,
 } from "@/interfaces/application.interface";
@@ -16,6 +17,17 @@ export function useApplications(status?: ApplicationStatus) {
   return useQuery<Application[]>({
     queryKey: qk.applications(status),
     queryFn: () => applicationsService.listOwn(status ? { status } : {}),
+  });
+}
+
+/** Worker: apply to a vacancy by id. Refreshes the applications list. */
+export function useApplyToVacancy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { vacancyId: string; payload?: ApplyToVacancyPayload }) =>
+      applicationsService.apply(vars.vacancyId, vars.payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["applications"] }),
   });
 }
 

@@ -20,6 +20,8 @@ export const qk = {
 
   applications: (status?: string) => ["applications", status ?? "all"] as const,
   bookmarks: ["bookmarks"] as const,
+  vacancyComments: (vacancyId: string) =>
+    ["vacancy", vacancyId, "comments"] as const,
 
   vacancies: (status?: string) => ["vacancies", status ?? "all"] as const,
   vacancy: (id: string) => ["vacancy", id] as const,
