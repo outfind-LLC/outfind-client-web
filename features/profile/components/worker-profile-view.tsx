@@ -8,7 +8,6 @@ import {
   Pencil,
   Trash2,
   X,
-  Sparkles,
   Briefcase,
   GraduationCap,
   FileText,
@@ -1307,12 +1306,6 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
 
       {/* Actions */}
       <div className="space-y-2.5">
-        <Button variant="brand" size="lg" className="w-full" asChild>
-          <Link href={routes.assistant}>
-            <Sparkles className="size-4" />
-            Edit with AI
-          </Link>
-        </Button>
         <Button variant="outline" size="lg" className="w-full" asChild>
           <Link href={routes.profileCv}>
             <FileText className="size-4" />

@@ -3,6 +3,7 @@
 import { CreditCard, Gauge, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { AccentColorPicker } from "@/features/settings/components/accent-color-picker";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import {
@@ -60,8 +61,16 @@ export function SettingsView() {
           <CardTitle className="text-base">Appearance</CardTitle>
           <CardDescription>Choose how Jobsterr looks.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ThemePicker />
+        <CardContent className="space-y-5">
+          <Field label="Theme">
+            <ThemePicker />
+          </Field>
+          <Field
+            label="Accent color"
+            hint="Recolors buttons, links, and highlights across the app."
+          >
+            <AccentColorPicker />
+          </Field>
         </CardContent>
       </Card>
 
@@ -214,6 +223,26 @@ function ThemePicker() {
           {label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <p className="text-sm font-medium">{label}</p>
+        {hint ? <p className="text-muted-foreground text-xs">{hint}</p> : null}
+      </div>
+      {children}
     </div>
   );
 }

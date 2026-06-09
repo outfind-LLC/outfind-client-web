@@ -73,6 +73,12 @@ export default function RootLayout({
     >
       <head>
         <meta name="apple-mobile-web-app-title" content={siteConfig.name} />
+        {/* Apply the saved accent before paint to avoid a flash of the default. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var a=localStorage.getItem('jobsterr-accent');if(a)document.documentElement.dataset.accent=a;}catch(e){}`,
+          }}
+        />
       </head>
       <body className="flex min-h-full flex-col">
         <AppProviders>{children}</AppProviders>

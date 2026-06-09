@@ -2,7 +2,10 @@
 
 import { routes } from "@/config/routes";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
-import { useComposerStore } from "@/features/chat/store/composer.store";
+import {
+  DEFAULT_MODEL_ID,
+  useComposerStore,
+} from "@/features/chat/store/composer.store";
 import { AI_SPECIALIST } from "@/interfaces/enums";
 
 export interface JobSearchParams {
@@ -13,8 +16,7 @@ export interface JobSearchParams {
 
 /** Compose the opening prompt sent to the Job Finder specialist. */
 function buildPrompt({ profession, city }: JobSearchParams): string {
-  const where = city.trim() ? ` in ${city.trim()}` : "";
-  return `Find me ${profession.trim()} jobs${where}. Show the best matches with key details for each role.`;
+  return `Find me ${profession.trim()} jobs in ${city.trim()}. Show the best matches with key details for each role.`;
 }
 
 /**
@@ -25,6 +27,7 @@ function buildPrompt({ profession, city }: JobSearchParams): string {
 export function useStartJobSearch() {
   const setModel = useComposerStore((s) => s.setModel);
   const setSpecialist = useComposerStore((s) => s.setSpecialist);
+  const setJobSearch = useComposerStore((s) => s.setJobSearch);
   const start = useStartConversation(routes.jobsThread);
 
   const startSearch = (
@@ -32,10 +35,21 @@ export function useStartJobSearch() {
     onError?: (error: unknown) => void,
   ) => {
     setSpecialist(AI_SPECIALIST.JOB_FINDER);
-    if (params.model) setModel(params.model);
+    // The Job Finder always needs a model id; fall back to the default gateway
+    // model if the picker didn't yield one.
+    setModel(params.model ?? DEFAULT_MODEL_ID);
     start.mutate(
       { message: buildPrompt(params), specialist: AI_SPECIALIST.JOB_FINDER },
-      { onError },
+      {
+        // Stash the structured inputs against the new conversation so the chat
+        // transport sends profession + city (the Job Finder requires them).
+        onSuccess: (conversation) =>
+          setJobSearch(conversation.id, {
+            profession: params.profession.trim(),
+            city: params.city.trim(),
+          }),
+        onError,
+      },
     );
   };
 

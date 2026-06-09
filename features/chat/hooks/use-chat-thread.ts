@@ -13,6 +13,9 @@ interface SendBody {
   message: string;
   specialist?: AiSpecialist;
   model?: string;
+  /** AI Job Search structured inputs (required by the Job Finder specialist). */
+  profession?: string;
+  city?: string;
 }
 
 /** Flatten the latest user turn's text parts — the backend wants just the new
@@ -49,13 +52,20 @@ export function useChatThread(
         credentials: "include",
         prepareSendMessagesRequest: ({ messages }) => {
           // Read the latest selection at send time (outside React render).
-          const { specialist, model } = useComposerStore.getState();
+          const { specialist, model, jobSearch } = useComposerStore.getState();
           const body: SendBody = {
             conversationId,
             message: lastUserText(messages),
           };
           if (specialist) body.specialist = specialist;
           if (model) body.model = model;
+          // The Job Finder is structured: replay this conversation's profession
+          // and city so the backend can run (and re-run) the search on each turn.
+          const search = jobSearch[conversationId];
+          if (search) {
+            body.profession = search.profession;
+            body.city = search.city;
+          }
           return {
             body,
             headers: { "Idempotency-Key": crypto.randomUUID() },

@@ -86,7 +86,12 @@ function JobSearchForm({
   const [model, setModel] = useState<string | null>(storeModel);
   const { startSearch, isPending } = useStartJobSearch();
 
-  const canSubmit = profession.trim().length > 0 && !isPending;
+  // The Job Finder requires all three server-side — keep the gate in sync.
+  const canSubmit =
+    profession.trim().length > 0 &&
+    city.trim().length > 0 &&
+    Boolean(model) &&
+    !isPending;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -119,10 +124,7 @@ function JobSearchForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="job-city">
-          City{" "}
-          <span className="text-muted-foreground font-normal">(optional)</span>
-        </Label>
+        <Label htmlFor="job-city">City</Label>
         <div className="relative">
           <MapPin className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input

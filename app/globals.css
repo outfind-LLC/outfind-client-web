@@ -116,6 +116,162 @@
   --chart-5: #c084fc;
 }
 
+/*
+ * Accent themes. Settings sets `data-accent` on <html>; each preset re-points
+ * the brand / primary / focus-ring / sidebar-highlight tokens so the whole UI
+ * recolours. Soft tints are derived with color-mix so they track the active
+ * accent and adapt to light/dark. `indigo` is the default = base tokens above.
+ */
+:root[data-accent="blue"] {
+  --primary: #2563eb;
+  --ring: #2563eb;
+  --brand: #2563eb;
+  --brand-2: #3b82f6;
+  --sidebar-primary: #2563eb;
+  --sidebar-ring: #2563eb;
+  --accent-foreground: #2563eb;
+  --sidebar-accent-foreground: #2563eb;
+  --accent: color-mix(in oklab, #2563eb 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #2563eb 12%, var(--background));
+}
+.dark[data-accent="blue"] {
+  --primary: #60a5fa;
+  --ring: #60a5fa;
+  --brand: #60a5fa;
+  --brand-2: #3b82f6;
+  --sidebar-primary: #60a5fa;
+  --sidebar-ring: #60a5fa;
+  --accent-foreground: #bfdbfe;
+  --sidebar-accent-foreground: #bfdbfe;
+  --accent: color-mix(in oklab, #60a5fa 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #60a5fa 25%, var(--background));
+}
+
+:root[data-accent="violet"] {
+  --primary: #7c3aed;
+  --ring: #7c3aed;
+  --brand: #7c3aed;
+  --brand-2: #8b5cf6;
+  --sidebar-primary: #7c3aed;
+  --sidebar-ring: #7c3aed;
+  --accent-foreground: #7c3aed;
+  --sidebar-accent-foreground: #7c3aed;
+  --accent: color-mix(in oklab, #7c3aed 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #7c3aed 12%, var(--background));
+}
+.dark[data-accent="violet"] {
+  --primary: #a78bfa;
+  --ring: #a78bfa;
+  --brand: #a78bfa;
+  --brand-2: #8b5cf6;
+  --sidebar-primary: #a78bfa;
+  --sidebar-ring: #a78bfa;
+  --accent-foreground: #ddd6fe;
+  --sidebar-accent-foreground: #ddd6fe;
+  --accent: color-mix(in oklab, #a78bfa 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #a78bfa 25%, var(--background));
+}
+
+:root[data-accent="emerald"] {
+  --primary: #059669;
+  --ring: #059669;
+  --brand: #059669;
+  --brand-2: #10b981;
+  --sidebar-primary: #059669;
+  --sidebar-ring: #059669;
+  --accent-foreground: #059669;
+  --sidebar-accent-foreground: #059669;
+  --accent: color-mix(in oklab, #059669 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #059669 12%, var(--background));
+}
+.dark[data-accent="emerald"] {
+  --primary: #34d399;
+  --ring: #34d399;
+  --brand: #34d399;
+  --brand-2: #10b981;
+  --sidebar-primary: #34d399;
+  --sidebar-ring: #34d399;
+  --accent-foreground: #a7f3d0;
+  --sidebar-accent-foreground: #a7f3d0;
+  --accent: color-mix(in oklab, #34d399 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #34d399 25%, var(--background));
+}
+
+:root[data-accent="teal"] {
+  --primary: #0d9488;
+  --ring: #0d9488;
+  --brand: #0d9488;
+  --brand-2: #14b8a6;
+  --sidebar-primary: #0d9488;
+  --sidebar-ring: #0d9488;
+  --accent-foreground: #0d9488;
+  --sidebar-accent-foreground: #0d9488;
+  --accent: color-mix(in oklab, #0d9488 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #0d9488 12%, var(--background));
+}
+.dark[data-accent="teal"] {
+  --primary: #2dd4bf;
+  --ring: #2dd4bf;
+  --brand: #2dd4bf;
+  --brand-2: #14b8a6;
+  --sidebar-primary: #2dd4bf;
+  --sidebar-ring: #2dd4bf;
+  --accent-foreground: #99f6e4;
+  --sidebar-accent-foreground: #99f6e4;
+  --accent: color-mix(in oklab, #2dd4bf 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #2dd4bf 25%, var(--background));
+}
+
+:root[data-accent="rose"] {
+  --primary: #e11d48;
+  --ring: #e11d48;
+  --brand: #e11d48;
+  --brand-2: #f43f5e;
+  --sidebar-primary: #e11d48;
+  --sidebar-ring: #e11d48;
+  --accent-foreground: #e11d48;
+  --sidebar-accent-foreground: #e11d48;
+  --accent: color-mix(in oklab, #e11d48 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #e11d48 12%, var(--background));
+}
+.dark[data-accent="rose"] {
+  --primary: #fb7185;
+  --ring: #fb7185;
+  --brand: #fb7185;
+  --brand-2: #f43f5e;
+  --sidebar-primary: #fb7185;
+  --sidebar-ring: #fb7185;
+  --accent-foreground: #fecdd3;
+  --sidebar-accent-foreground: #fecdd3;
+  --accent: color-mix(in oklab, #fb7185 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #fb7185 25%, var(--background));
+}
+
+:root[data-accent="orange"] {
+  --primary: #ea580c;
+  --ring: #ea580c;
+  --brand: #ea580c;
+  --brand-2: #f97316;
+  --sidebar-primary: #ea580c;
+  --sidebar-ring: #ea580c;
+  --accent-foreground: #ea580c;
+  --sidebar-accent-foreground: #ea580c;
+  --accent: color-mix(in oklab, #ea580c 12%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #ea580c 12%, var(--background));
+}
+.dark[data-accent="orange"] {
+  --primary: #fb923c;
+  --ring: #fb923c;
+  --brand: #fb923c;
+  --brand-2: #f97316;
+  --sidebar-primary: #fb923c;
+  --sidebar-ring: #fb923c;
+  --accent-foreground: #fed7aa;
+  --sidebar-accent-foreground: #fed7aa;
+  --accent: color-mix(in oklab, #fb923c 25%, var(--background));
+  --sidebar-accent: color-mix(in oklab, #fb923c 25%, var(--background));
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
