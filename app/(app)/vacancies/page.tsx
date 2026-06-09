@@ -16,7 +16,7 @@ export default function VacanciesPage() {
         description="Manage your open roles."
         actions={
           <Button asChild variant="brand" size="sm">
-            <Link href={routes.chat}>
+            <Link href={routes.vacancyNew}>
               <Plus className="size-4" />
               New vacancy
             </Link>

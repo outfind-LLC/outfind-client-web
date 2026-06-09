@@ -2,8 +2,11 @@ import { api } from "@/lib/api/client";
 import { buildQuery } from "@/lib/api/query";
 import type {
   Application,
+  ApplicationMessage,
   ApplyToVacancyPayload,
+  ConversationScope,
   EmployerApplication,
+  ListApplicationMessagesQuery,
   ListApplicationsQuery,
   UpdateApplicationStatusPayload,
 } from "@/interfaces/application.interface";
@@ -54,6 +57,38 @@ export const applicationsService = {
     return api.patch<EmployerApplication>(
       `/employer/applications/${applicationId}/status`,
       payload,
+    );
+  },
+
+  // ─── Conversation (both scopes share the same shape) ───────────────────────
+  async listMessages(
+    scope: ConversationScope,
+    applicationId: string,
+    query: ListApplicationMessagesQuery = {},
+  ): Promise<ApplicationMessage[]> {
+    return api.get<ApplicationMessage[]>(
+      `/${scope}/applications/${applicationId}/messages${buildQuery(query)}`,
+    );
+  },
+
+  async sendMessage(
+    scope: ConversationScope,
+    applicationId: string,
+    content: string,
+  ): Promise<ApplicationMessage> {
+    return api.post<ApplicationMessage>(
+      `/${scope}/applications/${applicationId}/messages`,
+      { content },
+    );
+  },
+
+  async markMessagesRead(
+    scope: ConversationScope,
+    applicationId: string,
+  ): Promise<null> {
+    return api.patch<null>(
+      `/${scope}/applications/${applicationId}/messages/read`,
+      {},
     );
   },
 };

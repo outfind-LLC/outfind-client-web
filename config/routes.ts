@@ -21,11 +21,14 @@ export const routes = {
   bookmarks: "/bookmarks",
   profile: "/profile",
   profileCv: "/profile/cv",
+  /** Employer company-profile create/edit form. */
+  employerProfile: "/profile/company",
 
   // Employer
   vacancies: "/vacancies",
   vacancyNew: "/vacancies/new",
   vacancy: (id: string) => `/vacancies/${id}`,
+  vacancyEdit: (id: string) => `/vacancies/${id}/edit`,
   applicants: "/applicants",
   vacancyApplicants: (id: string) => `/applicants/${id}`,
 

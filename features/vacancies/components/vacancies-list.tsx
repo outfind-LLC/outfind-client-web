@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Briefcase, MapPin, MoreVertical, Trash2, Users } from "lucide-react";
+import {
+  Briefcase,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
@@ -75,10 +82,10 @@ export function VacanciesList() {
         <EmptyState
           icon={Briefcase}
           title="No vacancies yet"
-          description="Create your first job post in chat with the Vacancy Creation assistant."
+          description="Post your first role so candidates can find and apply to it."
           action={
             <Button asChild variant="brand" size="sm">
-              <Link href={routes.chat}>Create with AI</Link>
+              <Link href={routes.vacancyNew}>New vacancy</Link>
             </Button>
           }
         />
@@ -126,7 +133,12 @@ function VacancyCard({ vacancy }: { vacancy: Vacancy }) {
     <li className="border-border/60 bg-card flex items-start justify-between gap-4 rounded-xl border p-4">
       <div className="min-w-0 space-y-1.5">
         <div className="flex items-center gap-2">
-          <h3 className="truncate font-medium">{vacancy.title}</h3>
+          <Link
+            href={routes.vacancy(vacancy.id)}
+            className="truncate font-medium hover:underline"
+          >
+            {vacancy.title}
+          </Link>
           <Badge variant={meta.variant}>{meta.label}</Badge>
         </div>
         <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
@@ -161,6 +173,13 @@ function VacancyCard({ vacancy }: { vacancy: Vacancy }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem asChild>
+            <Link href={routes.vacancyEdit(vacancy.id)} className="gap-2">
+              <Pencil className="size-4" />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuLabel>Change status</DropdownMenuLabel>
           {STATUS_ACTIONS.map((action) => (
             <DropdownMenuItem

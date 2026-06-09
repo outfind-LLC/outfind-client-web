@@ -1,15 +1,38 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Building2, FileText, MapPin, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
+import {
+  Building2,
+  FileText,
+  Globe,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  ShieldCheck,
+  Trash2,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
+import { toast } from "sonner";
 
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { routes } from "@/config/routes";
+import {
+  useDeleteEmployerProfile,
+  useSetEmployerProfileActive,
+} from "@/features/profile/hooks/use-employer-profile-mutations";
 import {
   EMPLOYER_VERIFICATION_STATUS,
   type EmployerVerificationStatus,
 } from "@/interfaces/enums";
 import type { EmployerProfile } from "@/interfaces/employer-profile.interface";
 import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Switch } from "@/ui/switch";
 
 const VERIFICATION_META: Record<
   EmployerVerificationStatus,
@@ -29,10 +52,23 @@ const VERIFICATION_META: Record<
   },
 };
 
-/** Read view of the employer / company profile. */
+/** Read + manage view of the employer / company profile. */
 export function EmployerProfileView({ profile }: { profile: EmployerProfile }) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const setActive = useSetEmployerProfileActive();
+  const deleteProfile = useDeleteEmployerProfile();
+
   const location = [profile.city, profile.country].filter(Boolean).join(", ");
   const verification = VERIFICATION_META[profile.verificationStatus];
+  const isRejected =
+    profile.verificationStatus === EMPLOYER_VERIFICATION_STATUS.REJECTED;
+
+  const toggleActive = (checked: boolean) =>
+    setActive.mutate(checked, {
+      onSuccess: () =>
+        toast.success(checked ? "Profile is now active" : "Profile hidden"),
+      onError: () => toast.error("Couldn't update visibility"),
+    });
 
   return (
     <div className="space-y-5">
@@ -73,6 +109,12 @@ export function EmployerProfileView({ profile }: { profile: EmployerProfile }) {
                 ) : null}
               </div>
             </div>
+            <Button asChild variant="outline" size="sm" className="shrink-0">
+              <Link href={routes.employerProfile}>
+                <Pencil className="size-4" />
+                Edit
+              </Link>
+            </Button>
           </div>
         </CardHeader>
         {profile.description ? (
@@ -82,6 +124,34 @@ export function EmployerProfileView({ profile }: { profile: EmployerProfile }) {
             </p>
           </CardContent>
         ) : null}
+      </Card>
+
+      {isRejected && profile.rejectionReason ? (
+        <div className="border-destructive/40 bg-destructive/5 text-destructive flex gap-3 rounded-xl border p-4 text-sm">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">Verification was rejected</p>
+            <p className="text-destructive/90">{profile.rejectionReason}</p>
+          </div>
+        </div>
+      ) : null}
+
+      <Card>
+        <CardContent className="flex items-center justify-between gap-4 pt-6">
+          <div>
+            <p className="text-sm font-medium">Profile active</p>
+            <p className="text-muted-foreground text-xs">
+              When off, your company and its vacancies are hidden from
+              candidates.
+            </p>
+          </div>
+          <Switch
+            checked={profile.isActive}
+            onCheckedChange={toggleActive}
+            disabled={setActive.isPending}
+            aria-label="Toggle profile visibility"
+          />
+        </CardContent>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -101,7 +171,108 @@ export function EmployerProfileView({ profile }: { profile: EmployerProfile }) {
           value={profile.trustScore}
         />
       </div>
+
+      <ContactsCard profile={profile} />
+
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => setDeleteOpen(true)}
+          disabled={deleteProfile.isPending}
+        >
+          <Trash2 className="size-4" />
+          Delete company profile
+        </Button>
+      </div>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete company profile?"
+        description="Your company profile will be permanently removed. This can't be undone."
+        confirmLabel="Delete"
+        destructive
+        loading={deleteProfile.isPending}
+        onConfirm={() =>
+          deleteProfile.mutate(undefined, {
+            onSuccess: () => {
+              toast.success("Company profile deleted");
+              setDeleteOpen(false);
+            },
+            onError: () => toast.error("Couldn't delete the profile"),
+          })
+        }
+      />
     </div>
+  );
+}
+
+function ContactsCard({ profile }: { profile: EmployerProfile }) {
+  const rows: { icon: typeof Mail; label: string; value: string; href?: string }[] =
+    [
+      {
+        icon: Mail,
+        label: "Corporate email",
+        value: profile.corporateEmail,
+        href: `mailto:${profile.corporateEmail}`,
+      },
+      profile.phone
+        ? { icon: Phone, label: "Phone", value: profile.phone }
+        : null,
+      {
+        icon: Globe,
+        label: "Company URL",
+        value: profile.companyUrl,
+        href: profile.companyUrl,
+      },
+      profile.website
+        ? {
+            icon: Globe,
+            label: "Website",
+            value: profile.website,
+            href: profile.website,
+          }
+        : null,
+    ].filter(Boolean) as {
+      icon: typeof Mail;
+      label: string;
+      value: string;
+      href?: string;
+    }[];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Contact</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2.5 text-sm">
+        {rows.map((row) => {
+          const Icon = row.icon;
+          return (
+            <div key={row.label} className="flex items-center gap-3">
+              <Icon className="text-muted-foreground size-4 shrink-0" />
+              <span className="text-muted-foreground w-32 shrink-0">
+                {row.label}
+              </span>
+              {row.href ? (
+                <a
+                  href={row.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand truncate hover:underline"
+                >
+                  {row.value}
+                </a>
+              ) : (
+                <span className="truncate font-medium">{row.value}</span>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -19,6 +19,8 @@ export const qk = {
   aiModels: (audience?: string) => ["ai-models", audience ?? "all"] as const,
 
   applications: (status?: string) => ["applications", status ?? "all"] as const,
+  applicationMessages: (applicationId: string) =>
+    ["application", applicationId, "messages"] as const,
   bookmarks: ["bookmarks"] as const,
   vacancyComments: (vacancyId: string) =>
     ["vacancy", vacancyId, "comments"] as const,

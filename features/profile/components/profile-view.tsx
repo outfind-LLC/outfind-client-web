@@ -51,15 +51,21 @@ function ProfileNotSet({ employer }: { employer?: boolean }) {
   return (
     <EmptyState
       icon={UserRound}
-      title="Your profile isn't complete yet"
+      title={
+        employer
+          ? "Set up your company profile"
+          : "Your profile isn't complete yet"
+      }
       description={
         employer
-          ? "Set up your company profile in chat to start posting vacancies."
+          ? "Add your company details to start posting vacancies and hiring."
           : "Build your profile in chat — the CV Builder will guide you step by step."
       }
       action={
         <Button asChild variant="brand" size="sm">
-          <Link href={routes.assistant}>Complete in chat</Link>
+          <Link href={employer ? routes.employerProfile : routes.assistant}>
+            {employer ? "Create company profile" : "Complete in chat"}
+          </Link>
         </Button>
       }
     />

@@ -31,3 +31,30 @@ export interface EmployerProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Body for `POST /employer/profile`. `companyName`, `companyUrl`, and
+ * `corporateEmail` are required; the rest are optional.
+ */
+export interface CreateEmployerProfilePayload {
+  companyName: string;
+  companyUrl: string;
+  corporateEmail: string;
+  companyLogoUrl?: string | null;
+  companySize?: string | null;
+  industry?: string | null;
+  country?: string | null;
+  city?: string | null;
+  description?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  verificationDocs?: string[];
+}
+
+/**
+ * Body for `PATCH /employer/profile` — any subset of the create fields except
+ * `corporateEmail`, which is fixed once the profile exists.
+ */
+export type UpdateEmployerProfilePayload = Partial<
+  Omit<CreateEmployerProfilePayload, "corporateEmail">
+>;

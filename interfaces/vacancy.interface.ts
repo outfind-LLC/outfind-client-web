@@ -70,3 +70,44 @@ export interface ListVacanciesQuery {
 export interface UpdateVacancyStatusPayload {
   status: VacancyStatus;
 }
+
+/**
+ * Body for `POST /employer/vacancies`. Only `title` + `country` are required;
+ * everything else is optional and mirrors the backend create schema.
+ */
+export interface CreateVacancyPayload {
+  title: string;
+  type?: VacancyType | null;
+  country: string;
+  city?: string | null;
+  isRemote?: boolean;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  currency?: string | null;
+  salaryRaw?: string | null;
+  experienceRequired?: ExperienceLevel | null;
+  minExperienceYears?: number | null;
+  vacancyDomain?: string | null;
+  languagesRequired?: string[];
+  drivingRequired?: string[];
+  skillsRequired?: string[];
+  housingProvided?: boolean;
+  visaSponsorshipAvailable?: boolean;
+  relocationAssistance?: boolean;
+  hrEmail?: string | null;
+  hrPhone?: string | null;
+  hrWhatsapp?: string | null;
+  hrLinkedin?: string | null;
+  hrTelegram?: string | null;
+  applicationUrl?: string | null;
+  responsibilities?: string[] | null;
+  requirements?: string[] | null;
+  niceToHave?: string[] | null;
+  benefits?: string[] | null;
+  recruitmentProcess?: string[] | null;
+  requiredDomainExperience?: DomainRequirement[] | null;
+  expiresAt?: string | null;
+}
+
+/** Body for `PATCH /employer/vacancies/:id` — any subset of the create fields. */
+export type UpdateVacancyPayload = Partial<CreateVacancyPayload>;

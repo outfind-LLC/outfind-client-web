@@ -64,6 +64,29 @@ export interface UpdateApplicationStatusPayload {
   status: ApplicationStatus;
 }
 
+/** Which side of an application conversation the caller is on. */
+export type ConversationScope = "worker" | "employer";
+
+/** Who sent an application message. */
+export type ApplicationMessageSender = "WORKER" | "EMPLOYER";
+
+/** A single message in an application conversation (backend `ApplicationMessageView`). */
+export interface ApplicationMessage {
+  id: string;
+  applicationId: string;
+  senderUserId: string;
+  senderRole: ApplicationMessageSender;
+  content: string;
+  readByWorker: boolean;
+  readByEmployer: boolean;
+  createdAt: string;
+}
+
+export interface ListApplicationMessagesQuery {
+  limit?: number;
+  cursor?: string;
+}
+
 /** How an application is delivered to the employer. */
 export type ApplicationSendMethod = "PLATFORM" | "DIRECT";
 

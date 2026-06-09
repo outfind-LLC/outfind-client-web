@@ -1,5 +1,9 @@
 import { api } from "@/lib/api/client";
-import type { EmployerProfile } from "@/interfaces/employer-profile.interface";
+import type {
+  CreateEmployerProfilePayload,
+  EmployerProfile,
+  UpdateEmployerProfilePayload,
+} from "@/interfaces/employer-profile.interface";
 import type {
   WorkerProfile,
   WorkerLanguage,
@@ -67,6 +71,26 @@ export const profileService = {
 
   async getEmployerProfile(): Promise<EmployerProfile> {
     return api.get<EmployerProfile>("/employer/profile");
+  },
+
+  async createEmployerProfile(
+    payload: CreateEmployerProfilePayload,
+  ): Promise<EmployerProfile> {
+    return api.post<EmployerProfile>("/employer/profile", payload);
+  },
+
+  async updateEmployerProfile(
+    payload: UpdateEmployerProfilePayload,
+  ): Promise<EmployerProfile> {
+    return api.patch<EmployerProfile>("/employer/profile", payload);
+  },
+
+  async setEmployerProfileActive(isActive: boolean): Promise<EmployerProfile> {
+    return api.patch<EmployerProfile>("/employer/profile/active", { isActive });
+  },
+
+  async deleteEmployerProfile(): Promise<null> {
+    return api.delete<null>("/employer/profile");
   },
 
   async updateJobSearchInfo(

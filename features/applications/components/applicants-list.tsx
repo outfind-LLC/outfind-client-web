@@ -1,10 +1,12 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { useState } from "react";
+import { MessageSquare, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { UserAvatar } from "@/components/user-avatar";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
+import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
 import {
   useUpdateApplicationStatus,
   useVacancyApplicants,
@@ -84,6 +86,7 @@ function ApplicantCard({
   vacancyId: string;
 }) {
   const updateStatus = useUpdateApplicationStatus(vacancyId);
+  const [convoOpen, setConvoOpen] = useState(false);
   const meta = APPLICATION_STATUS_META[application.status];
   const { applicant } = application;
 
@@ -119,25 +122,50 @@ function ApplicantCard({
         </p>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" disabled={updateStatus.isPending}>
-            Set status
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Move to</DropdownMenuLabel>
-          {TRIAGE_STATUSES.map((status) => (
-            <DropdownMenuItem
-              key={status}
-              onClick={() => setStatus(status)}
-              disabled={application.status === status}
+      <div className="flex shrink-0 items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Message applicant"
+          onClick={() => setConvoOpen(true)}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <MessageSquare className="size-4" />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={updateStatus.isPending}
             >
-              {APPLICATION_STATUS_META[status].label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              Set status
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Move to</DropdownMenuLabel>
+            {TRIAGE_STATUSES.map((status) => (
+              <DropdownMenuItem
+                key={status}
+                onClick={() => setStatus(status)}
+                disabled={application.status === status}
+              >
+                {APPLICATION_STATUS_META[status].label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <ConversationDialog
+        open={convoOpen}
+        onOpenChange={setConvoOpen}
+        scope="employer"
+        applicationId={application.id}
+        title={applicant.name}
+        subtitle={applicant.profession ?? undefined}
+      />
     </li>
   );
 }

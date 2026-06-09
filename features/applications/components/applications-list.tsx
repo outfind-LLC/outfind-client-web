@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Building2, FileText, MapPin, Trash2 } from "lucide-react";
+import { Building2, FileText, MapPin, MessageSquare, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
+import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
 import {
   useApplications,
   useWithdrawApplication,
@@ -75,6 +76,7 @@ export function ApplicationsList() {
 
 function ApplicationCard({ application }: { application: Application }) {
   const withdraw = useWithdrawApplication();
+  const [convoOpen, setConvoOpen] = useState(false);
   const meta = APPLICATION_STATUS_META[application.status];
   const { vacancy } = application;
   const location = [vacancy.city, vacancy.country].filter(Boolean).join(", ");
@@ -113,17 +115,38 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Withdraw application"
-        onClick={onWithdraw}
-        disabled={withdraw.isPending}
-        className="text-muted-foreground hover:text-destructive shrink-0"
-      >
-        <Trash2 className="size-4" />
-      </Button>
+      <div className="flex shrink-0 items-center gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Messages"
+          onClick={() => setConvoOpen(true)}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <MessageSquare className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Withdraw application"
+          onClick={onWithdraw}
+          disabled={withdraw.isPending}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      <ConversationDialog
+        open={convoOpen}
+        onOpenChange={setConvoOpen}
+        scope="worker"
+        applicationId={application.id}
+        title={vacancy.title}
+        subtitle={vacancy.companyName ?? undefined}
+      />
     </li>
   );
 }

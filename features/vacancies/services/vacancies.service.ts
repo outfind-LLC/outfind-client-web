@@ -1,13 +1,14 @@
 import { api } from "@/lib/api/client";
 import { buildQuery } from "@/lib/api/query";
 import type {
+  CreateVacancyPayload,
   ListVacanciesQuery,
+  UpdateVacancyPayload,
   UpdateVacancyStatusPayload,
   Vacancy,
 } from "@/interfaces/vacancy.interface";
 
-/** Employer vacancies API service (list, detail, status, delete). Creation and
- * editing happen through the Vacancy Creation AI specialist in chat. */
+/** Employer vacancies API service: full CRUD plus status lifecycle. */
 export const vacanciesService = {
   async listOwn(query: ListVacanciesQuery = {}): Promise<Vacancy[]> {
     return api.get<Vacancy[]>(`/employer/vacancies${buildQuery(query)}`);
@@ -15,6 +16,14 @@ export const vacanciesService = {
 
   async getOwn(id: string): Promise<Vacancy> {
     return api.get<Vacancy>(`/employer/vacancies/${id}`);
+  },
+
+  async create(payload: CreateVacancyPayload): Promise<Vacancy> {
+    return api.post<Vacancy>("/employer/vacancies", payload);
+  },
+
+  async update(id: string, payload: UpdateVacancyPayload): Promise<Vacancy> {
+    return api.patch<Vacancy>(`/employer/vacancies/${id}`, payload);
   },
 
   async updateStatus(
