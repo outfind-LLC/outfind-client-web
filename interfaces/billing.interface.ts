@@ -33,3 +33,11 @@ export interface CreateCheckoutPayload {
   planCode: string;
   interval?: "month" | "year";
 }
+
+/** One-time pay-as-you-go vacancy grants (employer). */
+export type PaygGrantType = "WEEKLY_JOB" | "MONTHLY_JOB";
+
+/** Body for `POST /billing/checkout/payg`. */
+export interface CreatePaygCheckoutPayload {
+  grantType: PaygGrantType;
+}

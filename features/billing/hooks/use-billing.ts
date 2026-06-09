@@ -6,6 +6,7 @@ import { qk } from "@/config/query-keys";
 import { billingService } from "@/features/billing/services/billing.service";
 import type {
   CreateCheckoutPayload,
+  CreatePaygCheckoutPayload,
   MySubscription,
 } from "@/interfaces/billing.interface";
 
@@ -32,6 +33,17 @@ export function useCheckout() {
   return useMutation({
     mutationFn: (payload: CreateCheckoutPayload) =>
       billingService.createCheckout(payload),
+    onSuccess: ({ url }) => {
+      window.location.href = url;
+    },
+  });
+}
+
+/** Start a one-time pay-as-you-go vacancy checkout and redirect to Polar. */
+export function usePaygCheckout() {
+  return useMutation({
+    mutationFn: (payload: CreatePaygCheckoutPayload) =>
+      billingService.createPaygCheckout(payload),
     onSuccess: ({ url }) => {
       window.location.href = url;
     },

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth/hooks/use-session";
-import { useCheckout } from "@/features/billing/hooks/use-billing";
+import { useCheckout, usePaygCheckout } from "@/features/billing/hooks/use-billing";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { usePublicPricing } from "@/features/billing/hooks/use-pricing";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
+import type { PaygGrantType } from "@/interfaces/billing.interface";
 import type { PublicPlan } from "@/interfaces/plan.interface";
 import { ACCOUNT_TYPE, PLAN_AUDIENCE } from "@/interfaces/enums";
 import { Badge } from "@/ui/badge";
@@ -188,6 +189,92 @@ export function UpgradeView() {
             </article>
           );
         })}
+      </div>
+
+      {audience === PLAN_AUDIENCE.EMPLOYER ? <PaygSection /> : null}
+    </div>
+  );
+}
+
+const PAYG_OPTIONS: {
+  grantType: PaygGrantType;
+  title: string;
+  price: string;
+  window: string;
+  blurb: string;
+}[] = [
+  {
+    grantType: "WEEKLY_JOB",
+    title: "Weekly job slot",
+    price: "$1",
+    window: "7 days",
+    blurb: "Post one vacancy and unlock the AI hiring tools for a week.",
+  },
+  {
+    grantType: "MONTHLY_JOB",
+    title: "Monthly job slot",
+    price: "$3",
+    window: "30 days",
+    blurb: "Post one vacancy and unlock the AI hiring tools for a month.",
+  },
+];
+
+/** One-time vacancy slots for employers who don't want a subscription. */
+function PaygSection() {
+  const payg = usePaygCheckout();
+
+  const buy = (grantType: PaygGrantType) =>
+    payg.mutate(
+      { grantType },
+      {
+        onError: (error) =>
+          toast.error(
+            isApiClientError(error)
+              ? error.message
+              : "Couldn't start checkout. Please try again.",
+          ),
+      },
+    );
+
+  return (
+    <div className="border-border/60 space-y-4 border-t pt-8">
+      <div className="space-y-1">
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          <Zap className="text-brand size-4" />
+          Pay as you go
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          No subscription — buy a single time-boxed vacancy slot.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {PAYG_OPTIONS.map((option) => (
+          <div
+            key={option.grantType}
+            className="bg-card border-border/60 flex flex-col rounded-2xl border p-5"
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <h3 className="font-semibold">{option.title}</h3>
+              <span className="text-2xl font-bold tracking-tight">
+                {option.price}
+              </span>
+            </div>
+            <p className="text-muted-foreground mt-1 text-xs">
+              {option.window} access
+            </p>
+            <p className="text-foreground/90 mt-3 flex-1 text-sm">
+              {option.blurb}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4 w-full"
+              onClick={() => buy(option.grantType)}
+              disabled={payg.isPending}
+            >
+              Buy slot
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );

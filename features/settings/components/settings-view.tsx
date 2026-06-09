@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { CreditCard, Gauge, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -9,8 +9,10 @@ import {
   useBillingPortal,
   useSubscription,
 } from "@/features/billing/hooks/use-billing";
+import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { AnnotatedFeature } from "@/interfaces/plan.interface";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import {
@@ -50,6 +52,8 @@ export function SettingsView() {
       </Card>
 
       <SubscriptionCard />
+
+      <UsageCard />
 
       <Card>
         <CardHeader>
@@ -130,6 +134,63 @@ function SubscriptionCard() {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function UsageCard() {
+  const { features, isLoading } = useMyPlan();
+  const metered = features.filter(
+    (feature) => feature.allowed && feature.limit !== null && feature.limit > 0,
+  );
+
+  if (!isLoading && metered.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Gauge className="text-primary size-4" />
+          Usage
+        </CardTitle>
+        <CardDescription>Your metered allowances this period.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <p className="text-muted-foreground text-sm">Loading…</p>
+        ) : (
+          metered.map((feature) => (
+            <UsageRow key={feature.key} feature={feature} />
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function UsageRow({ feature }: { feature: AnnotatedFeature }) {
+  const limit = feature.limit ?? 0;
+  const used = feature.used ?? 0;
+  const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  const period = feature.period
+    ? feature.period.toLowerCase().replace(/_/g, " ")
+    : null;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="truncate">{feature.name}</span>
+        <span className="text-muted-foreground shrink-0">
+          {used} / {limit}
+          {period ? ` · ${period}` : ""}
+        </span>
+      </div>
+      <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+        <div
+          className="bg-primary h-full rounded-full transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   );
 }
 

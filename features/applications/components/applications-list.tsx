@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Building2, FileText, MapPin, MessageSquare, Trash2 } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  Flag,
+  MapPin,
+  MessageSquare,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
 import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
+import { ReportEmployerDialog } from "@/features/trust/components/report-employer-dialog";
 import {
   useApplications,
   useWithdrawApplication,
@@ -77,6 +85,7 @@ export function ApplicationsList() {
 function ApplicationCard({ application }: { application: Application }) {
   const withdraw = useWithdrawApplication();
   const [convoOpen, setConvoOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const meta = APPLICATION_STATUS_META[application.status];
   const { vacancy } = application;
   const location = [vacancy.city, vacancy.country].filter(Boolean).join(", ");
@@ -126,6 +135,18 @@ function ApplicationCard({ application }: { application: Application }) {
         >
           <MessageSquare className="size-4" />
         </Button>
+        {vacancy.employerId ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Report employer"
+            onClick={() => setReportOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Flag className="size-4" />
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
@@ -147,6 +168,15 @@ function ApplicationCard({ application }: { application: Application }) {
         title={vacancy.title}
         subtitle={vacancy.companyName ?? undefined}
       />
+
+      {vacancy.employerId ? (
+        <ReportEmployerDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          employerId={vacancy.employerId}
+          companyName={vacancy.companyName}
+        />
+      ) : null}
     </li>
   );
 }

@@ -27,6 +27,7 @@ export const qk = {
 
   vacancies: (status?: string) => ["vacancies", status ?? "all"] as const,
   vacancy: (id: string) => ["vacancy", id] as const,
+  recommendations: ["recommendations"] as const,
   applicants: (vacancyId?: string) =>
     ["applicants", vacancyId ?? "all"] as const,
 

@@ -2,6 +2,7 @@ import { api } from "@/lib/api/client";
 import type {
   CheckoutResult,
   CreateCheckoutPayload,
+  CreatePaygCheckoutPayload,
   MySubscription,
   PortalResult,
 } from "@/interfaces/billing.interface";
@@ -15,6 +16,12 @@ export const billingService = {
     payload: CreateCheckoutPayload,
   ): Promise<CheckoutResult> {
     return api.post<CheckoutResult>("/billing/checkout", payload);
+  },
+
+  async createPaygCheckout(
+    payload: CreatePaygCheckoutPayload,
+  ): Promise<CheckoutResult> {
+    return api.post<CheckoutResult>("/billing/checkout/payg", payload);
   },
 
   async getPortal(): Promise<PortalResult> {

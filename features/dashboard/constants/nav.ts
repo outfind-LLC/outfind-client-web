@@ -6,6 +6,7 @@ import {
   Sparkles,
   UserRound,
   Users,
+  Wand2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,6 +24,7 @@ export interface NavItem {
 const WORKER_NAV: NavItem[] = [
   { label: "Job Search", href: routes.jobs, icon: Search },
   { label: "AI Assistant", href: routes.assistant, icon: Sparkles },
+  { label: "AI Tools", href: routes.tools, icon: Wand2 },
   { label: "Applications", href: routes.applications, icon: FileText },
   { label: "Bookmarks", href: routes.bookmarks, icon: Bookmark },
   { label: "Profile", href: routes.profile, icon: UserRound },

@@ -66,6 +66,20 @@ export interface ListVacanciesQuery {
   cursor?: string;
 }
 
+/** A vacancy recommended to a worker (`GET /worker/recommendations`). */
+export interface RecommendedVacancy {
+  id: string;
+  title: string;
+  country: string;
+  city: string | null;
+  status: VacancyStatus;
+  employerId: string | null;
+  companyName: string | null;
+  matchScore: number | null;
+  isBestMatch: boolean;
+  postedAt: string | null;
+}
+
 /** Body for `PATCH /employer/vacancies/:id/status`. */
 export interface UpdateVacancyStatusPayload {
   status: VacancyStatus;

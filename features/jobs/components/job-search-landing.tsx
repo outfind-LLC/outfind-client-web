@@ -9,6 +9,7 @@ import { useConversations } from "@/features/chat/hooks/use-conversations";
 import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
+import { RecommendationsSection } from "@/features/recommendations/components/recommendations-section";
 import { formatRelativeTime } from "@/lib/format";
 import { AI_SPECIALIST } from "@/interfaces/enums";
 import type { Conversation } from "@/interfaces/chat.interface";
@@ -90,6 +91,10 @@ export function JobSearchLanding() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="mt-10">
+        <RecommendationsSection enabled={Boolean(isWorker)} />
       </section>
 
       <section className="mt-10">
