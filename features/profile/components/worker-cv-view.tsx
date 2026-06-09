@@ -185,7 +185,7 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
       <div className="fixed right-0 bottom-0 left-0 border-t bg-background/95 px-4 py-3 backdrop-blur-sm">
         <div className="mx-auto max-w-2xl">
           <Button variant="brand" size="lg" className="w-full" asChild>
-            <Link href={routes.chat}>
+            <Link href={routes.assistant}>
               <Sparkles className="size-4" />
               Edit with AI
             </Link>

@@ -9,11 +9,18 @@ export const routes = {
   onboarding: "/onboarding",
 
   // Worker
+  /** Session-aware dispatcher → redirects to the account's default tab. */
   chat: "/chat",
   chatThread: (id: string) => `/chat/${id}`,
+  // The two primary tabs that replace the old single chat surface.
+  jobs: "/jobs",
+  jobsThread: (id: string) => `/jobs/${id}`,
+  assistant: "/assistant",
+  assistantThread: (id: string) => `/assistant/${id}`,
   applications: "/applications",
   bookmarks: "/bookmarks",
   profile: "/profile",
+  profileCv: "/profile/cv",
 
   // Employer
   vacancies: "/vacancies",
@@ -33,6 +40,8 @@ export const routes = {
 /** Routes that require an authenticated session (enforced in proxy.ts). */
 export const PROTECTED_PREFIXES = [
   "/chat",
+  "/jobs",
+  "/assistant",
   "/applications",
   "/bookmarks",
   "/profile",

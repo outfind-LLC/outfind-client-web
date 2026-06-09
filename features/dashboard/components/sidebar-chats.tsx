@@ -7,13 +7,17 @@ import { MoreVertical, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { routes } from "@/config/routes";
 import {
   useConversations,
   useDeleteConversation,
   usePinConversation,
   useRenameConversation,
 } from "@/features/chat/hooks/use-conversations";
+import {
+  conversationHref,
+  tabForConversation,
+  tabForPath,
+} from "@/features/chat/lib/conversation-route";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/interfaces/chat.interface";
@@ -36,11 +40,19 @@ import {
 import { Input } from "@/ui/input";
 import { Skeleton } from "@/ui/skeleton";
 
-const SIDEBAR_CHAT_LIMIT = 20;
+// Aligned with the Job Search landing query so both share one cached fetch.
+const SIDEBAR_CHAT_LIMIT = 50;
 const MAX_TITLE_LENGTH = 120;
 
-/** Recent conversations, split into Pinned and Chats sections (like Claude). */
+/**
+ * Recent conversations for the active tab, split into Pinned and recent
+ * sections. The history is contextual: Job Search shows past searches, the AI
+ * Assistant shows everything else. There's no server-side specialist filter, so
+ * we fetch the newest page and partition client-side.
+ */
 export function SidebarChats() {
+  const pathname = usePathname();
+  const tab = tabForPath(pathname);
   const { data, isLoading } = useConversations({ limit: SIDEBAR_CHAT_LIMIT });
 
   if (isLoading) {
@@ -53,7 +65,11 @@ export function SidebarChats() {
     );
   }
 
-  const conversations = data ?? [];
+  const recentLabel = tab === "jobs" ? "Searches" : "Chats";
+  const emptyLabel = tab === "jobs" ? "No searches yet" : "No chats yet";
+  const conversations = (data ?? []).filter(
+    (c) => tabForConversation(c) === tab,
+  );
   const pinned = conversations.filter((c) => c.isPinned);
   const recent = conversations.filter((c) => !c.isPinned);
 
@@ -64,14 +80,14 @@ export function SidebarChats() {
       ) : null}
 
       {recent.length > 0 ? (
-        <ChatGroup label="Chats" conversations={recent} />
+        <ChatGroup label={recentLabel} conversations={recent} />
       ) : null}
 
       {conversations.length === 0 ? (
         <div className="flex flex-col gap-0.5">
-          <GroupLabel>Chats</GroupLabel>
+          <GroupLabel>{recentLabel}</GroupLabel>
           <p className="text-sidebar-foreground/50 px-3 py-1.5 text-sm">
-            No chats yet
+            {emptyLabel}
           </p>
         </div>
       ) : null}
@@ -112,9 +128,11 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const href = routes.chatThread(conversation.id);
+  const href = conversationHref(conversation);
   const active = pathname === href;
-  const title = conversation.title ?? "New chat";
+  const title =
+    conversation.title ??
+    (tabForConversation(conversation) === "jobs" ? "Job search" : "New chat");
   const pinned = conversation.isPinned;
 
   const togglePin = () =>

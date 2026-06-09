@@ -2,27 +2,39 @@
 
 import { toast } from "sonner";
 
+import { routes } from "@/config/routes";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { isApiClientError } from "@/lib/api/error";
+import type { AiSpecialist } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
 import { ChatEmptyState } from "./chat-empty-state";
 import { SpecialistChips } from "./specialist-chips";
 
+interface NewChatScreenProps {
+  /** Where the freshly-created conversation thread lives (per tab). */
+  threadHref?: (id: string) => string;
+  /** Specialist used when the composer hasn't picked one explicitly. */
+  defaultSpecialist?: AiSpecialist;
+}
+
 /** The "New chat" screen. Sending the first message creates a conversation and
  * routes to its thread (which auto-sends the queued message). */
-export function NewChatScreen() {
+export function NewChatScreen({
+  threadHref = routes.assistantThread,
+  defaultSpecialist,
+}: NewChatScreenProps = {}) {
   const { user } = useSession();
   const specialist = useComposerStore((s) => s.specialist);
-  const startConversation = useStartConversation();
+  const startConversation = useStartConversation(threadHref);
 
   if (!user) return null;
 
   const send = (text: string) => {
     if (startConversation.isPending) return;
     startConversation.mutate(
-      { message: text, specialist: specialist ?? undefined },
+      { message: text, specialist: specialist ?? defaultSpecialist },
       {
         onError: (error) =>
           toast.error(

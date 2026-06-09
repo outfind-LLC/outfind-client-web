@@ -1,6 +1,19 @@
-import { NewChatScreen } from "@/features/chat/components/new-chat-screen";
+import { redirect } from "next/navigation";
 
-/** New chat — empty state + composer; the first send creates the conversation. */
-export default function ChatPage() {
-  return <NewChatScreen />;
+import { routes } from "@/config/routes";
+import { ACCOUNT_TYPE } from "@/interfaces/enums";
+import { getServerSession } from "@/lib/api/server";
+
+/**
+ * Legacy chat entry, now a session-aware dispatcher to the account's default
+ * tab: workers land on Job Search, employers on the AI Assistant. Keeps every
+ * existing `routes.chat` link and post-login redirect working after the move to
+ * the two-tab layout. The `(app)` layout already guarantees a session.
+ */
+export default async function ChatPage() {
+  const session = await getServerSession();
+  if (session?.accountType === ACCOUNT_TYPE.EMPLOYER) {
+    redirect(routes.assistant);
+  }
+  redirect(routes.jobs);
 }

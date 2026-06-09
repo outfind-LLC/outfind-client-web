@@ -19,9 +19,7 @@ import { WorkerProfileView } from "./worker-profile-view";
 export function ProfileView() {
   const { user, isWorker, isEmployer } = useSession();
 
-  const workerQuery = useWorkerProfile(
-    Boolean(isWorker && user?.isWorkerProfileSet),
-  );
+  const workerQuery = useWorkerProfile(Boolean(isWorker));
   const employerQuery = useEmployerProfile(
     Boolean(isEmployer && user?.isEmployerProfileSet),
   );
@@ -31,11 +29,11 @@ export function ProfileView() {
   }
 
   if (isWorker) {
-    if (!user.isWorkerProfileSet) return <ProfileNotSet />;
     if (workerQuery.isLoading) return <CenteredSpinner />;
     if (workerQuery.data)
       return <WorkerProfileView profile={workerQuery.data} />;
-    return <ProfileError />;
+    if (workerQuery.isError) return <ProfileNotSet />;
+    return <CenteredSpinner />;
   }
 
   if (isEmployer) {
@@ -61,7 +59,7 @@ function ProfileNotSet({ employer }: { employer?: boolean }) {
       }
       action={
         <Button asChild variant="brand" size="sm">
-          <Link href={routes.chat}>Complete in chat</Link>
+          <Link href={routes.assistant}>Complete in chat</Link>
         </Button>
       }
     />

@@ -2,7 +2,8 @@ import {
   Bookmark,
   Briefcase,
   FileText,
-  MessageSquarePlus,
+  Search,
+  Sparkles,
   UserRound,
   Users,
   type LucideIcon,
@@ -15,29 +16,20 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  /** Highlight only on exact match (e.g. "New chat" shouldn't match threads). */
+  /** Highlight only on exact match (e.g. a tab root shouldn't match its threads). */
   exact?: boolean;
 }
 
 const WORKER_NAV: NavItem[] = [
-  {
-    label: "New chat",
-    href: routes.chat,
-    icon: MessageSquarePlus,
-    exact: true,
-  },
+  { label: "Job Search", href: routes.jobs, icon: Search },
+  { label: "AI Assistant", href: routes.assistant, icon: Sparkles },
   { label: "Applications", href: routes.applications, icon: FileText },
   { label: "Bookmarks", href: routes.bookmarks, icon: Bookmark },
   { label: "Profile", href: routes.profile, icon: UserRound },
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
-  {
-    label: "New chat",
-    href: routes.chat,
-    icon: MessageSquarePlus,
-    exact: true,
-  },
+  { label: "AI Assistant", href: routes.assistant, icon: Sparkles },
   { label: "Vacancies", href: routes.vacancies, icon: Briefcase },
   { label: "Applicants", href: routes.applicants, icon: Users },
   { label: "Profile", href: routes.profile, icon: UserRound },

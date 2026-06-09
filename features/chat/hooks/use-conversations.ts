@@ -23,10 +23,13 @@ export function useConversations(query: ListConversationsQuery = {}) {
 
 /**
  * Start a new conversation, queue the first message for auto-send, and route to
- * its thread. Used by the new-chat composer so the URL becomes `/chat/<id>`
- * before streaming begins.
+ * its thread. `buildHref` controls the destination so each tab lands the new
+ * conversation under its own surface (Job Search → `/jobs/<id>`, AI Assistant →
+ * `/assistant/<id>`); the queued message auto-sends once the thread mounts.
  */
-export function useStartConversation() {
+export function useStartConversation(
+  buildHref: (id: string) => string = routes.assistantThread,
+) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const queuePending = useComposerStore((s) => s.queuePending);
@@ -37,7 +40,7 @@ export function useStartConversation() {
     onSuccess: (conversation, vars) => {
       queuePending(conversation.id, vars.message);
       queryClient.invalidateQueries({ queryKey: qk.conversations() });
-      router.push(routes.chatThread(conversation.id));
+      router.push(buildHref(conversation.id));
     },
   });
 }
