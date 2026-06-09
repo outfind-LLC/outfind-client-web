@@ -10,12 +10,14 @@ import {
   useWorkerProfile,
 } from "@/features/profile/hooks/use-profile";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
+import { isApiClientError } from "@/lib/api/error";
 import { Button } from "@/ui/button";
 import { EmployerProfileView } from "./employer-profile-view";
+import { WorkerProfileSetup } from "./worker-profile-setup";
 import { WorkerProfileView } from "./worker-profile-view";
 
-/** Resolves the right profile for the session's account type. Profiles are built
- * conversationally, so an unset profile shows a "complete in chat" prompt. */
+/** Resolves the right profile for the session's account type. A worker with no
+ * profile yet gets a guided setup; an employer gets a create-profile CTA. */
 export function ProfileView() {
   const { user, isWorker, isEmployer } = useSession();
 
@@ -29,15 +31,21 @@ export function ProfileView() {
   }
 
   if (isWorker) {
-    if (workerQuery.isLoading) return <CenteredSpinner />;
     if (workerQuery.data)
       return <WorkerProfileView profile={workerQuery.data} />;
-    if (workerQuery.isError) return <ProfileNotSet />;
+    if (workerQuery.isError) {
+      // A 404 means the worker simply hasn't set up a profile yet — guide them
+      // through creating one. Any other error is a genuine load failure.
+      const notFound =
+        isApiClientError(workerQuery.error) &&
+        workerQuery.error.status === 404;
+      return notFound ? <WorkerProfileSetup /> : <ProfileError />;
+    }
     return <CenteredSpinner />;
   }
 
   if (isEmployer) {
-    if (!user.isEmployerProfileSet) return <ProfileNotSet employer />;
+    if (!user.isEmployerProfileSet) return <EmployerProfileNotSet />;
     if (employerQuery.isLoading) return <CenteredSpinner />;
     if (employerQuery.data)
       return <EmployerProfileView profile={employerQuery.data} />;
@@ -47,25 +55,15 @@ export function ProfileView() {
   return <ProfileError />;
 }
 
-function ProfileNotSet({ employer }: { employer?: boolean }) {
+function EmployerProfileNotSet() {
   return (
     <EmptyState
       icon={UserRound}
-      title={
-        employer
-          ? "Set up your company profile"
-          : "Your profile isn't complete yet"
-      }
-      description={
-        employer
-          ? "Add your company details to start posting vacancies and hiring."
-          : "Build your profile in chat — the CV Builder will guide you step by step."
-      }
+      title="Set up your company profile"
+      description="Add your company details to start posting vacancies and hiring."
       action={
         <Button asChild variant="brand" size="sm">
-          <Link href={employer ? routes.employerProfile : routes.assistant}>
-            {employer ? "Create company profile" : "Complete in chat"}
-          </Link>
+          <Link href={routes.employerProfile}>Create company profile</Link>
         </Button>
       }
     />

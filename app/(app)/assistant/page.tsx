@@ -1,4 +1,3 @@
-import { routes } from "@/config/routes";
 import { NewChatScreen } from "@/features/chat/components/new-chat-screen";
 
 /**
@@ -7,5 +6,5 @@ import { NewChatScreen } from "@/features/chat/components/new-chat-screen";
  * default is left to the composer/backend so it adapts to the account audience.
  */
 export default function AssistantPage() {
-  return <NewChatScreen threadHref={routes.assistantThread} />;
+  return <NewChatScreen tab="assistant" />;
 }

@@ -13,8 +13,13 @@ import { ChatEmptyState } from "./chat-empty-state";
 import { SpecialistChips } from "./specialist-chips";
 
 interface NewChatScreenProps {
-  /** Where the freshly-created conversation thread lives (per tab). */
-  threadHref?: (id: string) => string;
+  /**
+   * Which primary tab this screen belongs to — selects where a freshly created
+   * conversation thread lands (`/assistant/<id>` vs `/jobs/<id>`). Passed as a
+   * serializable string (not a route function) so the screen can be rendered
+   * from a Server Component — functions can't cross the server→client boundary.
+   */
+  tab?: "assistant" | "jobs";
   /** Specialist used when the composer hasn't picked one explicitly. */
   defaultSpecialist?: AiSpecialist;
 }
@@ -22,11 +27,13 @@ interface NewChatScreenProps {
 /** The "New chat" screen. Sending the first message creates a conversation and
  * routes to its thread (which auto-sends the queued message). */
 export function NewChatScreen({
-  threadHref = routes.assistantThread,
+  tab = "assistant",
   defaultSpecialist,
 }: NewChatScreenProps = {}) {
   const { user } = useSession();
   const specialist = useComposerStore((s) => s.specialist);
+  const threadHref =
+    tab === "jobs" ? routes.jobsThread : routes.assistantThread;
   const startConversation = useStartConversation(threadHref);
 
   if (!user) return null;
