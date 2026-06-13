@@ -10,7 +10,7 @@ import {
   Mail,
   MapPin,
   Phone,
-  Sparkles,
+  Star,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -409,7 +409,7 @@ export function InsightsResult({ result }: { result: JobInsightsResult }) {
       ) : null}
       {result.highlights.length > 0 ? (
         <Section title="Highlights">
-          <Bullets items={result.highlights} icon={Sparkles} tone="success" />
+          <Bullets items={result.highlights} icon={Star} tone="success" />
         </Section>
       ) : null}
       {result.redFlags.length > 0 ? (

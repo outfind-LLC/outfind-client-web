@@ -15,10 +15,17 @@ import { useSession } from "@/features/auth/hooks/use-session";
 import type { AccountType } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
 import { MessageList } from "./message-list";
+import type { ChatSurface } from "./message-bubble";
 
 /** Loads a conversation's history, then mounts the streaming runtime keyed by id
  * so switching conversations resets cleanly. */
-export function ChatThread({ conversationId }: { conversationId: string }) {
+export function ChatThread({
+  conversationId,
+  surface = "assistant",
+}: {
+  conversationId: string;
+  surface?: ChatSurface;
+}) {
   const { user } = useSession();
   const { data, isLoading } = useQuery({
     queryKey: qk.messages(conversationId),
@@ -39,6 +46,7 @@ export function ChatThread({ conversationId }: { conversationId: string }) {
       conversationId={conversationId}
       accountType={user.accountType}
       initialMessages={toUIMessages(data ?? [])}
+      surface={surface}
     />
   );
 }
@@ -47,12 +55,14 @@ interface ChatRuntimeProps {
   conversationId: string;
   accountType: AccountType;
   initialMessages: UIMessage[];
+  surface: ChatSurface;
 }
 
 function ChatRuntime({
   conversationId,
   accountType,
   initialMessages,
+  surface,
 }: ChatRuntimeProps) {
   const chat = useChatThread(conversationId, initialMessages);
   const takePending = useComposerStore((s) => s.takePending);
@@ -74,7 +84,11 @@ function ChatRuntime({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <MessageList messages={chat.messages} status={chat.status} />
+      <MessageList
+        messages={chat.messages}
+        status={chat.status}
+        surface={surface}
+      />
       <div className="mx-auto w-full max-w-3xl px-4 pb-4 sm:pb-6">
         <ChatComposer
           accountType={accountType}

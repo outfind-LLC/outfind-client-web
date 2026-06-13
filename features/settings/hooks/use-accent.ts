@@ -10,7 +10,7 @@ import {
 } from "@/features/settings/constants/accents";
 
 /** Same-tab notification channel (the native `storage` event only fires cross-tab). */
-const ACCENT_EVENT = "jobsterr:accent-change";
+const ACCENT_EVENT = "peoplor:accent-change";
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener("storage", onChange);

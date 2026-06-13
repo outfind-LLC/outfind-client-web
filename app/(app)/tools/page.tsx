@@ -9,8 +9,8 @@ export default function ToolsPage() {
     <Container className="py-8">
       <PageHeader
         icon={Wand2}
-        title="AI Tools"
-        description="Build your CV, write tailored cover letters, and score your job fit."
+        title="Career Tools"
+        description="Build your resume, write tailored cover letters, and analyze your job fit."
       />
       <AiToolsView />
     </Container>

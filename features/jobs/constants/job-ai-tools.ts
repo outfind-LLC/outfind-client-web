@@ -1,8 +1,8 @@
 import {
   FileText,
+  Lightbulb,
   MessagesSquare,
   PenLine,
-  Sparkles,
   Target,
   type LucideIcon,
 } from "lucide-react";
@@ -41,9 +41,10 @@ export interface JobAiToolDef {
 export const JOB_AI_TOOLS: readonly JobAiToolDef[] = [
   {
     id: "cv",
-    label: "Build CV",
-    title: "CV tailored to this job",
-    blurb: "A polished CV from your profile, tuned to this role’s requirements.",
+    label: "Resume Builder",
+    title: "Resume tailored to this job",
+    blurb:
+      "A polished resume from your profile, tuned to this role’s requirements.",
     icon: FileText,
     contexts: ["search"],
   },
@@ -57,18 +58,18 @@ export const JOB_AI_TOOLS: readonly JobAiToolDef[] = [
   },
   {
     id: "match",
-    label: "Match Score",
-    title: "Your match for this job",
-    blurb: "A compatibility score with your strengths, gaps, and next steps.",
+    label: "Match Analysis",
+    title: "Your match for this role",
+    blurb: "A compatibility read with your strengths, gaps, and next steps.",
     icon: Target,
     contexts: ["search"],
   },
   {
     id: "insights",
-    label: "AI Insights",
-    title: "AI insights for this job",
-    blurb: "Key skills, requirements, salary read, and what to watch for.",
-    icon: Sparkles,
+    label: "Job Insights",
+    title: "Insights for this role",
+    blurb: "Key skills, requirements, a salary read, and what to watch for.",
+    icon: Lightbulb,
     contexts: ["search"],
   },
   {

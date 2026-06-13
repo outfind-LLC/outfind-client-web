@@ -5,11 +5,16 @@ import { ArrowDown } from "lucide-react";
 import type { ChatStatus, UIMessage } from "ai";
 
 import { Button } from "@/ui/button";
-import { MessageBubble, PendingAssistantBubble } from "./message-bubble";
+import {
+  MessageBubble,
+  PendingAssistantBubble,
+  type ChatSurface,
+} from "./message-bubble";
 
 interface MessageListProps {
   messages: UIMessage[];
   status: ChatStatus;
+  surface?: ChatSurface;
 }
 
 /** How close to the bottom (px) still counts as "stuck" to the latest message. */
@@ -17,7 +22,11 @@ const STICK_THRESHOLD = 80;
 
 /** Scrollable transcript. Sticks to the bottom while the user is already there,
  * but never yanks them down once they scroll up to read. */
-export function MessageList({ messages, status }: MessageListProps) {
+export function MessageList({
+  messages,
+  status,
+  surface = "assistant",
+}: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
 
@@ -57,6 +66,7 @@ export function MessageList({ messages, status }: MessageListProps) {
             <MessageBubble
               key={message.id}
               message={message}
+              surface={surface}
               streaming={
                 streaming &&
                 index === messages.length - 1 &&
@@ -65,7 +75,9 @@ export function MessageList({ messages, status }: MessageListProps) {
             />
           ))}
 
-          {awaitingFirstToken ? <PendingAssistantBubble /> : null}
+          {awaitingFirstToken ? (
+            <PendingAssistantBubble surface={surface} />
+          ) : null}
         </div>
       </div>
 

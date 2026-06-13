@@ -11,12 +11,12 @@ import { getServerSession } from "@/lib/api/server";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to Jobsterr to start your AI-powered job search.",
+  description: "Sign in to Peoplor to find your next opportunity.",
 };
 
 const HIGHLIGHTS = [
-  "Search and apply to jobs inside one conversation",
-  "Build a recruiter-ready CV in minutes",
+  "Discover and apply to roles that fit you",
+  "Build a recruiter-ready resume in minutes",
   "Prep for interviews with instant, specific feedback",
 ];
 
@@ -51,7 +51,7 @@ export default async function AuthPage({
         <div className="relative flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <Image
-              src="/Jobsterr-icon-logo.svg"
+              src="/peoplor-mark.svg"
               alt=""
               width={22}
               height={22}

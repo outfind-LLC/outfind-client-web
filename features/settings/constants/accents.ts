@@ -19,7 +19,7 @@ export type AccentId = (typeof ACCENTS)[number]["id"];
 export const DEFAULT_ACCENT_ID: AccentId = "indigo";
 
 /** localStorage key — kept in sync with the boot script in the root layout. */
-export const ACCENT_STORAGE_KEY = "jobsterr-accent";
+export const ACCENT_STORAGE_KEY = "peoplor-accent";
 
 export function isAccentId(value: unknown): value is AccentId {
   return ACCENTS.some((accent) => accent.id === value);

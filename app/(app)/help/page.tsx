@@ -10,16 +10,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
 const FAQS = [
   {
-    q: "How does Jobsterr work?",
-    a: "Everything happens in chat. Tell the AI what you need — find a job, build a CV, prep for an interview, or hire — and the right specialist takes it from there.",
+    q: "How does Peoplor work?",
+    a: "Tell Peoplor what you need — find a job, build a resume, prepare for an interview, or hire — and it takes care of the rest.",
   },
   {
     q: "Is it free to use?",
-    a: "Yes. You can start free and upgrade any time for higher limits, faster models, and premium specialists.",
+    a: "Yes. You can start free and upgrade any time for higher limits and more.",
   },
   {
     q: "How do I apply to a job?",
-    a: "Ask the Job Finder to search, then apply right from the job card in the conversation. Your applications appear under Applications.",
+    a: "Search from the Job Search tab, then apply right from the job card. Your applications appear under Applications.",
   },
   {
     q: "Can I switch between looking for work and hiring?",

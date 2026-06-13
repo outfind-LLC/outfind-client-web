@@ -16,7 +16,7 @@ export function SpecialistsSection() {
             A team of AI specialists
           </h2>
           <p className="text-muted-foreground mt-4 text-lg text-pretty">
-            Each one is an expert at a single job. Jobsterr picks the right one
+            Each one is an expert at a single job. Peoplor picks the right one
             for whatever you ask — you never have to.
           </p>
         </Reveal>

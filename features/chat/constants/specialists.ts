@@ -2,9 +2,9 @@ import {
   Compass,
   FileText,
   Globe2,
+  Headset,
   ListChecks,
   Search,
-  Sparkles,
   Target,
   UserSearch,
   type LucideIcon,
@@ -34,8 +34,8 @@ export const WORKER_SPECIALISTS: SpecialistOption[] = [
   },
   {
     value: AI_SPECIALIST.CV_BUILDER,
-    label: "CV Builder",
-    description: "Build and tailor your CV",
+    label: "Resume Builder",
+    description: "Build and tailor your resume",
     icon: FileText,
   },
   {
@@ -64,7 +64,7 @@ export const EMPLOYER_SPECIALISTS: SpecialistOption[] = [
     value: AI_SPECIALIST.RECRUITMENT_ASSISTANT,
     label: "Recruitment Assistant",
     description: "Run your hiring pipeline",
-    icon: Sparkles,
+    icon: Headset,
   },
   {
     value: AI_SPECIALIST.VACANCY_CREATION,

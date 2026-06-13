@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
 
 import { Container } from "@/components/container";
 import { UpgradeView } from "@/features/billing/components/upgrade-view";
@@ -8,7 +8,7 @@ export default function UpgradePage() {
   return (
     <Container className="py-8">
       <PageHeader
-        icon={Sparkles}
+        icon={Zap}
         title="Upgrade your plan"
         description="Choose the plan that fits where you are."
       />

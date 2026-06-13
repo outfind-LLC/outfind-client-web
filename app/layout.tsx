@@ -24,16 +24,16 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   applicationName: siteConfig.name,
   keywords: [
-    "AI job search",
-    "career assistant",
-    "CV builder",
-    "interview prep",
-    "Uzbekistan jobs",
-    "Central Asia careers",
+    "job search",
+    "recruitment platform",
+    "resume builder",
+    "interview preparation",
+    "career platform",
+    "hiring",
   ],
   icons: {
-    icon: "/Jobsterr-icon-logo.svg",
-    apple: "/Jobsterr-icon-logo.svg",
+    icon: "/peoplor-mark.svg",
+    apple: "/peoplor-mark.svg",
   },
   openGraph: {
     type: "website",
@@ -76,7 +76,7 @@ export default function RootLayout({
         {/* Apply the saved accent before paint to avoid a flash of the default. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var a=localStorage.getItem('jobsterr-accent');if(a)document.documentElement.dataset.accent=a;}catch(e){}`,
+            __html: `try{var a=localStorage.getItem('peoplor-accent');if(a)document.documentElement.dataset.accent=a;}catch(e){}`,
           }}
         />
       </head>

@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  AlertCircle,
-  ClipboardList,
-  Loader2,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
+import { AlertCircle, ClipboardList, Loader2, RefreshCw, Wand2 } from "lucide-react";
 
 import { routes } from "@/config/routes";
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -86,7 +80,7 @@ export function JobAiToolDialog({
   const ready = open && Boolean(tool) && !profileLoading && !profileFailed && usable;
   const toolQuery = useJobAiTool(tool ?? "cv", job, ready);
 
-  const Icon = def?.icon ?? Sparkles;
+  const Icon = def?.icon ?? Wand2;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -164,7 +158,7 @@ function GeneratingState({ label }: { label: string }) {
   return (
     <div className="flex h-56 flex-col items-center justify-center gap-3 text-center">
       <span className="bg-brand/10 relative flex size-12 items-center justify-center rounded-2xl">
-        <Sparkles className="text-brand size-6 animate-pulse" />
+        <Loader2 className="text-brand size-6 animate-spin" />
       </span>
       <div className="space-y-1">
         <p className="text-sm font-medium">Generating {label.toLowerCase()}…</p>

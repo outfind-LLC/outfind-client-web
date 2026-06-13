@@ -7,5 +7,5 @@ export default async function JobSearchThreadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ChatThread conversationId={id} />;
+  return <ChatThread conversationId={id} surface="jobs" />;
 }

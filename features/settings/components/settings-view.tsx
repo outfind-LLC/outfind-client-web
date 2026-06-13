@@ -59,7 +59,7 @@ export function SettingsView() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Appearance</CardTitle>
-          <CardDescription>Choose how Jobsterr looks.</CardDescription>
+          <CardDescription>Choose how Peoplor looks.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <Field label="Theme">

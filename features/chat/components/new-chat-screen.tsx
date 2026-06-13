@@ -10,7 +10,6 @@ import { isApiClientError } from "@/lib/api/error";
 import type { AiSpecialist } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
 import { ChatEmptyState } from "./chat-empty-state";
-import { SpecialistChips } from "./specialist-chips";
 
 interface NewChatScreenProps {
   /**
@@ -62,16 +61,12 @@ export function NewChatScreen({
           onPick={send}
         />
       </div>
-      <div className="mx-auto w-full max-w-3xl space-y-3 px-4 pb-4 sm:pb-6">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-4 sm:pb-6">
         <ChatComposer
           accountType={user.accountType}
           busy={startConversation.isPending}
           onSend={send}
           autoFocus
-        />
-        <SpecialistChips
-          accountType={user.accountType}
-          disabled={startConversation.isPending}
         />
       </div>
     </div>

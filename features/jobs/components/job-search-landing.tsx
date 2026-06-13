@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, Search } from "lucide-react";
 
 import { routes } from "@/config/routes";
 import { useConversations } from "@/features/chat/hooks/use-conversations";
@@ -65,8 +65,8 @@ export function JobSearchLanding() {
           {firstName ? `Find your next job, ${firstName}` : "Find your next job"}
         </h1>
         <p className="text-muted-foreground mt-2 max-w-md text-sm sm:text-base">
-          We search internal and external sources, then rank the best matches —
-          you just tell us what you&apos;re after.
+          Tell us the role and where you want to work — we&apos;ll surface the
+          best-matched opportunities and the people to contact.
         </p>
 
         <Button
@@ -75,7 +75,7 @@ export function JobSearchLanding() {
           className="mt-6"
           onClick={() => openSearch(null)}
         >
-          <Sparkles className="size-4" />
+          <Search className="size-4" />
           Start a job search
         </Button>
 

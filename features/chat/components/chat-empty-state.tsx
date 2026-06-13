@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Compass } from "lucide-react";
 
 import { ACCOUNT_TYPE, type AccountType } from "@/interfaces/enums";
 
@@ -12,7 +12,7 @@ interface ChatEmptyStateProps {
 
 const WORKER_PROMPTS = [
   "Find me remote frontend jobs that sponsor relocation",
-  "Help me write a CV for a logistics role in Dubai",
+  "Help me write a resume for a logistics role in Dubai",
   "What skills should I learn to earn more as a designer?",
   "Practice common interview questions for a sales job",
 ];
@@ -37,7 +37,7 @@ export function ChatEmptyState({
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 text-center sm:gap-6">
       <span className="from-brand to-brand-2 shadow-primary/20 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg sm:size-14">
-        <Sparkles className="size-6 sm:size-7" />
+        <Compass className="size-6 sm:size-7" />
       </span>
       <div className="space-y-1">
         <h1 className="text-xl font-semibold sm:text-3xl">

@@ -114,7 +114,7 @@ export function ChatComposer({
         onKeyDown={onKeyDown}
         autoFocus={autoFocus}
         rows={1}
-        placeholder={speech.listening ? "Listening…" : "Message Jobsterr…"}
+        placeholder={speech.listening ? "Listening…" : "Ask anything…"}
         className="placeholder:text-muted-foreground max-h-52 min-h-[4.5rem] w-full resize-none scrollbar-thin bg-transparent px-5 pt-5 text-[0.95rem] leading-relaxed outline-none"
       />
 

@@ -20,7 +20,7 @@ export function FeatureShowcase() {
             One conversation. Everything you need.
           </h2>
           <p className="text-muted-foreground mt-4 text-lg text-pretty">
-            Whether you&apos;re looking for work or hiring, Jobsterr brings the
+            Whether you&apos;re looking for work or hiring, Peoplor brings the
             right AI specialist into the chat.
           </p>
         </Reveal>

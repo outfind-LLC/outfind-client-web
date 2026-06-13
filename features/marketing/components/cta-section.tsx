@@ -22,7 +22,7 @@ export function CtaSection() {
                 Your next role is one message away
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-pretty text-white/80">
-                Join Jobsterr free and let AI do the hard parts of your job
+                Join Peoplor free and let AI do the hard parts of your job
                 search — or your next hire.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

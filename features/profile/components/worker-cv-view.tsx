@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, PenLine } from "lucide-react";
 
 import { formatDateRange } from "@/lib/format";
 import { routes } from "@/config/routes";
@@ -196,8 +196,8 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
         <div className="mx-auto max-w-2xl">
           <Button variant="brand" size="lg" className="w-full" asChild>
             <Link href={routes.assistant}>
-              <Sparkles className="size-4" />
-              Edit with AI
+              <PenLine className="size-4" />
+              Refine your resume
             </Link>
           </Button>
         </div>

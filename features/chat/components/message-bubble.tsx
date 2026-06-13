@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { isToolUIPart, type UIMessage } from "ai";
 
@@ -9,11 +12,23 @@ import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
 import { ToolPart } from "./tool-part";
 
+/** Which surface a thread belongs to — drives the working-state copy. */
+export type ChatSurface = "jobs" | "assistant";
+
 interface MessageBubbleProps {
   message: UIMessage;
   /** True only for the assistant turn that is currently streaming. */
   streaming?: boolean;
+  surface?: ChatSurface;
 }
+
+/** Warm, human status lines shown while a job search is running. */
+const JOB_SEARCH_STATUS = [
+  "Finding the best opportunities for you…",
+  "Analyzing relevant job matches…",
+  "Discovering opportunities from multiple sources…",
+  "Preparing personalized recommendations…",
+] as const;
 
 function readReaction(message: UIMessage): ReactionType | null {
   const meta = message.metadata as
@@ -72,7 +87,7 @@ function hasVisibleContent(message: UIMessage): boolean {
   return false;
 }
 
-/** Jobsterr logo avatar; pulses while the assistant is generating a reply. */
+/** Peoplor logo avatar; pulses while the assistant is generating a reply. */
 function AssistantAvatar({ loading }: { loading?: boolean }) {
   return (
     <span
@@ -82,8 +97,8 @@ function AssistantAvatar({ loading }: { loading?: boolean }) {
       )}
     >
       <Image
-        src="/Jobsterr-icon-logo.svg"
-        alt="Jobsterr"
+        src="/peoplor-mark.svg"
+        alt="Peoplor"
         width={20}
         height={20}
         className="size-5"
@@ -92,17 +107,57 @@ function AssistantAvatar({ loading }: { loading?: boolean }) {
   );
 }
 
-/** A subtle three-dot "generating" indicator shown next to the logo. */
-function GeneratingDots() {
+/** The animated three dots used inside the working indicator. */
+function Dots() {
   return (
-    <div
-      className="flex items-center gap-1 pt-2"
-      role="status"
-      aria-label="Generating response"
-    >
+    <span className="flex items-center gap-1">
       <span className="bg-primary/60 size-1.5 animate-bounce rounded-full [animation-delay:-300ms]" />
       <span className="bg-primary/60 size-1.5 animate-bounce rounded-full [animation-delay:-150ms]" />
       <span className="bg-primary/60 size-1.5 animate-bounce rounded-full" />
+    </span>
+  );
+}
+
+/**
+ * The "working" indicator next to the logo. On the job-search surface it cycles
+ * warm, human status lines; elsewhere it's a quiet three-dot pulse. Never
+ * exposes anything about the model or its internal steps.
+ */
+function GeneratingStatus({ surface }: { surface: ChatSurface }) {
+  const [index, setIndex] = useState(0);
+  const rotating = surface === "jobs";
+
+  useEffect(() => {
+    if (!rotating) return;
+    const id = setInterval(
+      () => setIndex((prev) => (prev + 1) % JOB_SEARCH_STATUS.length),
+      2400,
+    );
+    return () => clearInterval(id);
+  }, [rotating]);
+
+  if (!rotating) {
+    return (
+      <div
+        className="flex items-center gap-1 pt-2"
+        role="status"
+        aria-label="Working"
+      >
+        <Dots />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="text-muted-foreground flex items-center gap-2.5 pt-2 text-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <Dots />
+      <span key={index} className="animate-in fade-in duration-500">
+        {JOB_SEARCH_STATUS[index]}
+      </span>
     </div>
   );
 }
@@ -112,12 +167,16 @@ function GeneratingDots() {
  * token streams back. Mirrors the streaming bubble so the loader stays anchored
  * to the logo without a visual jump.
  */
-export function PendingAssistantBubble() {
+export function PendingAssistantBubble({
+  surface = "assistant",
+}: {
+  surface?: ChatSurface;
+}) {
   return (
     <div className="flex gap-3">
       <AssistantAvatar loading />
       <div className="min-w-0 flex-1">
-        <GeneratingDots />
+        <GeneratingStatus surface={surface} />
       </div>
     </div>
   );
@@ -126,7 +185,11 @@ export function PendingAssistantBubble() {
 /** Renders one chat message. User turns are a compact right-aligned bubble;
  * assistant turns walk their parts (text → markdown, job tools → cards) and
  * never surface reasoning — a loader by the logo covers the "thinking" phase. */
-export function MessageBubble({ message, streaming }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  streaming,
+  surface = "assistant",
+}: MessageBubbleProps) {
   if (message.role === "user") {
     const text = message.parts
       .filter((part) => part.type === "text")
@@ -167,7 +230,7 @@ export function MessageBubble({ message, streaming }: MessageBubbleProps) {
           return null;
         })}
 
-        {working ? <GeneratingDots /> : null}
+        {working ? <GeneratingStatus surface={surface} /> : null}
 
         {showActions ? (
           <MessageActions

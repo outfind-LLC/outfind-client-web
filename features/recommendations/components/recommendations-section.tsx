@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Star } from "lucide-react";
 
 import { useRecommendations } from "@/features/recommendations/hooks/use-recommendations";
 import { RecommendationCard } from "@/features/recommendations/components/recommendation-card";
@@ -17,7 +17,7 @@ export function RecommendationsSection({ enabled }: { enabled: boolean }) {
   return (
     <div className="space-y-3">
       <h2 className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium tracking-wide uppercase">
-        <Sparkles className="size-3.5" />
+        <Star className="size-3.5" />
         Recommended for you
       </h2>
       {isLoading ? (

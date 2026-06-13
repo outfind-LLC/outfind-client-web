@@ -4,8 +4,10 @@ import { useState, type FormEvent } from "react";
 import { BriefcaseBusiness, Loader2, MapPin, Search } from "lucide-react";
 import { toast } from "sonner";
 
-import { ModelSelector } from "@/features/chat/components/model-selector";
-import { useComposerStore } from "@/features/chat/store/composer.store";
+import {
+  DEFAULT_MODEL_ID,
+  useComposerStore,
+} from "@/features/chat/store/composer.store";
 import {
   useStartJobSearch,
   type JobSearchParams,
@@ -32,10 +34,10 @@ interface JobSearchModalProps {
 }
 
 /**
- * The Job Search entry modal: pick a profession, an optional city, and an AI
- * model. Submitting seeds a Job Finder conversation and routes to its thread.
- * The form is mounted only while open so it always re-seeds from the latest
- * defaults — no state syncing in effects.
+ * The Job Search entry modal: pick a profession and a city. Submitting seeds a
+ * Job Finder conversation and routes to its thread. The form is mounted only
+ * while open so it always re-seeds from the latest defaults — no state syncing
+ * in effects.
  */
 export function JobSearchModal({
   open,
@@ -83,15 +85,12 @@ function JobSearchForm({
   const storeModel = useComposerStore((s) => s.model);
   const [profession, setProfession] = useState(defaultProfession);
   const [city, setCity] = useState(defaultCity);
-  const [model, setModel] = useState<string | null>(storeModel);
+  // The engine is chosen for the user — a default free-tier model on every plan.
+  const model = storeModel ?? DEFAULT_MODEL_ID;
   const { startSearch, isPending } = useStartJobSearch();
 
-  // The Job Finder requires all three server-side — keep the gate in sync.
   const canSubmit =
-    profession.trim().length > 0 &&
-    city.trim().length > 0 &&
-    Boolean(model) &&
-    !isPending;
+    profession.trim().length > 0 && city.trim().length > 0 && !isPending;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -136,16 +135,6 @@ function JobSearchForm({
             maxLength={100}
             className="pl-9"
           />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>AI model</Label>
-        <div className="border-input flex h-10 items-center justify-between rounded-md border px-1.5">
-          <span className="text-muted-foreground pl-1.5 text-sm">
-            Search engine
-          </span>
-          <ModelSelector value={model} onChange={setModel} />
         </div>
       </div>
 

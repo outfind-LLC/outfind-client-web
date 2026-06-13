@@ -8,26 +8,33 @@ interface BrandLogoProps {
   className?: string;
   /** When false, renders just the icon mark (e.g. collapsed sidebar). */
   full?: boolean;
-  /** Pass `null` to render the bare image without a link wrapper. */
+  /** Pass `null` to render the bare logo without a link wrapper. */
   href?: string | null;
 }
 
-/** Jobsterr wordmark / icon, linking home by default. */
+/** Peoplor logo: the icon mark plus a typographic wordmark. Links home by
+ * default. The wordmark uses the app font so it stays crisp at any size. */
 export function BrandLogo({
   className,
   full = true,
   href = "/",
 }: BrandLogoProps) {
-  const src = full ? "/full-logo.svg" : "/Jobsterr-icon-logo.svg";
   const content = (
-    <Image
-      src={src}
-      alt={siteConfig.name}
-      width={full ? 132 : 32}
-      height={32}
-      priority
-      className={cn("h-8 w-auto", className)}
-    />
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      <Image
+        src="/peoplor-mark.svg"
+        alt={full ? "" : siteConfig.name}
+        width={32}
+        height={32}
+        priority
+        className="size-7 w-auto"
+      />
+      {full ? (
+        <span className="text-foreground text-xl font-semibold tracking-tight">
+          {siteConfig.name}
+        </span>
+      ) : null}
+    </span>
   );
 
   if (href === null) return content;

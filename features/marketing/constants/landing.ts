@@ -2,9 +2,9 @@ import {
   Briefcase,
   FileText,
   Globe2,
+  Lightbulb,
   MessagesSquare,
   Search,
-  Sparkles,
   Target,
   Users,
   type LucideIcon,
@@ -79,7 +79,7 @@ export const EMPLOYER_FEATURES: FeatureItem[] = [
       "Screen, compare, and shortlist candidates in conversation. Your AI recruiter handles the busywork end to end.",
   },
   {
-    icon: Sparkles,
+    icon: Lightbulb,
     title: "Smart insights",
     description:
       "Understand your pipeline at a glance with AI summaries of every applicant and the state of each open role.",
@@ -144,7 +144,7 @@ export const HOW_IT_WORKS: StepItem[] = [
   {
     title: "Start the conversation",
     description:
-      "Just type what you need. Jobsterr understands your goal and brings in the right AI specialist.",
+      "Just type what you need. Peoplor understands your goal and brings in the right AI specialist.",
   },
   {
     title: "Get results",
@@ -258,7 +258,7 @@ export interface Testimonial {
 export const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "I described my dream job and Jobsterr found three real openings the same evening. I had an interview that week.",
+      "I described my dream job and Peoplor found three real openings the same evening. I had an interview that week.",
     name: "Dilnoza A.",
     role: "Frontend Developer, Tashkent",
   },

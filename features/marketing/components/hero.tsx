@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Briefcase } from "lucide-react";
 
 import { Container } from "@/components/container";
 import { Reveal } from "@/components/reveal";
@@ -22,8 +22,8 @@ export function Hero() {
         <div className="flex flex-col items-start gap-6">
           <Reveal>
             <span className="border-border/70 bg-muted/50 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
-              <Sparkles className="text-brand-accent size-3.5" />
-              The AI-first job platform
+              <Briefcase className="text-brand-accent size-3.5" />
+              The modern recruitment platform
             </span>
           </Reveal>
 

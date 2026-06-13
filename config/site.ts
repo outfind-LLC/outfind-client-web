@@ -1,13 +1,13 @@
 /** Static product metadata shared across metadata, header, and footer. */
 export const siteConfig = {
-  name: "Jobsterr",
-  tagline: "Your AI career partner",
+  name: "Peoplor",
+  tagline: "Where careers move forward",
   description:
-    "Jobsterr is an AI-first job platform. Search jobs, build your CV, prepare for interviews, and hire — all inside one conversation.",
-  url: "https://jobsterr.com",
-  ogImage: "/full-logo.svg",
+    "Peoplor is a modern recruitment platform. Discover the right opportunities, build a standout resume, prepare for interviews, and hire — all in one place.",
+  url: "https://peoplor.com",
+  ogImage: "/peoplor-mark.svg",
   links: {
-    telegram: "https://t.me/jobsterr",
+    telegram: "https://t.me/peoplor",
   },
 } as const;
 

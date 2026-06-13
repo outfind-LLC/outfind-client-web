@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import {
-  Copy,
-  FileText,
-  Loader2,
-  PenLine,
-  Sparkles,
-  Target,
-} from "lucide-react";
+import { Copy, FileText, Loader2, PenLine, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import { TagInput } from "@/components/form/form-fields";
@@ -50,7 +43,7 @@ export function AiToolsView() {
       <TabsList>
         <TabsTrigger value="cv">
           <FileText className="size-4" />
-          CV Builder
+          Resume Builder
         </TabsTrigger>
         <TabsTrigger value="cover">
           <PenLine className="size-4" />
@@ -58,7 +51,7 @@ export function AiToolsView() {
         </TabsTrigger>
         <TabsTrigger value="match">
           <Target className="size-4" />
-          Match Score
+          Match Analysis
         </TabsTrigger>
       </TabsList>
 
@@ -109,8 +102,8 @@ function CvTool() {
   return (
     <ToolShell
       icon={FileText}
-      title="AI CV Builder"
-      description="Generate a polished CV from your profile, experience, and skills."
+      title="Resume Builder"
+      description="Generate a polished resume from your profile, experience, and skills."
       action={
         <Button
           variant="brand"
@@ -119,10 +112,8 @@ function CvTool() {
         >
           {build.isPending ? (
             <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Sparkles className="size-4" />
-          )}
-          {cv ? "Regenerate" : "Generate CV"}
+          ) : null}
+          {cv ? "Regenerate" : "Generate resume"}
         </Button>
       }
     >
@@ -224,7 +215,7 @@ function CvTool() {
         </div>
       ) : !build.isError ? (
         <p className="text-muted-foreground text-sm">
-          Click generate to build a CV from your saved profile.
+          Click generate to build a resume from your saved profile.
         </p>
       ) : null}
     </ToolShell>
@@ -253,7 +244,7 @@ function CoverLetterTool() {
   return (
     <ToolShell
       icon={PenLine}
-      title="AI Cover Letter"
+      title="Cover Letter"
       description="Paste a job and get a tailored cover letter grounded in your profile."
     >
       <form onSubmit={submit} className="space-y-4">
@@ -289,9 +280,7 @@ function CoverLetterTool() {
         >
           {generate.isPending ? (
             <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Sparkles className="size-4" />
-          )}
+          ) : null}
           Generate cover letter
         </Button>
       </form>
@@ -356,7 +345,7 @@ function MatchScoreTool() {
   return (
     <ToolShell
       icon={Target}
-      title="AI Match Score"
+      title="Match Analysis"
       description="See how well your profile fits a role, with strengths and gaps."
     >
       <form onSubmit={submit} className="space-y-4">
@@ -402,9 +391,7 @@ function MatchScoreTool() {
         <Button type="submit" variant="brand" disabled={!canSubmit}>
           {match.isPending ? (
             <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Sparkles className="size-4" />
-          )}
+          ) : null}
           Analyze fit
         </Button>
       </form>

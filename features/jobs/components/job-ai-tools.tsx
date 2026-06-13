@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Wand2 } from "lucide-react";
 
 import {
   toolsForContext,
@@ -21,28 +21,26 @@ interface JobAiToolsProps {
 }
 
 /**
- * The per-job AI toolkit. Which tools appear is driven entirely by
- * `JOB_AI_TOOLS` (see constants) filtered by `context` — search-result cards get
- * CV/cover/match/insights, while already-applied jobs get interview prep. Each
- * tool opens a dialog that gates on profile completeness, then generates and
- * renders a formatted result.
+ * The per-job toolkit. Which tools appear is driven entirely by `JOB_AI_TOOLS`
+ * (see constants) filtered by `context` — search-result cards get the resume,
+ * cover letter, match, and insights tools, while already-applied jobs get
+ * interview prep. Each opens a dialog that checks profile completeness, then
+ * generates and renders a formatted result.
  */
-export function JobAiTools({
-  job,
-  context = "search",
-  label = "AI tools for this job",
-}: JobAiToolsProps) {
+export function JobAiTools({ job, context = "search", label }: JobAiToolsProps) {
   const [tool, setTool] = useState<AiToolId | null>(null);
   const tools = toolsForContext(context);
   const oddCount = tools.length % 2 === 1;
+  const heading =
+    label ?? (context === "applied" ? "Get interview-ready" : "Tools for this job");
 
   if (tools.length === 0) return null;
 
   return (
     <div className="space-y-2">
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
-        <Sparkles className="text-brand size-3.5" />
-        {label}
+        <Wand2 className="text-brand size-3.5" />
+        {heading}
       </p>
       <div className="grid grid-cols-2 gap-1.5">
         {tools.map((item, index) => (

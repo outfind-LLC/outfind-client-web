@@ -9,8 +9,8 @@ import {
   MoonStar,
   Repeat,
   Settings,
-  Sparkles,
   UserRound,
+  Zap,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -91,7 +91,7 @@ export function UserMenu({ user, collapsed }: UserMenuProps) {
         <>
           <DropdownMenuItem asChild>
             <Link href={routes.upgrade} className="gap-2">
-              <Sparkles className="text-brand-accent size-4" />
+              <Zap className="text-brand-accent size-4" />
               Upgrade plan
             </Link>
           </DropdownMenuItem>

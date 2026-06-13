@@ -17,9 +17,10 @@ export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
   if (!isJobSearchTool(toolType)) return null;
 
   if (part.state === "output-error") {
+    // Never surface raw tool/provider error text (it can leak internal details).
     return (
-      <p className="text-destructive text-sm">
-        Job search failed. {part.errorText}
+      <p className="text-muted-foreground text-sm">
+        Job search is temporarily unavailable. Please try again in a moment.
       </p>
     );
   }

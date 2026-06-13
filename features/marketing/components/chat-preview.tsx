@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ const SCRIPT: ScriptLine[] = [
   },
   {
     role: "assistant",
-    text: "Found 3 strong matches. Top pick: Senior React Engineer at a Berlin fintech — full relocation + visa support. Want me to tailor your CV for it?",
+    text: "Found 3 strong matches. Top pick: Senior React Engineer at a Berlin fintech — full relocation + visa support. Want me to tailor your resume for it?",
   },
   { role: "user", text: "Yes, tailor it." },
   {
@@ -67,7 +67,7 @@ export function ChatPreview() {
         <span className="bg-warning/60 size-2.5 rounded-full" />
         <span className="bg-success/60 size-2.5 rounded-full" />
         <div className="text-muted-foreground ml-2 flex items-center gap-1.5 text-xs font-medium">
-          <Sparkles className="text-brand-accent size-3.5" />
+          <Search className="text-brand-accent size-3.5" />
           Job Finder
         </div>
       </div>

@@ -81,7 +81,7 @@ export function SignInCard({ initialMode = "signin" }: { initialMode?: Mode }) {
       </div>
 
       <p className="text-muted-foreground mt-8 text-center text-sm">
-        {isSignup ? "Already have an account?" : "New to Jobsterr?"}{" "}
+        {isSignup ? "Already have an account?" : "New to Peoplor?"}{" "}
         <button
           type="button"
           onClick={() => setMode(isSignup ? "signin" : "signup")}

@@ -92,7 +92,7 @@ export function ReportEmployerDialog({
             Report {companyName ? companyName : "employer"}
           </DialogTitle>
           <DialogDescription>
-            Help keep Jobsterr safe. Reports are reviewed by our team.
+            Help keep Peoplor safe. Reports are reviewed by our team.
           </DialogDescription>
         </DialogHeader>
 

@@ -2,8 +2,8 @@ import {
   Bookmark,
   Briefcase,
   FileText,
+  MessagesSquare,
   Search,
-  Sparkles,
   UserRound,
   Users,
   Wand2,
@@ -23,15 +23,15 @@ export interface NavItem {
 
 const WORKER_NAV: NavItem[] = [
   { label: "Job Search", href: routes.jobs, icon: Search },
-  { label: "AI Assistant", href: routes.assistant, icon: Sparkles },
-  { label: "AI Tools", href: routes.tools, icon: Wand2 },
+  { label: "Assistant", href: routes.assistant, icon: MessagesSquare },
+  { label: "Career Tools", href: routes.tools, icon: Wand2 },
   { label: "Applications", href: routes.applications, icon: FileText },
   { label: "Bookmarks", href: routes.bookmarks, icon: Bookmark },
   { label: "Profile", href: routes.profile, icon: UserRound },
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
-  { label: "AI Assistant", href: routes.assistant, icon: Sparkles },
+  { label: "Assistant", href: routes.assistant, icon: MessagesSquare },
   { label: "Vacancies", href: routes.vacancies, icon: Briefcase },
   { label: "Applicants", href: routes.applicants, icon: Users },
   { label: "Profile", href: routes.profile, icon: UserRound },

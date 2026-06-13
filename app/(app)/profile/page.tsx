@@ -10,7 +10,7 @@ export default function ProfilePage() {
       <PageHeader
         icon={UserRound}
         title="Profile"
-        description="How you appear across Jobsterr."
+        description="How you appear across Peoplor."
       />
       <ProfileView />
     </Container>

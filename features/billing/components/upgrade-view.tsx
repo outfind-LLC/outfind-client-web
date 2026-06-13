@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Sparkles, Zap } from "lucide-react";
+import { Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -54,7 +54,7 @@ export function UpgradeView() {
   if (isError || !data || data.length === 0) {
     return (
       <EmptyState
-        icon={Sparkles}
+        icon={Zap}
         title="Plans aren't available yet"
         description="Upgrade options will appear here as soon as billing is set up."
       />

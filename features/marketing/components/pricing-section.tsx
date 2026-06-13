@@ -31,7 +31,7 @@ export function PricingSection() {
             Simple, honest pricing
           </h2>
           <p className="text-muted-foreground mt-4 text-lg text-pretty">
-            Start free. Upgrade when Jobsterr is doing the heavy lifting for
+            Start free. Upgrade when Peoplor is doing the heavy lifting for
             you.
           </p>
         </Reveal>
