@@ -47,20 +47,22 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
           {/* CV header */}
           <div className="from-brand to-brand-2 bg-gradient-to-r px-6 py-8 text-white">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-xl font-bold sm:text-2xl">{name}</h1>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl font-bold break-words sm:text-2xl">
+                  {name}
+                </h1>
                 {profile.profession ? (
-                  <p className="mt-0.5 text-sm text-white/80">
+                  <p className="mt-0.5 text-sm break-words text-white/80">
                     {profile.profession}
                   </p>
                 ) : null}
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/80">
-                  {email ? <span>{email}</span> : null}
+                  {email ? <span className="break-words">{email}</span> : null}
                   {user?.telegramUsername ? (
-                    <span>@{user.telegramUsername}</span>
+                    <span className="break-words">@{user.telegramUsername}</span>
                   ) : null}
                   {profile.currentCity || profile.currentCountry ? (
-                    <span>
+                    <span className="break-words">
                       {[profile.currentCity, profile.currentCountry]
                         .filter(Boolean)
                         .join(", ")}
@@ -87,14 +89,14 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
               <CvSection title="Experience">
                 <div className="space-y-5">
                   {profile.experiences.map((exp) => (
-                    <div key={exp.id}>
-                      <p className="font-semibold">
+                    <div key={exp.id} className="min-w-0">
+                      <p className="font-semibold break-words">
                         {exp.position}
                         {exp.employmentType
                           ? ` (${EMPLOYMENT_TYPE_LABELS[exp.employmentType] ?? exp.employmentType})`
                           : null}
                       </p>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm break-words">
                         {exp.companyName}
                       </p>
                       <p className="text-muted-foreground text-sm">
@@ -104,14 +106,18 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
                           : getDuration(exp.startDate, exp.endDate)}
                       </p>
                       {exp.description ? (
-                        <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+                        <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed break-words">
                           {exp.description}
                         </p>
                       ) : null}
                       {exp.skills.length > 0 ? (
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {exp.skills.map((s) => (
-                            <Badge key={s} variant="secondary" className="text-xs">
+                            <Badge
+                              key={s}
+                              variant="secondary"
+                              className="max-w-full text-xs whitespace-normal break-words"
+                            >
                               {s}
                             </Badge>
                           ))}
@@ -128,12 +134,12 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
               <CvSection title="Education">
                 <div className="space-y-4">
                   {profile.education.map((edu) => (
-                    <div key={edu.id}>
-                      <p className="font-semibold">
+                    <div key={edu.id} className="min-w-0">
+                      <p className="font-semibold break-words">
                         {edu.degree ?? edu.fieldOfStudy ?? "Studies"}
                       </p>
                       {edu.institutionName ? (
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-sm break-words">
                           {edu.institutionName}
                         </p>
                       ) : null}
@@ -154,7 +160,7 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
                     <Badge
                       key={lang.id}
                       variant="secondary"
-                      className="text-sm"
+                      className="max-w-full text-sm whitespace-normal break-words"
                     >
                       {lang.language} —{" "}
                       {LANGUAGE_PROFICIENCY_LABELS[lang.proficiency] ??
@@ -170,7 +176,11 @@ export function WorkerCvView({ profile }: WorkerCvViewProps) {
               <CvSection title="Skills">
                 <div className="flex flex-wrap gap-2">
                   {profile.skills.map((skill) => (
-                    <Badge key={skill} variant="outline" className="text-sm">
+                    <Badge
+                      key={skill}
+                      variant="outline"
+                      className="max-w-full text-sm whitespace-normal break-words"
+                    >
                       {skill}
                     </Badge>
                   ))}

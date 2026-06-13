@@ -100,21 +100,21 @@ function ApplicationCard({ application }: { application: Application }) {
   return (
     <li className="border-border/60 bg-card flex items-start justify-between gap-4 rounded-xl border p-4">
       <div className="min-w-0 space-y-1.5">
-        <div className="flex items-center gap-2">
-          <h3 className="truncate font-medium">{vacancy.title}</h3>
+        <div className="flex min-w-0 items-center gap-2">
+          <h3 className="min-w-0 truncate font-medium">{vacancy.title}</h3>
           <Badge variant={meta.variant}>{meta.label}</Badge>
         </div>
         <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
           {vacancy.companyName ? (
-            <span className="flex items-center gap-1.5">
-              <Building2 className="size-3.5" />
-              {vacancy.companyName}
+            <span className="flex min-w-0 items-center gap-1.5">
+              <Building2 className="size-3.5 shrink-0" />
+              <span className="min-w-0 break-words">{vacancy.companyName}</span>
             </span>
           ) : null}
           {location ? (
-            <span className="flex items-center gap-1.5">
-              <MapPin className="size-3.5" />
-              {location}
+            <span className="flex min-w-0 items-center gap-1.5">
+              <MapPin className="size-3.5 shrink-0" />
+              <span className="min-w-0 break-words">{location}</span>
             </span>
           ) : null}
           <span>

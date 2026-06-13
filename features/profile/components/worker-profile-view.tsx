@@ -261,13 +261,13 @@ function TagInput({
           {tags.map((t) => (
             <span
               key={t}
-              className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm"
+              className="bg-primary/10 text-primary flex max-w-full items-center gap-1 rounded-full px-2.5 py-0.5 text-sm"
             >
-              {t}
+              <span className="min-w-0 break-words">{t}</span>
               <button
                 type="button"
                 onClick={() => onChange(tags.filter((x) => x !== t))}
-                className="hover:text-destructive ml-0.5"
+                className="hover:text-destructive ml-0.5 shrink-0"
               >
                 <X className="size-3" />
               </button>
@@ -1046,12 +1046,12 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
       <div className="overflow-hidden rounded-2xl border border-dashed border-primary/40 bg-card">
         {/* ── Header ── */}
         <div className="flex items-start justify-between gap-3 border-b border-border/50 p-4">
-          <div className="flex-1">
-            <h2 className="text-xl font-bold leading-tight">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl font-bold leading-tight break-words">
               {user?.name ?? "Your Name"}
             </h2>
             {profile.profession ? (
-              <p className="text-muted-foreground mt-0.5 text-sm">
+              <p className="text-muted-foreground mt-0.5 text-sm break-words">
                 {profile.profession}
               </p>
             ) : null}
@@ -1072,7 +1072,7 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
               </span>
             </div>
           </div>
-          <Avatar className="size-14 rounded-xl border">
+          <Avatar className="size-14 shrink-0 rounded-xl border">
             <AvatarImage src={profile.photoUrl ?? undefined} alt={user?.name} />
             <AvatarFallback className="rounded-xl text-base">
               {firstName ? firstName[0].toUpperCase() : "?"}
@@ -1101,15 +1101,15 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
           <SectionHeader title="Contact info" onEdit={() => setInfoOpen(true)} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {user?.email ? (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex min-w-0 items-center gap-2 text-sm">
                 <Mail className="text-muted-foreground size-4 shrink-0" />
-                <span className="truncate">{user.email}</span>
+                <span className="min-w-0 truncate">{user.email}</span>
               </div>
             ) : null}
             {user?.telegramUsername ? (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex min-w-0 items-center gap-2 text-sm">
                 <AtSign className="text-muted-foreground size-4 shrink-0" />
-                <span>@{user.telegramUsername}</span>
+                <span className="min-w-0 truncate">@{user.telegramUsername}</span>
               </div>
             ) : null}
           </div>
@@ -1162,9 +1162,9 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
                   <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg border">
                     <Briefcase className="text-muted-foreground size-4" />
                   </div>
-                  <div className="flex-1 space-y-0.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold leading-snug">
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <p className="min-w-0 text-sm font-semibold leading-snug break-words">
                         {exp.companyName}
                       </p>
                       <ItemActions
@@ -1173,7 +1173,7 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
                         deleting={deleteExp.isPending}
                       />
                     </div>
-                    <p className="text-sm">{exp.position}</p>
+                    <p className="text-sm break-words">{exp.position}</p>
                     <p className="text-muted-foreground text-xs">
                       {formatDateRange(exp.startDate, exp.endDate)}
                     </p>
@@ -1185,7 +1185,11 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
                     {exp.skills.length > 0 ? (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {exp.skills.map((s) => (
-                          <Badge key={s} variant="secondary" className="text-xs">
+                          <Badge
+                            key={s}
+                            variant="secondary"
+                            className="max-w-full text-xs whitespace-normal break-words"
+                          >
                             {s}
                           </Badge>
                         ))}
@@ -1210,9 +1214,9 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
                   <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg border">
                     <GraduationCap className="text-muted-foreground size-4" />
                   </div>
-                  <div className="flex-1 space-y-0.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold leading-snug">
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <p className="min-w-0 text-sm font-semibold leading-snug break-words">
                         {edu.institutionName ?? "Institution"}
                       </p>
                       <ItemActions
@@ -1222,7 +1226,7 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
                       />
                     </div>
                     {edu.degree || edu.fieldOfStudy ? (
-                      <p className="text-sm">
+                      <p className="text-sm break-words">
                         {[edu.degree, edu.fieldOfStudy]
                           .filter(Boolean)
                           .join(" · ")}
@@ -1250,7 +1254,11 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
               {profile.drivingCategories.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {profile.drivingCategories.map((cat) => (
-                    <Badge key={cat} variant="outline" className="text-xs">
+                    <Badge
+                      key={cat}
+                      variant="outline"
+                      className="max-w-full text-xs whitespace-normal break-words"
+                    >
                       {DRIVING_CATEGORY_LABELS[cat] ?? cat}
                     </Badge>
                   ))}
@@ -1296,7 +1304,11 @@ export function WorkerProfileView({ profile }: { profile: WorkerProfile }) {
           <SectionTitle className="mb-3">Skills</SectionTitle>
           <div className="flex flex-wrap gap-1.5">
             {profile.skills.map((s) => (
-              <Badge key={s} variant="secondary">
+              <Badge
+                key={s}
+                variant="secondary"
+                className="max-w-full whitespace-normal break-words"
+              >
                 {s}
               </Badge>
             ))}

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, Loader2 } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import type { ChatStatus, UIMessage } from "ai";
 
 import { Button } from "@/ui/button";
-import { MessageBubble } from "./message-bubble";
+import { MessageBubble, PendingAssistantBubble } from "./message-bubble";
 
 interface MessageListProps {
   messages: UIMessage[];
@@ -65,12 +65,7 @@ export function MessageList({ messages, status }: MessageListProps) {
             />
           ))}
 
-          {awaitingFirstToken ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader2 className="size-4 animate-spin" />
-              Thinking…
-            </div>
-          ) : null}
+          {awaitingFirstToken ? <PendingAssistantBubble /> : null}
         </div>
       </div>
 

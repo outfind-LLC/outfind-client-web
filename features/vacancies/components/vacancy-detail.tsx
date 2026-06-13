@@ -117,20 +117,24 @@ function VacancyDetailView({ vacancy }: { vacancy: Vacancy }) {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle className="text-xl">{vacancy.title}</CardTitle>
+                <CardTitle className="text-xl break-words">
+                  {vacancy.title}
+                </CardTitle>
                 <Badge variant={meta.variant}>{meta.label}</Badge>
               </div>
               <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 {location ? (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="size-3.5" />
-                    {location}
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <MapPin className="size-3.5 shrink-0" />
+                    <span className="min-w-0 break-words">{location}</span>
                   </span>
                 ) : null}
-                {type ? <span>{type}</span> : null}
-                {salary ? <span>{salary}</span> : null}
+                {type ? <span className="break-words">{type}</span> : null}
+                {salary ? (
+                  <span className="break-words">{salary}</span>
+                ) : null}
                 <span className="flex items-center gap-1.5">
                   <CalendarClock className="size-3.5" />
                   Posted{" "}
@@ -310,7 +314,11 @@ function TagFact({ label, items }: { label: string; items: string[] }) {
       <span className="text-muted-foreground">{label}</span>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <Badge key={item} variant="outline" className="font-normal">
+          <Badge
+            key={item}
+            variant="outline"
+            className="max-w-full font-normal whitespace-normal break-words"
+          >
             {item}
           </Badge>
         ))}
@@ -331,7 +339,11 @@ function Perks({ vacancy }: { vacancy: Vacancy }) {
       <span className="text-muted-foreground">Perks</span>
       <div className="flex flex-wrap gap-1.5">
         {perks.map((perk) => (
-          <Badge key={perk} variant="success" className="font-normal">
+          <Badge
+            key={perk}
+            variant="success"
+            className="max-w-full font-normal whitespace-normal break-words"
+          >
             {perk}
           </Badge>
         ))}
@@ -366,18 +378,20 @@ function ContactsCard({ vacancy }: { vacancy: Vacancy }) {
       <CardContent className="space-y-2 text-sm">
         {contacts.map((contact) => (
           <div key={contact.label} className="flex justify-between gap-3">
-            <span className="text-muted-foreground">{contact.label}</span>
+            <span className="text-muted-foreground shrink-0">
+              {contact.label}
+            </span>
             {contact.href ? (
               <a
                 href={contact.href}
                 target="_blank"
                 rel="noreferrer"
-                className="text-brand truncate text-right hover:underline"
+                className="text-brand min-w-0 truncate text-right hover:underline"
               >
                 {contact.value}
               </a>
             ) : (
-              <span className="truncate text-right font-medium">
+              <span className="min-w-0 truncate text-right font-medium">
                 {contact.value}
               </span>
             )}

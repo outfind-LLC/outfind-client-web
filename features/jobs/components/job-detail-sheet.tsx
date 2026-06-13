@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import {
   Building2,
-  ExternalLink,
   Loader2,
   MapPin,
   Send,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { ContactActions } from "@/features/chat/components/contact-actions";
 import { useSession } from "@/features/auth/hooks/use-session";
 import {
   useCreateComment,
@@ -59,34 +59,36 @@ export function JobDetailSheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="space-y-2 border-b p-5 text-left">
-          <DialogTitle className="pr-6 text-lg leading-tight">
+          <DialogTitle className="pr-6 text-lg leading-tight break-words">
             {job.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Job details, actions, and comments
           </DialogDescription>
           {job.company ? (
-            <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-sm">
               <Building2 className="size-3.5 shrink-0" />
-              {job.company}
+              <span className="min-w-0 break-words">{job.company}</span>
             </p>
           ) : null}
-          <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+          <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
             {job.location ? (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="size-3.5" />
-                {job.location}
+              <span className="flex min-w-0 items-center gap-1.5">
+                <MapPin className="size-3.5 shrink-0" />
+                <span className="min-w-0 break-words">{job.location}</span>
               </span>
             ) : null}
             {job.salary ? (
-              <span className="flex items-center gap-1.5">
-                <Wallet className="size-3.5" />
-                {job.salary}
+              <span className="flex min-w-0 items-center gap-1.5">
+                <Wallet className="size-3.5 shrink-0" />
+                <span className="min-w-0 break-words">{job.salary}</span>
               </span>
             ) : null}
             {job.isRemote ? <Badge variant="success">Remote</Badge> : null}
             {job.jobType ? (
-              <Badge variant="outline">{job.jobType}</Badge>
+              <Badge variant="outline" className="max-w-full">
+                <span className="truncate">{job.jobType}</span>
+              </Badge>
             ) : null}
           </div>
         </DialogHeader>
@@ -95,14 +97,20 @@ export function JobDetailSheet({
           {job.skills.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
               {job.skills.map((skill) => (
-                <Badge key={skill} variant="outline" className="font-normal">
+                <Badge
+                  key={skill}
+                  variant="outline"
+                  className="max-w-full font-normal whitespace-normal break-words"
+                >
                   {skill}
                 </Badge>
               ))}
             </div>
           ) : null}
 
-          <ActionRow job={job} actions={actions} />
+          <ContactActions contact={job.contact} />
+
+          <ActionRow actions={actions} />
 
           <CommentThread vacancyId={vacancyId} open={open} />
         </div>
@@ -111,7 +119,7 @@ export function JobDetailSheet({
   );
 }
 
-function ActionRow({ job, actions }: { job: JobCardData; actions: JobActions }) {
+function ActionRow({ actions }: { actions: JobActions }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -147,14 +155,6 @@ function ActionRow({ job, actions }: { job: JobCardData; actions: JobActions }) 
         onClick={() => actions.react(REACTION_TYPE.DISLIKE)}
         icon={<ThumbsDown className="size-4" />}
       />
-      {job.url ? (
-        <Button asChild size="sm" variant="ghost">
-          <a href={job.url} target="_blank" rel="noreferrer">
-            View role
-            <ExternalLink className="size-3.5" />
-          </a>
-        </Button>
-      ) : null}
     </div>
   );
 }

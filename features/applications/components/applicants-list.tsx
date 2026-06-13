@@ -109,8 +109,8 @@ function ApplicantCard({
       />
 
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate font-medium">{applicant.name}</p>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="min-w-0 truncate font-medium">{applicant.name}</p>
           <Badge variant={meta.variant}>{meta.label}</Badge>
           {application.matchScore !== null ? (
             <Badge variant="brand">{application.matchScore}% match</Badge>

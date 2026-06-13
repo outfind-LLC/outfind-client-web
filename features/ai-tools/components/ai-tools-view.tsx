@@ -130,13 +130,18 @@ function CvTool() {
       {cv ? (
         <div className="space-y-5">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-semibold">{cv.fullName}</h3>
-              <p className="text-muted-foreground text-sm">{cv.headline}</p>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold break-words">
+                {cv.fullName}
+              </h3>
+              <p className="text-muted-foreground text-sm break-words">
+                {cv.headline}
+              </p>
             </div>
             <Button
               variant="outline"
               size="sm"
+              className="shrink-0"
               onClick={() => copyText(cvToText(cv))}
             >
               <Copy className="size-3.5" />
@@ -152,7 +157,11 @@ function CvTool() {
             <Field label="Skills">
               <div className="flex flex-wrap gap-1.5">
                 {cv.skills.map((s) => (
-                  <Badge key={s} variant="secondary" className="font-normal">
+                  <Badge
+                    key={s}
+                    variant="secondary"
+                    className="max-w-full font-normal whitespace-normal break-words"
+                  >
                     {s}
                   </Badge>
                 ))}
@@ -163,8 +172,8 @@ function CvTool() {
             <Field label="Experience">
               <ul className="space-y-3">
                 {cv.experience.map((e, i) => (
-                  <li key={i} className="space-y-1">
-                    <p className="text-sm font-medium">
+                  <li key={i} className="min-w-0 space-y-1">
+                    <p className="text-sm font-medium break-words">
                       {e.position} · {e.company}
                     </p>
                     <p className="text-muted-foreground text-xs">
@@ -538,7 +547,11 @@ function SkillList({
     <Field label={label}>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <Badge key={item} variant={variant} className="font-normal">
+          <Badge
+            key={item}
+            variant={variant}
+            className="max-w-full font-normal whitespace-normal break-words"
+          >
             {item}
           </Badge>
         ))}
