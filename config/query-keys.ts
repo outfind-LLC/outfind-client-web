@@ -33,4 +33,8 @@ export const qk = {
 
   workerProfile: ["profile", "worker"] as const,
   employerProfile: ["profile", "employer"] as const,
+
+  /** Per-job AI tool result, cached so reopening a tool doesn't re-spend quota. */
+  jobAiTool: (tool: string, jobKey: string) =>
+    ["worker-ai", "job-tool", tool, jobKey] as const,
 } as const;

@@ -15,7 +15,10 @@ import { toast } from "sonner";
 import { routes } from "@/config/routes";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
 import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
+import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { ReportEmployerDialog } from "@/features/trust/components/report-employer-dialog";
+import type { JobCardData } from "@/features/chat/types/job";
+import type { ApplicationVacancyPreview } from "@/interfaces/application.interface";
 import {
   useApplications,
   useWithdrawApplication,
@@ -89,6 +92,7 @@ function ApplicationCard({ application }: { application: Application }) {
   const meta = APPLICATION_STATUS_META[application.status];
   const { vacancy } = application;
   const location = [vacancy.city, vacancy.country].filter(Boolean).join(", ");
+  const aiJob = toJobCardData(vacancy);
 
   const onWithdraw = () => {
     withdraw.mutate(application.id, {
@@ -98,67 +102,73 @@ function ApplicationCard({ application }: { application: Application }) {
   };
 
   return (
-    <li className="border-border/60 bg-card flex items-start justify-between gap-4 rounded-xl border p-4">
-      <div className="min-w-0 space-y-1.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <h3 className="min-w-0 truncate font-medium">{vacancy.title}</h3>
-          <Badge variant={meta.variant}>{meta.label}</Badge>
-        </div>
-        <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          {vacancy.companyName ? (
-            <span className="flex min-w-0 items-center gap-1.5">
-              <Building2 className="size-3.5 shrink-0" />
-              <span className="min-w-0 break-words">{vacancy.companyName}</span>
+    <li className="border-border/60 bg-card flex flex-col gap-3 rounded-xl border p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-1.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <h3 className="min-w-0 truncate font-medium">{vacancy.title}</h3>
+            <Badge variant={meta.variant}>{meta.label}</Badge>
+          </div>
+          <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            {vacancy.companyName ? (
+              <span className="flex min-w-0 items-center gap-1.5">
+                <Building2 className="size-3.5 shrink-0" />
+                <span className="min-w-0 break-words">
+                  {vacancy.companyName}
+                </span>
+              </span>
+            ) : null}
+            {location ? (
+              <span className="flex min-w-0 items-center gap-1.5">
+                <MapPin className="size-3.5 shrink-0" />
+                <span className="min-w-0 break-words">{location}</span>
+              </span>
+            ) : null}
+            <span>
+              Applied{" "}
+              {formatRelativeTime(application.sentAt ?? application.createdAt)}
             </span>
-          ) : null}
-          {location ? (
-            <span className="flex min-w-0 items-center gap-1.5">
-              <MapPin className="size-3.5 shrink-0" />
-              <span className="min-w-0 break-words">{location}</span>
-            </span>
-          ) : null}
-          <span>
-            Applied{" "}
-            {formatRelativeTime(application.sentAt ?? application.createdAt)}
-          </span>
+          </div>
         </div>
-      </div>
 
-      <div className="flex shrink-0 items-center gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Messages"
-          onClick={() => setConvoOpen(true)}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <MessageSquare className="size-4" />
-        </Button>
-        {vacancy.employerId ? (
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label="Report employer"
-            onClick={() => setReportOpen(true)}
+            aria-label="Messages"
+            onClick={() => setConvoOpen(true)}
             className="text-muted-foreground hover:text-foreground"
           >
-            <Flag className="size-4" />
+            <MessageSquare className="size-4" />
           </Button>
-        ) : null}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Withdraw application"
-          onClick={onWithdraw}
-          disabled={withdraw.isPending}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="size-4" />
-        </Button>
+          {vacancy.employerId ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Report employer"
+              onClick={() => setReportOpen(true)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Flag className="size-4" />
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Withdraw application"
+            onClick={onWithdraw}
+            disabled={withdraw.isPending}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       </div>
+
+      <JobAiTools job={aiJob} context="applied" />
 
       <ConversationDialog
         open={convoOpen}
@@ -179,6 +189,34 @@ function ApplicationCard({ application }: { application: Application }) {
       ) : null}
     </li>
   );
+}
+
+/**
+ * Adapt an applied vacancy into the shape the per-job AI tools expect. The
+ * preview is light (no skills/description), which is fine — interview prep leans
+ * on the worker's own profile plus the role title and company.
+ */
+function toJobCardData(vacancy: ApplicationVacancyPreview): JobCardData {
+  return {
+    id: vacancy.id,
+    title: vacancy.title,
+    company: vacancy.companyName,
+    location: [vacancy.city, vacancy.country].filter(Boolean).join(", ") || null,
+    salary: null,
+    skills: [],
+    isRemote: false,
+    jobType: null,
+    description: null,
+    requirements: [],
+    contact: {
+      email: null,
+      phone: null,
+      whatsapp: null,
+      telegram: null,
+      website: null,
+      contactForm: null,
+    },
+  };
 }
 
 function FilterChip({

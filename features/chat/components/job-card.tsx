@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { JobDetailSheet } from "@/features/jobs/components/job-detail-sheet";
+import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
 import type { JobCardData } from "@/features/chat/types/job";
 import { cn } from "@/lib/utils";
@@ -188,7 +189,8 @@ function JobCardShell({
         </div>
       ) : null}
 
-      <div className="border-border/50 mt-1 flex min-w-0 flex-col gap-3 border-t pt-3">
+      <div className="border-border/50 mt-1 flex min-w-0 flex-col gap-4 border-t pt-3">
+        <JobAiTools job={job} />
         {children}
       </div>
     </div>

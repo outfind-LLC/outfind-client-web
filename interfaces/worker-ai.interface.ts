@@ -72,3 +72,41 @@ export interface MatchScoreResult {
   areasForImprovement: string[];
   summary: string;
 }
+
+/**
+ * One job a worker is acting on, sent to the per-job AI tools (tailored CV,
+ * insights, interview prep). Built on the client from a job card.
+ */
+export interface JobContextPayload {
+  jobTitle: string;
+  companyName?: string;
+  location?: string;
+  salary?: string;
+  jobType?: string;
+  jobDescription: string;
+  requiredSkills?: string[];
+}
+
+/** Result of `POST /worker/ai/job-insights`. */
+export interface JobInsightsResult {
+  summary: string;
+  keySkills: string[];
+  keyRequirements: string[];
+  responsibilities: string[];
+  salaryInsight: string;
+  highlights: string[];
+  redFlags: string[];
+}
+
+export interface InterviewQuestion {
+  question: string;
+  suggestedAnswer: string;
+  category: string;
+}
+
+/** Result of `POST /worker/ai/interview-prep`. */
+export interface InterviewPrepResult {
+  focusAreas: string[];
+  questions: InterviewQuestion[];
+  tips: string[];
+}
