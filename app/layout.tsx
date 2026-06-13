@@ -73,10 +73,11 @@ export default function RootLayout({
     >
       <head>
         <meta name="apple-mobile-web-app-title" content={siteConfig.name} />
-        {/* Apply the saved accent before paint to avoid a flash of the default. */}
+        {/* Apply saved accent (preset or custom hex) + font before paint, so
+            there's no flash of the default theme. Mirrors the accent/font hooks. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var a=localStorage.getItem('peoplor-accent');if(a)document.documentElement.dataset.accent=a;}catch(e){}`,
+            __html: `try{var r=document.documentElement,s=r.style,a=localStorage.getItem('peoplor-accent');if(a){if(/^#[0-9a-fA-F]{6}$/.test(a)){var n=parseInt(a.slice(1),16),L=(0.2126*((n>>16)&255)+0.7152*((n>>8)&255)+0.0722*(n&255))/255,fg=L>0.6?'#0a0a0f':'#ffffff',t='color-mix(in oklab,'+a+' 14%,var(--background))';['--primary','--brand','--brand-2','--ring','--sidebar-primary','--sidebar-ring'].forEach(function(k){s.setProperty(k,a)});s.setProperty('--primary-foreground',fg);s.setProperty('--sidebar-primary-foreground',fg);s.setProperty('--accent',t);s.setProperty('--accent-foreground',a);s.setProperty('--sidebar-accent',t);s.setProperty('--sidebar-accent-foreground',a);}else{r.dataset.accent=a;}}var f=localStorage.getItem('peoplor-font');if(f)r.dataset.font=f;}catch(e){}`,
           }}
         />
       </head>

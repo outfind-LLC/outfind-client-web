@@ -40,7 +40,7 @@ function errorText(error: unknown): string {
 export function AiToolsView() {
   return (
     <Tabs defaultValue="cv" className="space-y-6">
-      <TabsList>
+      <TabsList className="w-full">
         <TabsTrigger value="cv">
           <FileText className="size-4" />
           Resume Builder

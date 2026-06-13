@@ -4,9 +4,10 @@ import { useCallback, useSyncExternalStore } from "react";
 
 import {
   ACCENT_STORAGE_KEY,
+  applyAccentValue,
   DEFAULT_ACCENT_ID,
-  isAccentId,
-  type AccentId,
+  isAccentValue,
+  type AccentValue,
 } from "@/features/settings/constants/accents";
 
 /** Same-tab notification channel (the native `storage` event only fires cross-tab). */
@@ -21,22 +22,20 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-/** Read the live accent from the DOM (set by the boot script) or storage. */
-function getSnapshot(): AccentId {
-  const fromDom = document.documentElement.dataset.accent;
-  if (isAccentId(fromDom)) return fromDom;
+/** The stored preference is the source of truth (the boot script applies it). */
+function getSnapshot(): AccentValue {
   const stored = window.localStorage.getItem(ACCENT_STORAGE_KEY);
-  return isAccentId(stored) ? stored : DEFAULT_ACCENT_ID;
+  return isAccentValue(stored) ? stored : DEFAULT_ACCENT_ID;
 }
 
-function getServerSnapshot(): AccentId {
+function getServerSnapshot(): AccentValue {
   return DEFAULT_ACCENT_ID;
 }
 
 /**
- * The active accent + a setter. Backed by `useSyncExternalStore` so it reads the
- * value the boot script already applied — no `useEffect`, no hydration mismatch,
- * and no flash of the default colour.
+ * The active accent (preset id or custom hex) + a setter. Backed by
+ * `useSyncExternalStore` so it reflects the value the boot script applied — no
+ * `useEffect`, no hydration mismatch, no flash of the default colour.
  */
 export function useAccent() {
   const accent = useSyncExternalStore(
@@ -45,10 +44,10 @@ export function useAccent() {
     getServerSnapshot,
   );
 
-  const setAccent = useCallback((id: AccentId) => {
-    document.documentElement.dataset.accent = id;
+  const setAccent = useCallback((value: AccentValue) => {
+    applyAccentValue(value);
     try {
-      window.localStorage.setItem(ACCENT_STORAGE_KEY, id);
+      window.localStorage.setItem(ACCENT_STORAGE_KEY, value);
     } catch {
       // Private mode / storage disabled — the DOM update still applies.
     }

@@ -11,6 +11,7 @@ import { chatService } from "@/features/chat/services/chat.service";
 import { useChatThread } from "@/features/chat/hooks/use-chat-thread";
 import { toUIMessages } from "@/features/chat/lib/map-messages";
 import { useComposerStore } from "@/features/chat/store/composer.store";
+import { playEventSound } from "@/features/settings/lib/play-sound";
 import { useSession } from "@/features/auth/hooks/use-session";
 import type { AccountType } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
@@ -79,6 +80,19 @@ function ChatRuntime({
   useEffect(() => {
     if (chat.error) toast.error("Something went wrong. Please try again.");
   }, [chat.error]);
+
+  // Chime when a reply finishes streaming (respects the user's sound settings).
+  const prevStatus = useRef(chat.status);
+  useEffect(() => {
+    const was = prevStatus.current;
+    prevStatus.current = chat.status;
+    if (
+      (was === "streaming" || was === "submitted") &&
+      chat.status === "ready"
+    ) {
+      playEventSound("chatComplete");
+    }
+  }, [chat.status]);
 
   const busy = chat.status === "submitted" || chat.status === "streaming";
 

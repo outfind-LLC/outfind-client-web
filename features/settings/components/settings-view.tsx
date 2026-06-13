@@ -1,9 +1,19 @@
 "use client";
 
-import { CreditCard, Gauge, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import {
+  CreditCard,
+  Gauge,
+  LogOut,
+  Monitor,
+  Moon,
+  Sun,
+  Volume2,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { AccentColorPicker } from "@/features/settings/components/accent-color-picker";
+import { FontPicker } from "@/features/settings/components/font-picker";
+import { SoundSettings } from "@/features/settings/components/sound-settings";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import {
@@ -67,10 +77,28 @@ export function SettingsView() {
           </Field>
           <Field
             label="Accent color"
-            hint="Recolors buttons, links, and highlights across the app."
+            hint="Pick a preset or any custom color — it recolors buttons, links, and highlights across the app."
           >
             <AccentColorPicker />
           </Field>
+          <Field label="Font" hint="Changes the typeface across the app.">
+            <FontPicker />
+          </Field>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Volume2 className="text-primary size-4" />
+            Sounds
+          </CardTitle>
+          <CardDescription>
+            Hear a cue when a reply is ready or a payment goes through.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SoundSettings />
         </CardContent>
       </Card>
 

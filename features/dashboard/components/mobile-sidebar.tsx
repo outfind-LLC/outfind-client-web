@@ -23,6 +23,9 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
         <Dialog.Content className="border-sidebar-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] border-r shadow-xl outline-none lg:hidden">
           <VisuallyHidden>
             <Dialog.Title>Navigation</Dialog.Title>
+            <Dialog.Description>
+              Primary navigation and your account
+            </Dialog.Description>
           </VisuallyHidden>
           <SidebarContent user={user} />
         </Dialog.Content>

@@ -350,6 +350,17 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* User-selectable typefaces (Settings → Appearance). `default` = Geist above. */
+  :root[data-font="system"] body {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  :root[data-font="serif"] body {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  }
+  :root[data-font="mono"] body {
+    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  }
+
   /* Thin, theme-aware scrollbars for chat/sidebars. */
   .scrollbar-thin {
     scrollbar-width: thin;

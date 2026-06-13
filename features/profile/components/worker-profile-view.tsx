@@ -65,6 +65,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
@@ -385,6 +386,9 @@ function JobSearchDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Search settings</DialogTitle>
+          <DialogDescription>
+            Set what you’re looking for and where you want to work.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <FormField label="Profession *">
@@ -471,6 +475,9 @@ function ProfileInfoDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Personal info</DialogTitle>
+          <DialogDescription>
+            Update your status, location, and work preferences.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <FormField label="Job search status">
@@ -493,7 +500,7 @@ function ProfileInfoDialog({
               maxLength={2000}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Country">
               <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Uzbekistan" />
             </FormField>
@@ -614,6 +621,9 @@ function ExperienceDialog({
           <DialogTitle>
             {existing ? "Edit experience" : "Add experience"}
           </DialogTitle>
+          <DialogDescription>
+            Add a role you’ve held, what you did, and the skills you used.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <FormField label="Company name *">
@@ -622,7 +632,7 @@ function ExperienceDialog({
           <FormField label="Position *">
             <Input value={form.position} onChange={(e) => up("position", e.target.value)} placeholder="e.g. Truck Driver" />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Employment type">
               <NativeSelect
                 value={form.employmentType}
@@ -654,7 +664,7 @@ function ExperienceDialog({
               }))}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Start date *">
               <Input type="date" value={form.startDate} onChange={(e) => up("startDate", e.target.value)} />
             </FormField>
@@ -753,12 +763,15 @@ function EducationDialog({
           <DialogTitle>
             {existing ? "Edit education" : "Add education"}
           </DialogTitle>
+          <DialogDescription>
+            Add a qualification, where you studied, and the dates.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <FormField label="Institution">
             <Input value={form.institutionName} onChange={(e) => up("institutionName", e.target.value)} placeholder="e.g. State University" />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Degree">
               <Input value={form.degree} onChange={(e) => up("degree", e.target.value)} placeholder="e.g. Bachelor's" />
             </FormField>
@@ -779,7 +792,7 @@ function EducationDialog({
               ]}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Start date *">
               <Input type="date" value={form.startDate} onChange={(e) => up("startDate", e.target.value)} />
             </FormField>
@@ -886,6 +899,9 @@ function LanguagesDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Manage languages</DialogTitle>
+          <DialogDescription>
+            Add the languages you speak and your proficiency in each.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {rows.length > 0 ? (
