@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { FormField, ListField } from "@/components/form/form-fields";
+import {
+  FormActions,
+  FormField,
+  FormGrid,
+  FormSection,
+  ListField,
+} from "@/components/form/form-fields";
 import { routes } from "@/config/routes";
 import {
   useCreateEmployerProfile,
@@ -18,7 +24,6 @@ import type {
   UpdateEmployerProfilePayload,
 } from "@/interfaces/employer-profile.interface";
 import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Textarea } from "@/ui/textarea";
 
@@ -130,7 +135,7 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <Section title="Company">
+      <FormSection title="Company">
         <FormField label="Company name" htmlFor="companyName" required>
           <Input
             id="companyName"
@@ -141,7 +146,7 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
             autoFocus
           />
         </FormField>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <FormGrid>
           <FormField label="Company URL" htmlFor="companyUrl" required>
             <Input
               id="companyUrl"
@@ -180,11 +185,11 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
               maxLength={50}
             />
           </FormField>
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <Section title="Location">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <FormSection title="Location">
+        <FormGrid>
           <FormField label="Country" htmlFor="country">
             <Input
               id="country"
@@ -203,10 +208,10 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
               maxLength={100}
             />
           </FormField>
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <Section title="About">
+      <FormSection title="About">
         <FormField label="Description" htmlFor="description">
           <Textarea
             id="description"
@@ -217,9 +222,9 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
             maxLength={4000}
           />
         </FormField>
-      </Section>
+      </FormSection>
 
-      <Section title="Contact">
+      <FormSection title="Contact">
         <FormField
           label="Corporate email"
           htmlFor="corporateEmail"
@@ -240,7 +245,7 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
             disabled={isEdit}
           />
         </FormField>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <FormGrid>
           <FormField label="Phone" htmlFor="phone">
             <Input
               id="phone"
@@ -260,10 +265,10 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
               maxLength={500}
             />
           </FormField>
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <Section title="Verification">
+      <FormSection title="Verification">
         <FormField
           label="Verification documents"
           hint="Links to documents (registration, licence) that support verification."
@@ -275,33 +280,28 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
             addLabel="Add document link"
           />
         </FormField>
-      </Section>
+      </FormSection>
 
-      <div className="bg-background/95 sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t py-3 backdrop-blur-sm">
+      <FormActions>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={pending}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        <Button type="submit" variant="brand" disabled={pending}>
+        <Button
+          type="submit"
+          variant="brand"
+          disabled={pending}
+          className="w-full sm:w-auto"
+        >
           {pending ? <Loader2 className="size-4 animate-spin" /> : null}
           {isEdit ? "Save changes" : "Create profile"}
         </Button>
-      </div>
+      </FormActions>
     </form>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
   );
 }

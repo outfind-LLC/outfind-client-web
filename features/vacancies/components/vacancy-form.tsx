@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   CheckboxGroup,
+  FormActions,
   FormField,
+  FormGrid,
+  FormSection,
   ListField,
   NativeSelect,
   SwitchField,
@@ -31,7 +34,6 @@ import type {
 } from "@/interfaces/vacancy.interface";
 import type { ExperienceLevel, VacancyType } from "@/interfaces/enums";
 import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 
 interface FormState {
@@ -205,7 +207,7 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <Section title="Basics">
+      <FormSection title="Basics">
         <FormField label="Job title" htmlFor="title" required>
           <Input
             id="title"
@@ -216,7 +218,7 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
             autoFocus
           />
         </FormField>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <FormGrid>
           <FormField label="Employment type" htmlFor="type">
             <NativeSelect
               id="type"
@@ -235,11 +237,11 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               placeholder="Select domain"
             />
           </FormField>
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <Section title="Location">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <FormSection title="Location">
+        <FormGrid>
           <FormField label="Country" htmlFor="country" required>
             <Input
               id="country"
@@ -258,17 +260,17 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               maxLength={100}
             />
           </FormField>
-        </div>
+        </FormGrid>
         <SwitchField
           label="Remote"
           description="This role can be performed remotely."
           checked={state.isRemote}
           onChange={(checked) => set("isRemote", checked)}
         />
-      </Section>
+      </FormSection>
 
-      <Section title="Compensation">
-        <div className="grid gap-4 sm:grid-cols-3">
+      <FormSection title="Compensation">
+        <FormGrid columns={3}>
           <FormField label="Salary min" htmlFor="salaryMin">
             <Input
               id="salaryMin"
@@ -289,7 +291,11 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               placeholder="0"
             />
           </FormField>
-          <FormField label="Currency" htmlFor="currency" hint="Required if you set a range">
+          <FormField
+            label="Currency"
+            htmlFor="currency"
+            hint="Required if you set a range"
+          >
             <Input
               id="currency"
               value={state.currency}
@@ -298,7 +304,7 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               maxLength={10}
             />
           </FormField>
-        </div>
+        </FormGrid>
         <FormField
           label="Or describe the pay"
           htmlFor="salaryRaw"
@@ -312,10 +318,10 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
             maxLength={100}
           />
         </FormField>
-      </Section>
+      </FormSection>
 
-      <Section title="Requirements">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <FormSection title="Requirements">
+        <FormGrid>
           <FormField label="Experience level" htmlFor="experience">
             <NativeSelect
               id="experience"
@@ -340,7 +346,7 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               placeholder="0"
             />
           </FormField>
-        </div>
+        </FormGrid>
         <FormField label="Skills" hint="Press Enter to add each skill.">
           <TagInput
             value={state.skillsRequired}
@@ -364,10 +370,10 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
             options={DRIVING_CATEGORY_OPTIONS}
           />
         </FormField>
-      </Section>
+      </FormSection>
 
-      <Section title="Relocation & perks">
-        <div className="grid gap-3 sm:grid-cols-3">
+      <FormSection title="Relocation & perks">
+        <FormGrid columns={3}>
           <SwitchField
             label="Housing provided"
             checked={state.housingProvided}
@@ -383,10 +389,10 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
             checked={state.relocationAssistance}
             onChange={(checked) => set("relocationAssistance", checked)}
           />
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <Section title="Description">
+      <FormSection title="Description">
         <FormField label="Responsibilities">
           <ListField
             value={state.responsibilities}
@@ -427,10 +433,10 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
             addLabel="Add step"
           />
         </FormField>
-      </Section>
+      </FormSection>
 
-      <Section title="Contacts & schedule">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <FormSection title="Contacts & schedule">
+        <FormGrid>
           <FormField label="HR email" htmlFor="hrEmail">
             <Input
               id="hrEmail"
@@ -496,34 +502,29 @@ export function VacancyForm({ vacancy }: { vacancy?: Vacancy }) {
               onChange={(event) => set("expiresAt", event.target.value)}
             />
           </FormField>
-        </div>
-      </Section>
+        </FormGrid>
+      </FormSection>
 
-      <div className="bg-background/95 sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t py-3 backdrop-blur-sm">
+      <FormActions>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
           disabled={pending}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        <Button type="submit" variant="brand" disabled={pending}>
+        <Button
+          type="submit"
+          variant="brand"
+          disabled={pending}
+          className="w-full sm:w-auto"
+        >
           {pending ? <Loader2 className="size-4 animate-spin" /> : null}
           {isEdit ? "Save changes" : "Create vacancy"}
         </Button>
-      </div>
+      </FormActions>
     </form>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
   );
 }

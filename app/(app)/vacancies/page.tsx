@@ -1,11 +1,9 @@
-import Link from "next/link";
-import { Briefcase, Plus } from "lucide-react";
+import { Briefcase } from "lucide-react";
 
 import { Container } from "@/components/container";
-import { routes } from "@/config/routes";
 import { PageHeader } from "@/features/dashboard/components/page-header";
+import { NewVacancyButton } from "@/features/vacancies/components/company-profile-gate";
 import { VacanciesList } from "@/features/vacancies/components/vacancies-list";
-import { Button } from "@/ui/button";
 
 export default function VacanciesPage() {
   return (
@@ -14,14 +12,7 @@ export default function VacanciesPage() {
         icon={Briefcase}
         title="Vacancies"
         description="Manage your open roles."
-        actions={
-          <Button asChild variant="brand" size="sm">
-            <Link href={routes.vacancyNew}>
-              <Plus className="size-4" />
-              New vacancy
-            </Link>
-          </Button>
-        }
+        actions={<NewVacancyButton />}
       />
       <VacanciesList />
     </Container>

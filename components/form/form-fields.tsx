@@ -11,6 +11,13 @@ import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Switch } from "@/ui/switch";
@@ -18,6 +25,59 @@ import { Switch } from "@/ui/switch";
 export interface SelectOption {
   value: string;
   label: string;
+}
+
+/** A titled card that groups related fields with consistent inner spacing. */
+export function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
+      </CardHeader>
+      <CardContent className="space-y-5">{children}</CardContent>
+    </Card>
+  );
+}
+
+/** Responsive field grid: single column on mobile, splitting from `sm` up. */
+export function FormGrid({
+  columns = 2,
+  className,
+  children,
+}: {
+  columns?: 2 | 3;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "grid gap-4 sm:gap-5",
+        columns === 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Sticky form footer. Actions stack full-width on mobile, right-align from `sm`. */
+export function FormActions({ children }: { children: ReactNode }) {
+  return (
+    <div className="bg-background/95 sticky bottom-0 z-10 flex flex-col-reverse gap-2 border-t py-3 backdrop-blur-sm sm:flex-row sm:justify-end sm:gap-3">
+      {children}
+    </div>
+  );
 }
 
 /** Labelled field wrapper: label (+ required mark), control, hint, error. */

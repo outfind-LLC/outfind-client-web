@@ -12,11 +12,15 @@ import type {
 } from "@/interfaces/vacancy.interface";
 import type { VacancyStatus } from "@/interfaces/enums";
 
-/** Employer: list own vacancies, optionally filtered by status. */
-export function useVacancies(status?: VacancyStatus) {
+/**
+ * Employer: list own vacancies, optionally filtered by status. `enabled` lets
+ * callers hold the request until the employer has a company profile.
+ */
+export function useVacancies(status?: VacancyStatus, enabled = true) {
   return useQuery<Vacancy[]>({
     queryKey: qk.vacancies(status),
     queryFn: () => vacanciesService.listOwn(status ? { status } : {}),
+    enabled,
   });
 }
 

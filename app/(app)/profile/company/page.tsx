@@ -6,7 +6,7 @@ import { EmployerProfileFormLoader } from "@/features/profile/components/employe
 
 export default function CompanyProfilePage() {
   return (
-    <Container className="py-8">
+    <Container className="max-w-3xl py-8">
       <PageHeader
         icon={Building2}
         title="Company profile"

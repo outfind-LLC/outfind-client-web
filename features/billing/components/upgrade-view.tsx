@@ -20,6 +20,13 @@ import { Skeleton } from "@/ui/skeleton";
 
 type BillingInterval = "month" | "year";
 
+/**
+ * Yearly pricing isn't finalized yet, so only monthly plans are shown. The
+ * interval toggle and yearly checkout logic stay in place — flip this to `true`
+ * (once plans carry real yearly prices) to re-enable them with no other changes.
+ */
+const SHOW_YEARLY_BILLING = false;
+
 function formatPrice(cents: number): string {
   if (cents <= 0) return "Free";
   const value = cents / 100;
@@ -32,6 +39,10 @@ export function UpgradeView() {
   const { user } = useSession();
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>("month");
+  // Forced to monthly until yearly is enabled; keeps the rest of the UI generic.
+  const interval: BillingInterval = SHOW_YEARLY_BILLING
+    ? billingInterval
+    : "month";
   const checkout = useCheckout();
   const { plan: currentPlan } = useMyPlan();
 
@@ -70,7 +81,7 @@ export function UpgradeView() {
 
   const startCheckout = (plan: PublicPlan) => {
     checkout.mutate(
-      { planCode: plan.code, interval: billingInterval },
+      { planCode: plan.code, interval },
       {
         onError: (error) =>
           toast.error(
@@ -92,7 +103,12 @@ export function UpgradeView() {
           </span>{" "}
           plan.
         </p>
-        <IntervalToggle value={billingInterval} onChange={setBillingInterval} />
+        {SHOW_YEARLY_BILLING ? (
+          <IntervalToggle
+            value={billingInterval}
+            onChange={setBillingInterval}
+          />
+        ) : null}
       </div>
 
       <div className="grid items-stretch gap-6 lg:grid-cols-3">
@@ -100,7 +116,7 @@ export function UpgradeView() {
           const isCurrent = plan.planType === currentPlan?.planType;
           const isUpgrade = plan.priceMonthlyCents > currentPrice;
           const price =
-            billingInterval === "month"
+            interval === "month"
               ? plan.priceMonthlyCents
               : plan.priceYearlyCents;
 
@@ -131,7 +147,7 @@ export function UpgradeView() {
                 </span>
                 {price > 0 ? (
                   <span className="text-muted-foreground text-sm">
-                    /{billingInterval === "month" ? "mo" : "yr"}
+                    /{interval === "month" ? "mo" : "yr"}
                   </span>
                 ) : null}
               </div>

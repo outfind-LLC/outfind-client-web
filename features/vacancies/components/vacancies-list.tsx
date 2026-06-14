@@ -13,7 +13,9 @@ import {
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
+import { useSession } from "@/features/auth/hooks/use-session";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
+import { CompanyProfileOnboarding } from "@/features/vacancies/components/company-profile-gate";
 import {
   useDeleteVacancy,
   useUpdateVacancyStatus,
@@ -48,8 +50,17 @@ const STATUS_ACTIONS: { status: VacancyStatus; label: string }[] = [
 
 /** Employer's own vacancies, filterable by status, with status + delete. */
 export function VacanciesList() {
+  const { user } = useSession();
+  const profileSet = Boolean(user?.isEmployerProfileSet);
   const [status, setStatus] = useState<VacancyStatus | null>(null);
-  const { data, isLoading, isError } = useVacancies(status ?? undefined);
+  const { data, isLoading, isError } = useVacancies(
+    status ?? undefined,
+    profileSet,
+  );
+
+  // No company profile yet → guide the employer to set one up rather than
+  // firing a request that would only surface a load error.
+  if (!profileSet) return <CompanyProfileOnboarding />;
 
   return (
     <div className="space-y-5">

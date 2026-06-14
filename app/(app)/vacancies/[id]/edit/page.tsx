@@ -12,7 +12,7 @@ export default async function EditVacancyPage({
 }) {
   const { id } = await params;
   return (
-    <Container className="py-8">
+    <Container className="max-w-3xl py-8">
       <PageHeader
         icon={Briefcase}
         title="Edit vacancy"
