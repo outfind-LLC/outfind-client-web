@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useApplyToVacancy } from "@/features/applications/hooks/use-applications";
+import { useChatPanelStore } from "@/features/applications/store/chat-panel.store";
 import {
   useAddBookmark,
   useRemoveBookmark,
@@ -29,6 +30,7 @@ function message(error: unknown, fallback: string): string {
 export function useJobActions(vacancyId: string) {
   const [saved, setSaved] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [reaction, setReactionState] = useState<ReactionType | null>(null);
 
   const addBookmark = useAddBookmark();
@@ -61,14 +63,41 @@ export function useJobActions(vacancyId: string) {
     }
   };
 
-  const applyToJob = () => {
+  // The Apply button opens the cover-letter flow rather than applying directly.
+  const openApplyDialog = () => {
+    if (applied) return;
+    setApplyDialogOpen(true);
+  };
+  const closeApplyDialog = () => setApplyDialogOpen(false);
+
+  // Submit the application with an (optional) cover letter, then open the
+  // freshly created conversation with that letter pinned as the first message.
+  // `shareContact` is the candidate's consent to share contact details — sent as
+  // the DIRECT send method, which the employer's candidate view reads to reveal
+  // contact info (PLATFORM keeps the conversation on-platform only).
+  const confirmApply = (coverLetter: string, shareContact = false) => {
     if (apply.isPending || applied) return;
+    const trimmed = coverLetter.trim();
     apply.mutate(
-      { vacancyId, payload: { sendMethod: "PLATFORM" } },
       {
-        onSuccess: () => {
+        vacancyId,
+        payload: {
+          coverLetter: trimmed || undefined,
+          sendMethod: shareContact ? "DIRECT" : "PLATFORM",
+        },
+      },
+      {
+        onSuccess: (application) => {
           setApplied(true);
+          setApplyDialogOpen(false);
           toast.success("Application sent");
+          useChatPanelStore.getState().openThread({
+            scope: "worker",
+            applicationId: application.id,
+            title: application.vacancy.title,
+            subtitle: application.vacancy.companyName ?? undefined,
+            coverLetter: trimmed || null,
+          });
         },
         onError: (e) => toast.error(message(e, "Couldn't send the application")),
       },
@@ -102,7 +131,12 @@ export function useJobActions(vacancyId: string) {
     applyPending: apply.isPending,
     reactionPending,
     toggleSave,
-    applyToJob,
+    /** Opens the cover-letter dialog; kept named `applyToJob` for call sites. */
+    applyToJob: openApplyDialog,
+    applyDialogOpen,
+    openApplyDialog,
+    closeApplyDialog,
+    confirmApply,
     react,
   };
 }

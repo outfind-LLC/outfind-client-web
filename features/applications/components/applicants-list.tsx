@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { MessageSquare, Users } from "lucide-react";
 import { toast } from "sonner";
 
+import { routes } from "@/config/routes";
 import { UserAvatar } from "@/components/user-avatar";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
-import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
+import { useChatPanelStore } from "@/features/applications/store/chat-panel.store";
 import {
   useUpdateApplicationStatus,
   useVacancyApplicants,
@@ -86,9 +87,18 @@ function ApplicantCard({
   vacancyId: string;
 }) {
   const updateStatus = useUpdateApplicationStatus(vacancyId);
-  const [convoOpen, setConvoOpen] = useState(false);
+  const openThread = useChatPanelStore((s) => s.openThread);
   const meta = APPLICATION_STATUS_META[application.status];
   const { applicant } = application;
+
+  const openConversation = () =>
+    openThread({
+      scope: "employer",
+      applicationId: application.id,
+      title: applicant.name,
+      subtitle: applicant.profession ?? undefined,
+      coverLetter: application.coverLetterOriginal,
+    });
 
   const setStatus = (status: ApplicationStatus) => {
     updateStatus.mutate(
@@ -101,26 +111,33 @@ function ApplicantCard({
   };
 
   return (
-    <li className="border-border/60 bg-card flex items-center gap-4 rounded-xl border p-4">
-      <UserAvatar
-        name={applicant.name}
-        avatarUrl={applicant.avatarUrl}
-        className="size-10"
-      />
+    <li className="border-border/60 bg-card hover:border-border flex items-center gap-3 rounded-xl border p-4 transition-colors">
+      <Link
+        href={routes.candidateProfile(vacancyId, application.id)}
+        className="group flex min-w-0 flex-1 items-center gap-4"
+      >
+        <UserAvatar
+          name={applicant.name}
+          avatarUrl={applicant.avatarUrl}
+          className="size-10 shrink-0"
+        />
 
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="min-w-0 truncate font-medium">{applicant.name}</p>
-          <Badge variant={meta.variant}>{meta.label}</Badge>
-          {application.matchScore !== null ? (
-            <Badge variant="brand">{application.matchScore}% match</Badge>
-          ) : null}
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <p className="min-w-0 truncate font-medium group-hover:underline">
+              {applicant.name}
+            </p>
+            <Badge variant={meta.variant}>{meta.label}</Badge>
+            {application.matchScore !== null ? (
+              <Badge variant="brand">{application.matchScore}% match</Badge>
+            ) : null}
+          </div>
+          <p className="text-muted-foreground truncate text-xs">
+            {applicant.profession ?? "Candidate"} · applied{" "}
+            {formatRelativeTime(application.sentAt ?? application.createdAt)}
+          </p>
         </div>
-        <p className="text-muted-foreground truncate text-xs">
-          {applicant.profession ?? "Candidate"} · applied{" "}
-          {formatRelativeTime(application.sentAt ?? application.createdAt)}
-        </p>
-      </div>
+      </Link>
 
       <div className="flex shrink-0 items-center gap-2">
         <Button
@@ -128,7 +145,7 @@ function ApplicantCard({
           variant="ghost"
           size="icon-sm"
           aria-label="Message applicant"
-          onClick={() => setConvoOpen(true)}
+          onClick={openConversation}
           className="text-muted-foreground hover:text-foreground"
         >
           <MessageSquare className="size-4" />
@@ -157,15 +174,6 @@ function ApplicantCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      <ConversationDialog
-        open={convoOpen}
-        onOpenChange={setConvoOpen}
-        scope="employer"
-        applicationId={application.id}
-        title={applicant.name}
-        subtitle={applicant.profession ?? undefined}
-      />
     </li>
   );
 }

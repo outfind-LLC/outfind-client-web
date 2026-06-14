@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
+import { ChatPanel } from "@/features/applications/components/chat-panel";
 import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function AppShell({ user, children }: AppShellProps) {
   return (
     <div className="flex h-svh overflow-hidden">
       <BillingSoundCue />
+      <ChatPanel />
       <aside
         className={cn(
           "border-sidebar-border hidden shrink-0 border-r transition-[width] duration-200 lg:block",

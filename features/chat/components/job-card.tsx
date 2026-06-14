@@ -13,6 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { ApplyDialog } from "@/features/jobs/components/apply-dialog";
 import { JobDetailSheet } from "@/features/jobs/components/job-detail-sheet";
 import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
@@ -112,6 +113,16 @@ function InternalJobCard({
         job={job}
         vacancyId={vacancyId}
         actions={actions}
+      />
+
+      <ApplyDialog
+        open={actions.applyDialogOpen}
+        onOpenChange={(next) =>
+          next ? actions.openApplyDialog() : actions.closeApplyDialog()
+        }
+        job={job}
+        submitting={actions.applyPending}
+        onSubmit={actions.confirmApply}
       />
     </JobCardShell>
   );

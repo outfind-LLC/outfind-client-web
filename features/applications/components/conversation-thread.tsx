@@ -25,64 +25,26 @@ import type {
   ConversationScope,
 } from "@/interfaces/application.interface";
 import { Button } from "@/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/dialog";
 import { Textarea } from "@/ui/textarea";
 
-interface ConversationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface ConversationThreadProps {
   scope: ConversationScope;
   applicationId: string;
-  title: string;
-  subtitle?: string;
+  /** Pinned as the first message in the thread. */
+  coverLetter?: string | null;
 }
 
-/** Application conversation between a worker and an employer. One component
- * serves both sides via `scope`; bubbles align by the caller's own user id. */
-export function ConversationDialog({
-  open,
-  onOpenChange,
+/**
+ * Application conversation body (message list + composer) shared by the docked
+ * chat panel. One component serves both sides via `scope`; bubbles align by the
+ * caller's own user id. The cover letter, when present, is pinned above the
+ * fetched messages as the conversation's first message.
+ */
+export function ConversationThread({
   scope,
   applicationId,
-  title,
-  subtitle,
-}: ConversationDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[80vh] max-h-[680px] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="space-y-0.5 border-b p-4 text-left">
-          <DialogTitle className="truncate text-base">{title}</DialogTitle>
-          <DialogDescription className="truncate text-xs">
-            {subtitle ?? "Conversation about this application"}
-          </DialogDescription>
-        </DialogHeader>
-        {open ? (
-          <Conversation
-            scope={scope}
-            applicationId={applicationId}
-            onClose={() => onOpenChange(false)}
-          />
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function Conversation({
-  scope,
-  applicationId,
-  onClose,
-}: {
-  scope: ConversationScope;
-  applicationId: string;
-  onClose: () => void;
-}) {
+  coverLetter,
+}: ConversationThreadProps) {
   const { user } = useSession();
   const { data, isLoading } = useApplicationMessages(scope, applicationId, true);
   const sendMessage = useSendApplicationMessage(scope, applicationId);
@@ -95,6 +57,8 @@ function Conversation({
       [...(data ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     [data],
   );
+
+  const pinnedCoverLetter = coverLetter?.trim() ? coverLetter.trim() : null;
 
   // Opening the conversation marks the other side's messages as read.
   const markReadMutate = markRead.mutate;
@@ -134,13 +98,22 @@ function Conversation({
   return (
     <>
       <div className="min-h-0 flex-1 scrollbar-thin space-y-3 overflow-y-auto p-4">
+        {pinnedCoverLetter ? (
+          <CoverLetterBubble
+            content={pinnedCoverLetter}
+            mine={scope === "worker"}
+          />
+        ) : null}
+
         {isLoading ? (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex items-center justify-center py-8">
             <Loader2 className="text-muted-foreground size-5 animate-spin" />
           </div>
         ) : messages.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center text-sm">
-            No messages yet. Start the conversation below.
+            {pinnedCoverLetter
+              ? "Continue the conversation below."
+              : "No messages yet. Start the conversation below."}
           </p>
         ) : (
           messages.map((message) => (
@@ -164,19 +137,13 @@ function Conversation({
           maxLength={4000}
           autoFocus
         />
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-sm"
-          >
-            Close
-          </button>
+        <div className="flex justify-end">
           <Button
             type="submit"
             size="sm"
             variant="brand"
             disabled={draft.trim().length === 0 || sendMessage.isPending}
+            className="w-full sm:w-auto"
           >
             {sendMessage.isPending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -188,6 +155,33 @@ function Conversation({
         </div>
       </form>
     </>
+  );
+}
+
+/** The application's cover letter, shown as the conversation's first message. */
+function CoverLetterBubble({
+  content,
+  mine,
+}: {
+  content: string;
+  mine: boolean;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}>
+      <span className="text-muted-foreground px-1 text-[10px] font-medium tracking-wide uppercase">
+        Cover letter
+      </span>
+      <div
+        className={cn(
+          "max-w-[85%] rounded-2xl border px-3.5 py-2.5 text-sm",
+          mine
+            ? "border-brand/30 bg-brand/10 text-foreground"
+            : "bg-muted text-foreground",
+        )}
+      >
+        <p className="break-words whitespace-pre-wrap">{content}</p>
+      </div>
+    </div>
   );
 }
 
@@ -203,9 +197,7 @@ function MessageBubble({
       <div
         className={cn(
           "max-w-[80%] space-y-1 rounded-2xl px-3.5 py-2 text-sm",
-          mine
-            ? "bg-brand text-white"
-            : "bg-muted text-foreground",
+          mine ? "bg-brand text-white" : "bg-muted text-foreground",
         )}
       >
         <p className="break-words whitespace-pre-wrap">{message.content}</p>

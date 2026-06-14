@@ -32,6 +32,8 @@ export const routes = {
   vacancyEdit: (id: string) => `/vacancies/${id}/edit`,
   applicants: "/applicants",
   vacancyApplicants: (id: string) => `/applicants/${id}`,
+  candidateProfile: (vacancyId: string, applicationId: string) =>
+    `/applicants/${vacancyId}/${applicationId}`,
 
   // Shared
   history: "/history",

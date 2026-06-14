@@ -21,6 +21,8 @@ export const qk = {
   applications: (status?: string) => ["applications", status ?? "all"] as const,
   applicationMessages: (applicationId: string) =>
     ["application", applicationId, "messages"] as const,
+  candidateProfile: (applicationId: string) =>
+    ["application", applicationId, "candidate"] as const,
   bookmarks: ["bookmarks"] as const,
   vacancyComments: (vacancyId: string) =>
     ["vacancy", vacancyId, "comments"] as const,

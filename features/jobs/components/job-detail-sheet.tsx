@@ -110,7 +110,15 @@ export function JobDetailSheet({
 
           <ContactActions contact={job.contact} />
 
-          <ActionRow actions={actions} />
+          <ActionRow
+            actions={actions}
+            onApply={() => {
+              // Close the sheet first so the apply dialog (and the chat panel
+              // that follows a successful apply) aren't stacked behind it.
+              onOpenChange(false);
+              actions.applyToJob();
+            }}
+          />
 
           <CommentThread vacancyId={vacancyId} open={open} />
         </div>
@@ -119,13 +127,19 @@ export function JobDetailSheet({
   );
 }
 
-function ActionRow({ actions }: { actions: JobActions }) {
+function ActionRow({
+  actions,
+  onApply,
+}: {
+  actions: JobActions;
+  onApply: () => void;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
         variant="brand"
         size="sm"
-        onClick={actions.applyToJob}
+        onClick={onApply}
         disabled={actions.applyPending || actions.applied}
       >
         {actions.applyPending ? (

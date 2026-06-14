@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
-import { ConversationDialog } from "@/features/applications/components/conversation-dialog";
+import { useChatPanelStore } from "@/features/applications/store/chat-panel.store";
 import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { ReportEmployerDialog } from "@/features/trust/components/report-employer-dialog";
 import type { JobCardData } from "@/features/chat/types/job";
@@ -87,12 +87,21 @@ export function ApplicationsList() {
 
 function ApplicationCard({ application }: { application: Application }) {
   const withdraw = useWithdrawApplication();
-  const [convoOpen, setConvoOpen] = useState(false);
+  const openThread = useChatPanelStore((s) => s.openThread);
   const [reportOpen, setReportOpen] = useState(false);
   const meta = APPLICATION_STATUS_META[application.status];
   const { vacancy } = application;
   const location = [vacancy.city, vacancy.country].filter(Boolean).join(", ");
   const aiJob = toJobCardData(vacancy);
+
+  const openConversation = () =>
+    openThread({
+      scope: "worker",
+      applicationId: application.id,
+      title: vacancy.title,
+      subtitle: vacancy.companyName ?? undefined,
+      coverLetter: application.coverLetterOriginal,
+    });
 
   const onWithdraw = () => {
     withdraw.mutate(application.id, {
@@ -137,7 +146,7 @@ function ApplicationCard({ application }: { application: Application }) {
             variant="ghost"
             size="icon-sm"
             aria-label="Messages"
-            onClick={() => setConvoOpen(true)}
+            onClick={openConversation}
             className="text-muted-foreground hover:text-foreground"
           >
             <MessageSquare className="size-4" />
@@ -169,15 +178,6 @@ function ApplicationCard({ application }: { application: Application }) {
       </div>
 
       <JobAiTools job={aiJob} context="applied" />
-
-      <ConversationDialog
-        open={convoOpen}
-        onOpenChange={setConvoOpen}
-        scope="worker"
-        applicationId={application.id}
-        title={vacancy.title}
-        subtitle={vacancy.companyName ?? undefined}
-      />
 
       {vacancy.employerId ? (
         <ReportEmployerDialog

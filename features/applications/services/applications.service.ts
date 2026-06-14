@@ -10,6 +10,7 @@ import type {
   ListApplicationsQuery,
   UpdateApplicationStatusPayload,
 } from "@/interfaces/application.interface";
+import type { CandidateProfile } from "@/interfaces/candidate-profile.interface";
 
 /**
  * Applications API service. Worker routes manage the caller's own applications;
@@ -57,6 +58,14 @@ export const applicationsService = {
     return api.patch<EmployerApplication>(
       `/employer/applications/${applicationId}/status`,
       payload,
+    );
+  },
+
+  /** Full candidate profile for an applicant (PROPOSED endpoint — see
+   *  `CandidateProfile`). Consumers degrade gracefully if it's not yet live. */
+  async getCandidateProfile(applicationId: string): Promise<CandidateProfile> {
+    return api.get<CandidateProfile>(
+      `/employer/applications/${applicationId}/candidate`,
     );
   },
 
