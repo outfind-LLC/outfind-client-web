@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useJobToolPanelStore } from "@/features/jobs/store/job-tool-panel.store";
 import type { ConversationScope } from "@/interfaces/application.interface";
 
@@ -33,7 +34,8 @@ interface ChatPanelState {
 export const useChatPanelStore = create<ChatPanelState>((set) => ({
   thread: null,
   openThread: (thread) => {
-    // Only one right-side panel at a time — yield to the conversation.
+    // The conversation takes over the right side — close detail + tool panels.
+    useJobDetailPanelStore.getState().close();
     useJobToolPanelStore.getState().close();
     set({ thread });
   },

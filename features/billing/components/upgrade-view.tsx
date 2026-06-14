@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
+import { qk } from "@/config/query-keys";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useCheckout, usePaygCheckout } from "@/features/billing/hooks/use-billing";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
@@ -45,6 +47,27 @@ export function UpgradeView() {
     : "month";
   const checkout = useCheckout();
   const { plan: currentPlan } = useMyPlan();
+  const queryClient = useQueryClient();
+
+  // Returning from a successful Polar checkout (POLAR_SUCCESS_URL →
+  // /upgrade?checkout=success): confirm it, refresh the plan/usage, and clean
+  // the URL so a refresh doesn't re-toast.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") !== "success") return;
+
+    toast.success("Payment successful — your plan is being updated.");
+    void queryClient.invalidateQueries({ queryKey: qk.myEntitlements });
+    void queryClient.invalidateQueries({ queryKey: qk.subscription });
+    // Model access is computed per-plan server-side — refetch so newly unlocked
+    // models stop showing as locked.
+    void queryClient.invalidateQueries({ queryKey: qk.aiModels() });
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("checkout");
+    window.history.replaceState({}, "", url.toString());
+  }, [queryClient]);
 
   const audience =
     user?.accountType === ACCOUNT_TYPE.EMPLOYER

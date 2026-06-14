@@ -1,92 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import { Building2, ChevronRight, MapPin, Wallet } from "lucide-react";
 
-import { ApplyDialog } from "@/features/jobs/components/apply-dialog";
-import { JobDetailSheet } from "@/features/jobs/components/job-detail-sheet";
-import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
+import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import type { JobCardData } from "@/features/chat/types/job";
 import { Badge } from "@/ui/badge";
 
 /**
- * A single job result inside an assistant message. The card is a compact, tappable
- * summary; everything else — full details, company info, AI tools, and applying —
- * lives behind it in the detail view. Every role uses the exact same card and
- * detail layout, so the worker is never shown where a role came from.
+ * A single job result inside an assistant message — a compact, tappable summary.
+ * Everything else (full details, company info, AI tools, applying) lives behind
+ * it in the docked detail panel. Every role uses the exact same card + detail,
+ * so the worker is never shown where a role came from.
  */
 export function JobCard({ job }: { job: JobCardData }) {
-  return job.id ? (
-    <InternalJobCard job={job} vacancyId={job.id} />
-  ) : (
-    <ExternalJobCard job={job} />
-  );
-}
+  const openDetail = useJobDetailPanelStore((s) => s.openDetail);
 
-/** Platform role — can be applied to, saved, and discussed in-app. */
-function InternalJobCard({
-  job,
-  vacancyId,
-}: {
-  job: JobCardData;
-  vacancyId: string;
-}) {
-  const actions = useJobActions(vacancyId);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
-  return (
-    <>
-      <JobCardSummary job={job} onOpen={() => setDetailsOpen(true)} />
-
-      <JobDetailSheet
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-        job={job}
-        vacancyId={vacancyId}
-        actions={actions}
-      />
-
-      <ApplyDialog
-        open={actions.applyDialogOpen}
-        onOpenChange={(next) =>
-          next ? actions.openApplyDialog() : actions.closeApplyDialog()
-        }
-        job={job}
-        submitting={actions.applyPending}
-        onSubmit={actions.confirmApply}
-      />
-    </>
-  );
-}
-
-/** Role handled through the employer's own channels — same summary + detail. */
-function ExternalJobCard({ job }: { job: JobCardData }) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
-  return (
-    <>
-      <JobCardSummary job={job} onOpen={() => setDetailsOpen(true)} />
-      <JobDetailSheet
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-        job={job}
-      />
-    </>
-  );
-}
-
-/** Tappable summary shared by every job — opens the detail view. */
-function JobCardSummary({
-  job,
-  onOpen,
-}: {
-  job: JobCardData;
-  onOpen: () => void;
-}) {
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={() => openDetail(job, job.id)}
       className="border-border/70 bg-card hover:border-primary/40 focus-visible:ring-ring/40 flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors outline-none focus-visible:ring-2"
     >
       <div className="min-w-0 space-y-1">

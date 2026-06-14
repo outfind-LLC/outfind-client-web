@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { qk } from "@/config/query-keys";
 import { ChatPanel } from "@/features/applications/components/chat-panel";
 import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue";
+import { JobDetailPanel } from "@/features/jobs/components/job-detail-panel";
 import { JobToolPanel } from "@/features/jobs/components/job-tool-panel";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { cn } from "@/lib/utils";
@@ -52,11 +53,13 @@ export function AppShell({ user, children }: AppShellProps) {
 
       <MobileSidebar user={user} />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
         <DashboardTopbar />
         <main className="flex min-h-0 flex-1 scrollbar-thin flex-col overflow-y-auto">
           {children}
         </main>
+        {/* Detail takes over the content area only — the sidebar stays visible. */}
+        <JobDetailPanel />
       </div>
     </div>
   );
