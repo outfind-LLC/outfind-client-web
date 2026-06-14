@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import {
+  Bookmark,
+  BookmarkCheck,
   Building2,
   Loader2,
   MapPin,
@@ -13,7 +15,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { ContactActions } from "@/features/chat/components/contact-actions";
+import {
+  ContactActions,
+  hasAnyContact,
+  primaryContactHref,
+} from "@/features/chat/components/contact-actions";
+import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { useSession } from "@/features/auth/hooks/use-session";
 import {
   useCreateComment,
@@ -43,11 +50,17 @@ interface JobDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   job: JobCardData;
-  vacancyId: string;
-  actions: JobActions;
+  /** Present for platform roles the worker can act on in-app; absent otherwise. */
+  vacancyId?: string;
+  actions?: JobActions;
 }
 
-/** Full job view: details, the worker's actions, and the comment thread. */
+/**
+ * The full job view: details, company, AI tools, and the apply action. Opened by
+ * tapping a job card. The same layout serves every role — whether it can be
+ * applied to in-app (with `actions`) or reached through the employer's own
+ * channels — so the worker is never shown where a role came from.
+ */
 export function JobDetailSheet({
   open,
   onOpenChange,
@@ -57,13 +70,13 @@ export function JobDetailSheet({
 }: JobDetailSheetProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="space-y-2 border-b p-5 text-left">
           <DialogTitle className="pr-6 text-lg leading-tight break-words">
             {job.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Job details, actions, and comments
+            Job and company details, tools, and how to apply
           </DialogDescription>
           {job.company ? (
             <p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-sm">
@@ -93,83 +106,172 @@ export function JobDetailSheet({
           </div>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 scrollbar-thin space-y-5 overflow-y-auto p-5">
-          {job.skills.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {job.skills.map((skill) => (
-                <Badge
-                  key={skill}
-                  variant="outline"
-                  className="max-w-full font-normal whitespace-normal break-words"
-                >
-                  {skill}
-                </Badge>
-              ))}
-            </div>
+        <div className="min-h-0 flex-1 scrollbar-thin space-y-6 overflow-y-auto p-5">
+          {job.description ? (
+            <Section title="About this role">
+              <p className="text-foreground/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {job.description}
+              </p>
+            </Section>
           ) : null}
 
-          <ContactActions contact={job.contact} />
+          {job.requirements.length > 0 ? (
+            <Section title="Requirements">
+              <ul className="text-foreground/90 list-disc space-y-1 pl-4 text-sm">
+                {job.requirements.map((item) => (
+                  <li key={item} className="break-words">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
 
-          <ActionRow
-            actions={actions}
-            onApply={() => {
-              // Close the sheet first so the apply dialog (and the chat panel
-              // that follows a successful apply) aren't stacked behind it.
-              onOpenChange(false);
-              actions.applyToJob();
-            }}
-          />
+          {job.skills.length > 0 ? (
+            <Section title="Skills">
+              <div className="flex flex-wrap gap-1.5">
+                {job.skills.map((skill) => (
+                  <Badge
+                    key={skill}
+                    variant="outline"
+                    className="max-w-full font-normal whitespace-normal break-words"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </Section>
+          ) : null}
 
-          <CommentThread vacancyId={vacancyId} open={open} />
+          <Section title="Company">
+            <div className="space-y-2">
+              <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+                <Building2 className="text-muted-foreground size-4 shrink-0" />
+                <span className="min-w-0 break-words">
+                  {job.company ?? "Company"}
+                </span>
+              </p>
+              {job.location ? (
+                <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+                  <MapPin className="size-3.5 shrink-0" />
+                  <span className="break-words">{job.location}</span>
+                </p>
+              ) : null}
+              {hasAnyContact(job.contact) ? (
+                <ContactActions contact={job.contact} />
+              ) : null}
+            </div>
+          </Section>
+
+          <JobAiTools job={job} />
+
+          {vacancyId ? <CommentThread vacancyId={vacancyId} open={open} /> : null}
         </div>
+
+        <DetailFooter
+          job={job}
+          actions={actions}
+          onApply={() => {
+            // Close first so the apply dialog (and the chat panel that follows a
+            // successful apply) aren't stacked behind the sheet.
+            onOpenChange(false);
+            actions?.applyToJob();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
 }
 
-function ActionRow({
+/** Sticky action bar. In-app apply when possible; otherwise apply via the
+ *  employer's own channel — presented identically so the source stays hidden. */
+function DetailFooter({
+  job,
   actions,
   onApply,
 }: {
-  actions: JobActions;
+  job: JobCardData;
+  actions?: JobActions;
   onApply: () => void;
 }) {
+  if (actions) {
+    return (
+      <div className="bg-background/95 flex items-center gap-2 border-t p-4 backdrop-blur-sm">
+        <Button
+          variant="brand"
+          onClick={onApply}
+          disabled={actions.applyPending || actions.applied}
+          className="flex-1"
+        >
+          {actions.applyPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : null}
+          {actions.applied ? "Applied" : "Apply"}
+        </Button>
+        <Button
+          variant={actions.saved ? "secondary" : "outline"}
+          size="icon"
+          aria-label={actions.saved ? "Saved" : "Save"}
+          aria-pressed={actions.saved}
+          onClick={actions.toggleSave}
+          disabled={actions.savePending}
+        >
+          {actions.saved ? (
+            <BookmarkCheck className="size-4" />
+          ) : (
+            <Bookmark className="size-4" />
+          )}
+        </Button>
+        <ReactionButton
+          label="Like"
+          active={actions.reaction === REACTION_TYPE.LIKE}
+          disabled={actions.reactionPending}
+          onClick={() => actions.react(REACTION_TYPE.LIKE)}
+          icon={<ThumbsUp className="size-4" />}
+        />
+        <ReactionButton
+          label="Dislike"
+          active={actions.reaction === REACTION_TYPE.DISLIKE}
+          disabled={actions.reactionPending}
+          onClick={() => actions.react(REACTION_TYPE.DISLIKE)}
+          icon={<ThumbsDown className="size-4" />}
+        />
+      </div>
+    );
+  }
+
+  const href = primaryContactHref(job.contact);
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button
-        variant="brand"
-        size="sm"
-        onClick={onApply}
-        disabled={actions.applyPending || actions.applied}
-      >
-        {actions.applyPending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : null}
-        {actions.applied ? "Applied" : "Apply"}
-      </Button>
-      <Button
-        variant={actions.saved ? "secondary" : "outline"}
-        size="sm"
-        onClick={actions.toggleSave}
-        disabled={actions.savePending}
-      >
-        {actions.saved ? "Saved" : "Save"}
-      </Button>
-      <ReactionButton
-        label="Like"
-        active={actions.reaction === REACTION_TYPE.LIKE}
-        disabled={actions.reactionPending}
-        onClick={() => actions.react(REACTION_TYPE.LIKE)}
-        icon={<ThumbsUp className="size-4" />}
-      />
-      <ReactionButton
-        label="Dislike"
-        active={actions.reaction === REACTION_TYPE.DISLIKE}
-        disabled={actions.reactionPending}
-        onClick={() => actions.react(REACTION_TYPE.DISLIKE)}
-        icon={<ThumbsDown className="size-4" />}
-      />
+    <div className="bg-background/95 border-t p-4 backdrop-blur-sm">
+      {href ? (
+        <Button asChild variant="brand" className="w-full">
+          <a href={href} target="_blank" rel="noreferrer">
+            Apply
+          </a>
+        </Button>
+      ) : (
+        <p className="text-muted-foreground text-center text-sm">
+          No application channel was provided for this role.
+        </p>
+      )}
     </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+        {title}
+      </h3>
+      {children}
+    </section>
   );
 }
 
@@ -189,7 +291,7 @@ function ReactionButton({
   return (
     <Button
       type="button"
-      size="icon-sm"
+      size="icon"
       variant={active ? "secondary" : "ghost"}
       aria-label={label}
       aria-pressed={active}
@@ -232,8 +334,8 @@ function CommentThread({
 
   return (
     <section className="space-y-3">
-      <h3 className="text-sm font-medium">
-        Comments{comments.length > 0 ? ` (${comments.length})` : ""}
+      <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+        Questions &amp; comments{comments.length > 0 ? ` (${comments.length})` : ""}
       </h3>
 
       <form onSubmit={submit} className="space-y-2">

@@ -1,16 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Wand2 } from "lucide-react";
 
-import {
-  toolsForContext,
-  type AiToolId,
-  type JobAiContext,
-} from "@/features/jobs/constants/job-ai-tools";
+import { toolsForContext, type JobAiContext } from "@/features/jobs/constants/job-ai-tools";
+import { useJobToolPanelStore } from "@/features/jobs/store/job-tool-panel.store";
 import type { JobCardData } from "@/features/chat/types/job";
 import { cn } from "@/lib/utils";
-import { JobAiToolDialog } from "./job-ai-tool-dialog";
 
 interface JobAiToolsProps {
   job: JobCardData;
@@ -24,11 +19,12 @@ interface JobAiToolsProps {
  * The per-job toolkit. Which tools appear is driven entirely by `JOB_AI_TOOLS`
  * (see constants) filtered by `context` — search-result cards get the resume,
  * cover letter, match, and insights tools, while already-applied jobs get
- * interview prep. Each opens a dialog that checks profile completeness, then
- * generates and renders a formatted result.
+ * interview prep. Tapping a tool opens the docked AI-tool panel (a right-side
+ * drawer, like chat) which checks profile completeness, then generates and
+ * renders the result. Available for every job, on- or off-platform.
  */
 export function JobAiTools({ job, context = "search", label }: JobAiToolsProps) {
-  const [tool, setTool] = useState<AiToolId | null>(null);
+  const openTool = useJobToolPanelStore((s) => s.openTool);
   const tools = toolsForContext(context);
   const oddCount = tools.length % 2 === 1;
   const heading =
@@ -47,7 +43,7 @@ export function JobAiTools({ job, context = "search", label }: JobAiToolsProps) 
           <button
             key={item.id}
             type="button"
-            onClick={() => setTool(item.id)}
+            onClick={() => openTool(item.id, job)}
             className={cn(
               "border-border/70 bg-background hover:border-brand/50 hover:bg-brand/5 focus-visible:ring-ring/40 flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition-colors outline-none focus-visible:ring-2",
               oddCount && index === tools.length - 1 && "col-span-2",
@@ -58,15 +54,6 @@ export function JobAiTools({ job, context = "search", label }: JobAiToolsProps) 
           </button>
         ))}
       </div>
-
-      <JobAiToolDialog
-        tool={tool}
-        job={job}
-        open={tool !== null}
-        onOpenChange={(open) => {
-          if (!open) setTool(null);
-        }}
-      />
     </div>
   );
 }

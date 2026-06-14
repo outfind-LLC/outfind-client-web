@@ -1,34 +1,19 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import {
-  Bookmark,
-  BookmarkCheck,
-  Building2,
-  Loader2,
-  MapPin,
-  MessageSquare,
-  ThumbsDown,
-  ThumbsUp,
-  Wallet,
-} from "lucide-react";
+import { useState } from "react";
+import { Building2, ChevronRight, MapPin, Wallet } from "lucide-react";
 
 import { ApplyDialog } from "@/features/jobs/components/apply-dialog";
 import { JobDetailSheet } from "@/features/jobs/components/job-detail-sheet";
-import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
 import type { JobCardData } from "@/features/chat/types/job";
-import { cn } from "@/lib/utils";
-import { REACTION_TYPE } from "@/interfaces/enums";
 import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { ContactActions, hasAnyContact } from "./contact-actions";
 
 /**
- * A single job result inside an assistant message. Platform vacancies (those
- * with an id) get the full in-app action set; broadened web results — which have
- * no vacancy id to act on — lead with the employer's direct contact channels.
- * Either way, every available contact channel is a one-tap link.
+ * A single job result inside an assistant message. The card is a compact, tappable
+ * summary; everything else — full details, company info, AI tools, and applying —
+ * lives behind it in the detail view. Every role uses the exact same card and
+ * detail layout, so the worker is never shown where a role came from.
  */
 export function JobCard({ job }: { job: JobCardData }) {
   return job.id ? (
@@ -38,6 +23,7 @@ export function JobCard({ job }: { job: JobCardData }) {
   );
 }
 
+/** Platform role — can be applied to, saved, and discussed in-app. */
 function InternalJobCard({
   job,
   vacancyId,
@@ -49,63 +35,8 @@ function InternalJobCard({
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
-    <JobCardShell job={job}>
-      <ContactActions contact={job.contact} />
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant="brand"
-          size="sm"
-          onClick={actions.applyToJob}
-          disabled={actions.applyPending || actions.applied}
-        >
-          {actions.applyPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : null}
-          {actions.applied ? "Applied" : "Apply"}
-        </Button>
-
-        <Button
-          variant={actions.saved ? "secondary" : "outline"}
-          size="sm"
-          onClick={actions.toggleSave}
-          disabled={actions.savePending}
-        >
-          {actions.saved ? (
-            <BookmarkCheck className="size-4" />
-          ) : (
-            <Bookmark className="size-4" />
-          )}
-          {actions.saved ? "Saved" : "Save"}
-        </Button>
-
-        <div className="ml-auto flex items-center gap-1">
-          <IconToggle
-            label="Like"
-            active={actions.reaction === REACTION_TYPE.LIKE}
-            disabled={actions.reactionPending}
-            onClick={() => actions.react(REACTION_TYPE.LIKE)}
-          >
-            <ThumbsUp className="size-4" />
-          </IconToggle>
-          <IconToggle
-            label="Dislike"
-            active={actions.reaction === REACTION_TYPE.DISLIKE}
-            disabled={actions.reactionPending}
-            onClick={() => actions.react(REACTION_TYPE.DISLIKE)}
-          >
-            <ThumbsDown className="size-4" />
-          </IconToggle>
-          <IconToggle
-            label="Comments and details"
-            active={false}
-            disabled={false}
-            onClick={() => setDetailsOpen(true)}
-          >
-            <MessageSquare className="size-4" />
-          </IconToggle>
-        </div>
-      </div>
+    <>
+      <JobCardSummary job={job} onOpen={() => setDetailsOpen(true)} />
 
       <JobDetailSheet
         open={detailsOpen}
@@ -124,35 +55,40 @@ function InternalJobCard({
         submitting={actions.applyPending}
         onSubmit={actions.confirmApply}
       />
-    </JobCardShell>
+    </>
   );
 }
 
+/** Role handled through the employer's own channels — same summary + detail. */
 function ExternalJobCard({ job }: { job: JobCardData }) {
-  const hasContact = hasAnyContact(job.contact);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   return (
-    <JobCardShell job={job}>
-      {hasContact ? (
-        <ContactActions contact={job.contact} />
-      ) : (
-        <p className="text-muted-foreground text-xs">
-          No contact details provided for this role.
-        </p>
-      )}
-    </JobCardShell>
+    <>
+      <JobCardSummary job={job} onOpen={() => setDetailsOpen(true)} />
+      <JobDetailSheet
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        job={job}
+      />
+    </>
   );
 }
 
-/** Presentational shell shared by both card types; `children` is the footer. */
-function JobCardShell({
+/** Tappable summary shared by every job — opens the detail view. */
+function JobCardSummary({
   job,
-  children,
+  onOpen,
 }: {
   job: JobCardData;
-  children: ReactNode;
+  onOpen: () => void;
 }) {
   return (
-    <div className="border-border/70 bg-card hover:border-primary/40 flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-xl border p-4 transition-colors">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="border-border/70 bg-card hover:border-primary/40 focus-visible:ring-ring/40 flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors outline-none focus-visible:ring-2"
+    >
       <div className="min-w-0 space-y-1">
         <h4 className="min-w-0 leading-tight font-semibold break-words">
           {job.title}
@@ -200,39 +136,16 @@ function JobCardShell({
         </div>
       ) : null}
 
-      <div className="border-border/50 mt-1 flex min-w-0 flex-col gap-4 border-t pt-3">
-        <JobAiTools job={job} />
-        {children}
-      </div>
-    </div>
-  );
-}
+      {job.description ? (
+        <p className="text-muted-foreground line-clamp-2 text-sm break-words">
+          {job.description}
+        </p>
+      ) : null}
 
-function IconToggle({
-  label,
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  label: string;
-  active: boolean;
-  disabled: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Button
-      type="button"
-      size="icon-sm"
-      variant={active ? "secondary" : "ghost"}
-      aria-label={label}
-      aria-pressed={active}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(active && "text-brand")}
-    >
-      {children}
-    </Button>
+      <span className="text-brand mt-0.5 inline-flex items-center gap-1 text-xs font-medium">
+        View details &amp; apply
+        <ChevronRight className="size-3.5" />
+      </span>
+    </button>
   );
 }

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { useJobToolPanelStore } from "@/features/jobs/store/job-tool-panel.store";
 import type { ConversationScope } from "@/interfaces/application.interface";
 
 /** The conversation currently open in the docked chat panel. */
@@ -31,6 +32,10 @@ interface ChatPanelState {
  */
 export const useChatPanelStore = create<ChatPanelState>((set) => ({
   thread: null,
-  openThread: (thread) => set({ thread }),
+  openThread: (thread) => {
+    // Only one right-side panel at a time — yield to the conversation.
+    useJobToolPanelStore.getState().close();
+    set({ thread });
+  },
   close: () => set({ thread: null }),
 }));

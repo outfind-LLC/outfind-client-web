@@ -37,6 +37,21 @@ function waLink(value: string): string {
   return `https://wa.me/${value.replace(/\D/g, "")}`;
 }
 
+/**
+ * The single best channel to apply / reach out through, preferring an explicit
+ * application form, then the website, then email/messaging/phone. Used as the
+ * "Apply" target for roles that are handled off-platform.
+ */
+export function primaryContactHref(contact: JobContact): string | null {
+  if (contact.contactForm) return contact.contactForm;
+  if (contact.website) return contact.website;
+  if (contact.email) return `mailto:${contact.email}`;
+  if (contact.whatsapp) return waLink(contact.whatsapp);
+  if (contact.telegram) return contact.telegram;
+  if (contact.phone) return `tel:${contact.phone}`;
+  return null;
+}
+
 function contactLinks(contact: JobContact): ContactLink[] {
   const links: ContactLink[] = [];
   if (contact.phone) {

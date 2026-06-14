@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { AlertCircle, ClipboardList, Loader2, RefreshCw, Wand2 } from "lucide-react";
+import { AlertCircle, ClipboardList, Loader2, RefreshCw, X } from "lucide-react";
 
 import { routes } from "@/config/routes";
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -10,25 +11,17 @@ import {
   isProfileUsable,
   profileGaps,
 } from "@/features/profile/lib/profile-complete";
-import {
-  jobAiToolDef,
-  type AiToolId,
-} from "@/features/jobs/constants/job-ai-tools";
+import { jobAiToolDef, type AiToolId } from "@/features/jobs/constants/job-ai-tools";
 import {
   useJobAiTool,
   type JobAiResult,
 } from "@/features/jobs/hooks/use-job-ai-tool";
+import { jobKey } from "@/features/jobs/lib/job-context";
+import { useJobToolPanelStore } from "@/features/jobs/store/job-tool-panel.store";
 import type { JobCardData } from "@/features/chat/types/job";
 import { isApiClientError } from "@/lib/api/error";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/dialog";
 import {
   CoverLetterResultView,
   CvResult,
@@ -36,13 +29,6 @@ import {
   InterviewPrepResultView,
   MatchScoreResultView,
 } from "./job-ai-results";
-
-interface JobAiToolDialogProps {
-  tool: AiToolId | null;
-  job: JobCardData;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 function renderResult(result: JobAiResult) {
   switch (result.tool) {
@@ -59,90 +45,150 @@ function renderResult(result: JobAiResult) {
   }
 }
 
-export function JobAiToolDialog({
+/**
+ * App-wide AI-tool panel, mounted once in `AppShell`. A per-job tool result opens
+ * here as a non-blocking docked drawer on desktop/tablet and a full-screen sheet
+ * on mobile — the same surface model as the chat panel, so the worker can keep
+ * browsing while a result is open. Driven by `useJobToolPanelStore`.
+ */
+export function JobToolPanel() {
+  const target = useJobToolPanelStore((s) => s.target);
+  const close = useJobToolPanelStore((s) => s.close);
+
+  useEffect(() => {
+    if (!target) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [target, close]);
+
+  useEffect(() => {
+    if (!target) return;
+    const mobile = window.matchMedia("(max-width: 639px)");
+    if (!mobile.matches) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [target]);
+
+  if (!target) return null;
+
+  const def = jobAiToolDef(target.tool);
+  const Icon = def.icon;
+
+  return (
+    <aside
+      role="dialog"
+      aria-label={def.title}
+      className="bg-card animate-in slide-in-from-right fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l shadow-xl duration-200 sm:z-40 sm:max-w-[480px] lg:max-w-[560px]"
+    >
+      <header className="flex items-start gap-3 border-b p-4">
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <p className="flex items-center gap-2 text-base font-semibold">
+            <Icon className="text-brand size-4 shrink-0" />
+            <span className="min-w-0 break-words">{def.title}</span>
+          </p>
+          <p className="text-muted-foreground truncate text-xs">
+            {target.job.title}
+            {target.job.company ? ` · ${target.job.company}` : ""}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Close"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted -mr-1 shrink-0 rounded-md p-1.5 transition-colors"
+        >
+          <X className="size-4" />
+        </button>
+      </header>
+
+      <JobToolContent
+        key={`${target.tool}:${jobKey(target.job)}`}
+        tool={target.tool}
+        job={target.job}
+        onClose={close}
+      />
+    </aside>
+  );
+}
+
+/** Body + footer for one tool run: profile gate → generate → render. */
+function JobToolContent({
   tool,
   job,
-  open,
-  onOpenChange,
-}: JobAiToolDialogProps) {
+  onClose,
+}: {
+  tool: AiToolId;
+  job: JobCardData;
+  onClose: () => void;
+}) {
   const { isWorker } = useSession();
-  const def = tool ? jobAiToolDef(tool) : null;
+  const def = jobAiToolDef(tool);
 
-  // Profile drives the gate; only fetch while the dialog is open.
-  const profileQuery = useWorkerProfile(open && Boolean(isWorker));
-  const profileLoading = open && profileQuery.isLoading;
+  const profileQuery = useWorkerProfile(Boolean(isWorker));
+  const profileLoading = profileQuery.isLoading;
   const profileFailed =
     profileQuery.isError &&
     !(isApiClientError(profileQuery.error) && profileQuery.error.status === 404);
   const usable = isProfileUsable(profileQuery.data);
 
-  // Run the tool only once the profile is known and usable.
-  const ready = open && Boolean(tool) && !profileLoading && !profileFailed && usable;
-  const toolQuery = useJobAiTool(tool ?? "cv", job, ready);
+  const ready = !profileLoading && !profileFailed && usable;
+  const toolQuery = useJobAiTool(tool, job, ready);
 
-  const Icon = def?.icon ?? Wand2;
+  const showRegenerate =
+    ready && Boolean(toolQuery.data) && !toolQuery.isFetching;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <DialogHeader className="space-y-1 border-b p-5 text-left">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Icon className="text-brand size-4 shrink-0" />
-            <span className="min-w-0 break-words">
-              {def?.title ?? "AI tool"}
-            </span>
-          </DialogTitle>
-          <DialogDescription className="truncate text-xs">
-            {job.title}
-            {job.company ? ` · ${job.company}` : ""}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-5">
-          {profileLoading ? (
-            <CenteredSpinner />
-          ) : profileFailed ? (
-            <ErrorState
-              message="We couldn't load your profile. Please try again."
-              onRetry={() => void profileQuery.refetch()}
-            />
-          ) : !usable ? (
-            <ProfileIncomplete
-              gaps={profileGaps(profileQuery.data)}
-              onClose={() => onOpenChange(false)}
-            />
-          ) : toolQuery.isLoading || toolQuery.isFetching ? (
-            <GeneratingState label={def?.title ?? "result"} />
-          ) : toolQuery.isError ? (
-            <ToolError
-              error={toolQuery.error}
-              onRetry={() => void toolQuery.refetch()}
-              onClose={() => onOpenChange(false)}
-            />
-          ) : toolQuery.data ? (
-            renderResult(toolQuery.data)
-          ) : null}
-        </div>
-
-        {ready && toolQuery.data && !toolQuery.isFetching ? (
-          <div className="flex items-center justify-between gap-3 border-t p-4">
-            <p className="text-muted-foreground hidden text-xs sm:block">
-              {def?.blurb}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-auto"
-              onClick={() => void toolQuery.refetch()}
-            >
-              <RefreshCw className="size-3.5" />
-              Regenerate
-            </Button>
-          </div>
+    <>
+      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+        {profileLoading ? (
+          <CenteredSpinner />
+        ) : profileFailed ? (
+          <ErrorState
+            message="We couldn't load your profile. Please try again."
+            onRetry={() => void profileQuery.refetch()}
+          />
+        ) : !usable ? (
+          <ProfileIncomplete
+            gaps={profileGaps(profileQuery.data)}
+            onClose={onClose}
+          />
+        ) : toolQuery.isLoading || toolQuery.isFetching ? (
+          <GeneratingState label={def.title} />
+        ) : toolQuery.isError ? (
+          <ToolError
+            error={toolQuery.error}
+            onRetry={() => void toolQuery.refetch()}
+            onClose={onClose}
+          />
+        ) : toolQuery.data ? (
+          renderResult(toolQuery.data)
         ) : null}
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      {showRegenerate ? (
+        <div className="bg-background/95 flex items-center justify-between gap-3 border-t p-4 backdrop-blur-sm">
+          <p className="text-muted-foreground hidden text-xs sm:block">
+            {def.blurb}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto w-full sm:w-auto"
+            onClick={() => void toolQuery.refetch()}
+          >
+            <RefreshCw className="size-3.5" />
+            Regenerate
+          </Button>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -186,7 +232,7 @@ function ProfileIncomplete({
         <h3 className="font-semibold">Complete your profile first</h3>
         <p className="text-muted-foreground mx-auto max-w-sm text-sm">
           The AI tools tailor every result to your background. Add a few details
-          and you’re ready to generate.
+          and you&apos;re ready to generate.
         </p>
       </div>
       {gaps.length > 0 ? (
@@ -233,7 +279,7 @@ function ToolError({
       </span>
       <div className="space-y-1">
         <h3 className="font-semibold">
-          {isLimit ? "You’ve hit your plan limit" : "Couldn’t generate"}
+          {isLimit ? "You've hit your plan limit" : "Couldn't generate"}
         </h3>
         <p className="text-muted-foreground mx-auto max-w-sm text-sm break-words">
           {message}
