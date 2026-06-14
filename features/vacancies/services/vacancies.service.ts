@@ -3,6 +3,7 @@ import { buildQuery } from "@/lib/api/query";
 import type {
   CreateVacancyPayload,
   ListVacanciesQuery,
+  PublicVacancy,
   UpdateVacancyPayload,
   UpdateVacancyStatusPayload,
   Vacancy,
@@ -12,6 +13,11 @@ import type {
 export const vacanciesService = {
   async listOwn(query: ListVacanciesQuery = {}): Promise<Vacancy[]> {
     return api.get<Vacancy[]>(`/employer/vacancies${buildQuery(query)}`);
+  },
+
+  /** Public detail of one vacancy — used when a worker opens a recommendation. */
+  async getPublic(id: string): Promise<PublicVacancy> {
+    return api.get<PublicVacancy>(`/vacancies/${id}`);
   },
 
   async getOwn(id: string): Promise<Vacancy> {

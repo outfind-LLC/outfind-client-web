@@ -66,6 +66,11 @@ export interface ListVacanciesQuery {
   cursor?: string;
 }
 
+/** Full vacancy detail as seen by a worker (`GET /vacancies/:id`). */
+export interface PublicVacancy extends Vacancy {
+  companyName: string | null;
+}
+
 /** A vacancy recommended to a worker (`GET /worker/recommendations`). */
 export interface RecommendedVacancy {
   id: string;
