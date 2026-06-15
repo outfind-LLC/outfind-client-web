@@ -14,6 +14,7 @@ import {
 } from "@/features/applications/hooks/use-applications";
 import { APPLICATION_STATUS_META } from "@/features/applications/constants/status";
 import { formatRelativeTime } from "@/lib/format";
+import { isApiClientError } from "@/lib/api/error";
 import type { EmployerApplication } from "@/interfaces/application.interface";
 import { APPLICATION_STATUS, type ApplicationStatus } from "@/interfaces/enums";
 import { Badge } from "@/ui/badge";
@@ -105,7 +106,12 @@ function ApplicantCard({
       { applicationId: application.id, payload: { status } },
       {
         onSuccess: () => toast.success("Applicant updated"),
-        onError: () => toast.error("Couldn't update applicant"),
+        onError: (error) =>
+          toast.error(
+            isApiClientError(error)
+              ? error.message
+              : "Couldn't update applicant",
+          ),
       },
     );
   };

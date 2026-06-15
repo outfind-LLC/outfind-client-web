@@ -28,6 +28,7 @@ import {
   APPLICATION_STATUS_ORDER,
 } from "@/features/applications/constants/status";
 import { formatRelativeTime } from "@/lib/format";
+import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import type { Application } from "@/interfaces/application.interface";
 import type { ApplicationStatus } from "@/interfaces/enums";
@@ -106,7 +107,12 @@ function ApplicationCard({ application }: { application: Application }) {
   const onWithdraw = () => {
     withdraw.mutate(application.id, {
       onSuccess: () => toast.success("Application withdrawn"),
-      onError: () => toast.error("Couldn't withdraw application"),
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error)
+            ? error.message
+            : "Couldn't withdraw application",
+        ),
     });
   };
 

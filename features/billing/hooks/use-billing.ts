@@ -1,16 +1,24 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { qk } from "@/config/query-keys";
 import { billingService } from "@/features/billing/services/billing.service";
 import { BILLING_PENDING_KEY } from "@/features/settings/constants/sounds";
 import { playEventSound } from "@/features/settings/lib/play-sound";
+import { isApiClientError } from "@/lib/api/error";
 import type {
   CreateCheckoutPayload,
   CreatePaygCheckoutPayload,
   MySubscription,
 } from "@/interfaces/billing.interface";
+
+/** Surface a friendly billing error (never the raw backend/provider message). */
+function notifyBillingError(error: unknown, fallback: string) {
+  playEventSound("billingError");
+  toast.error(isApiClientError(error) ? error.message : fallback);
+}
 
 /** Mark that a checkout is in flight so we can cue the result on return. */
 function markBillingPending() {
@@ -37,7 +45,8 @@ export function useBillingPortal() {
     onSuccess: ({ url }) => {
       window.location.href = url;
     },
-    onError: () => playEventSound("billingError"),
+    onError: (error) =>
+      notifyBillingError(error, "Couldn't open the billing portal. Please try again."),
   });
 }
 
@@ -50,7 +59,8 @@ export function useCheckout() {
       markBillingPending();
       window.location.href = url;
     },
-    onError: () => playEventSound("billingError"),
+    onError: (error) =>
+      notifyBillingError(error, "Couldn't start checkout. Please try again."),
   });
 }
 
@@ -63,6 +73,7 @@ export function usePaygCheckout() {
       markBillingPending();
       window.location.href = url;
     },
-    onError: () => playEventSound("billingError"),
+    onError: (error) =>
+      notifyBillingError(error, "Couldn't start checkout. Please try again."),
   });
 }

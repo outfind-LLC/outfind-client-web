@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import type { UIMessage } from "ai";
+
+import { Button } from "@/ui/button";
 
 import { qk } from "@/config/query-keys";
 import { chatService } from "@/features/chat/services/chat.service";
@@ -28,7 +30,7 @@ export function ChatThread({
   surface?: ChatSurface;
 }) {
   const { user } = useSession();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: qk.messages(conversationId),
     queryFn: () => chatService.listMessages(conversationId, { limit: 100 }),
   });
@@ -37,6 +39,20 @@ export function ChatThread({
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="text-muted-foreground size-5 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+        <TriangleAlert className="text-muted-foreground size-6" />
+        <p className="text-muted-foreground max-w-xs text-sm">
+          We couldn’t load this conversation. Please try again.
+        </p>
+        <Button variant="outline" size="sm" onClick={() => void refetch()}>
+          Retry
+        </Button>
       </div>
     );
   }
