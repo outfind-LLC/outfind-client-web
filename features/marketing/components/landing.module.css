@@ -507,27 +507,23 @@
   }
   .heroInner {
     flex: 1 1 auto;
+    width: 100%;
   }
-  .heroHead {
-    order: 1;
+  /* Keep the natural DOM order on mobile: head → composer → chips → safety
+     (chips stay BELOW the input at every breakpoint). */
+  .composer {
+    max-width: none;
+    margin: 28px auto 0;
   }
   .chips {
-    order: 2;
     flex-wrap: wrap;
-    justify-content: flex-start;
-    align-self: stretch;
-    margin: 0 0 18px;
+    justify-content: center;
+    margin: 18px auto 0;
     max-width: none;
-  }
-  .composer {
-    order: 3;
-    max-width: none;
-    margin: 0 auto;
   }
   .heroSafety {
     position: static;
-    order: 4;
-    margin: 22px auto 0;
+    margin: 24px auto 0;
     padding: 0;
   }
 }
