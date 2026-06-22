@@ -14,6 +14,12 @@ export function SiteFooter() {
   const { copy, setSide } = useLanding();
   const ui = copy.ui;
 
+  /** Switch product side and glide back to the hero (matches prototype `data-go`). */
+  const goToSide = (next: "find" | "hire") => {
+    setSide(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className={styles.ft}>
       <div className={styles.wrap}>
@@ -37,7 +43,7 @@ export function SiteFooter() {
               href="#"
               onClick={(event) => {
                 event.preventDefault();
-                setSide("find");
+                goToSide("find");
               }}
             >
               {ui.navFind}
@@ -46,7 +52,7 @@ export function SiteFooter() {
               href="#"
               onClick={(event) => {
                 event.preventDefault();
-                setSide("hire");
+                goToSide("hire");
               }}
             >
               {ui.navHire}
@@ -55,7 +61,7 @@ export function SiteFooter() {
 
           <div className={styles.ftCol}>
             <h4>{ui.footResources}</h4>
-            <Link href={routes.help}>{ui.footHelp}</Link>
+            <Link href={routes.faq}>{ui.footHelp}</Link>
             <a href="#">{ui.footPrivacy}</a>
             <a href="#">{ui.footTerms}</a>
           </div>

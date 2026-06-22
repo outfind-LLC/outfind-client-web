@@ -106,6 +106,20 @@ export function IconChevronDown(props: IconProps) {
   );
 }
 
+export function IconChevronRight(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M9 6L15 12L9 18"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function IconCheck(props: IconProps) {
   return (
     <Svg {...props}>
@@ -183,6 +197,47 @@ export function IconMail(props: IconProps) {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
+    </Svg>
+  );
+}
+
+/** Back arrow (page-back). */
+export function IconArrowLeft(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M20 12H4M10 18L4 12L10 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Bold check used in pricing feature lists. */
+export function IconPlanCheck(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M5 13l4 4L19 7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Info dot used in pricing fineprint. */
+export function IconInfo(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="7.8" r="1" fill="currentColor" />
     </Svg>
   );
 }

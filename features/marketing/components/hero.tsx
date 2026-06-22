@@ -31,20 +31,6 @@ export function Hero() {
           <h1 className={styles.heroH1}>{sideCopy.h1}</h1>
         </div>
 
-        <div className={styles.chips}>
-          {sideCopy.chips.map((chip, index) => (
-            <button
-              key={chip}
-              type="button"
-              className={styles.chip}
-              style={{ "--d": index + 1 } as React.CSSProperties}
-              onClick={() => submit(chip)}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
         <form
           className={styles.composer}
           autoComplete="off"
@@ -72,6 +58,20 @@ export function Hero() {
             <IconSend />
           </button>
         </form>
+
+        <div className={styles.chips}>
+          {sideCopy.chips.map((chip, index) => (
+            <button
+              key={chip}
+              type="button"
+              className={styles.chip}
+              style={{ "--d": index + 1 } as React.CSSProperties}
+              onClick={() => submit(chip)}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
       </div>
 
       <p className={styles.heroSafety}>{sideCopy.safety}</p>

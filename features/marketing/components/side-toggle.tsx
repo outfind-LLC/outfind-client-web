@@ -7,8 +7,11 @@ import styles from "./landing.module.css";
 /** Segmented "Find a job / Hire talent" product-side toggle. */
 export function SideToggle({
   variant = "nav",
+  icons = variant === "nav",
 }: {
   variant?: "nav" | "mobile";
+  /** Show the leading glyphs (default: only on the nav variant). */
+  icons?: boolean;
 }) {
   const { side, setSide, copy } = useLanding();
   const className = variant === "mobile" ? styles.mmSeg : styles.seg;
@@ -20,7 +23,7 @@ export function SideToggle({
         aria-pressed={side === "find"}
         onClick={() => setSide("find")}
       >
-        {variant === "nav" && <IconJobSearch />}
+        {icons && <IconJobSearch />}
         <span>{copy.ui.navFind}</span>
       </button>
       <button
@@ -28,7 +31,7 @@ export function SideToggle({
         aria-pressed={side === "hire"}
         onClick={() => setSide("hire")}
       >
-        {variant === "nav" && <IconUsers />}
+        {icons && <IconUsers />}
         <span>{copy.ui.navHire}</span>
       </button>
     </div>

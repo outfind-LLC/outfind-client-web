@@ -47,6 +47,7 @@ interface UiCopy {
   authPromptLabel: string;
   /** Rendered as HTML (contains Terms / Privacy links). */
   authFine: string;
+  faqH2: string;
   footTagline: string;
   footProduct: string;
   footResources: string;
@@ -78,6 +79,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       authPromptLabel: "You searched",
       authFine:
         'By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.',
+      faqH2: "Questions, answered",
       footTagline:
         "The AI-first careers platform. Find a job, or hire the right people — all in one conversation.",
       footProduct: "Product",
@@ -117,6 +119,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       authPromptLabel: "Вы искали",
       authFine:
         'Продолжая, вы соглашаетесь с <a href="#">Условиями</a> и <a href="#">Политикой конфиденциальности</a>.',
+      faqH2: "Ответы на вопросы",
       footTagline:
         "Карьерная платформа на базе ИИ. Найдите работу или нужных людей — в одном разговоре.",
       footProduct: "Продукт",
@@ -156,6 +159,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       authPromptLabel: "Siz qidirdingiz",
       authFine:
         'Davom etish orqali siz <a href="#">Shartlar</a> va <a href="#">Maxfiylik siyosati</a>ga rozilik bildirasiz.',
+      faqH2: "Savollarga javoblar",
       footTagline:
         "AI asosidagi karyera platformasi. Bitta suhbatda ish toping yoki kerakli odamlarni yollang.",
       footProduct: "Mahsulot",

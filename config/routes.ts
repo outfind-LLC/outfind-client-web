@@ -39,6 +39,8 @@ export const routes = {
   history: "/history",
   settings: "/settings",
   help: "/help",
+  /** Public help center / FAQ (marketing). */
+  faq: "/faq",
   pricing: "/pricing",
   upgrade: "/upgrade",
 } as const;
