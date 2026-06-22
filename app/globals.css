@@ -5,309 +5,307 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Peoplor design tokens.
- * Brand: indigo #4A49CF / blue #3158F6 with an orange #FF6B00 highlight,
- * derived from the product logo. Neutrals are a slate scale.
+ * Peoplor design tokens — ported verbatim from the _Peoplor_Design prototype
+ * (peoplor-tokens.css + colors_and_type.css). Brand accent unified on GREEN
+ * #58b685 across app and marketing. Two token layers live here:
+ *   1. Prototype tokens (--accent, --bg-*, --text-*, --radius-*, type scale …)
+ *      consumed by the new pixel-perfect screens.
+ *   2. shadcn-style bridge tokens (--background, --primary, --border …) that
+ *      the existing ui/ primitives use — repointed to the green system so the
+ *      whole app recolours consistently.
  */
 :root {
+  /* ===== Primitive palette ===== */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --gray-50: #f8f9fa;
+  --gray-100: #f2f4f6;
+  --gray-200: #e6e8eb;
+  --gray-300: #ccd4dc;
+  --gray-400: #90969b;
+  --gray-500: #787880;
+  --gray-600: #3d3d3d;
+  --gray-700: #2e2e32;
+  --gray-800: #0f0f10;
+
+  --red-50: #fcf1f1;
+  --red-100: #f9e6e9;
+  --red-500: #ef4444;
+  --red-600: #cc3333;
+  --green-50: #f2fdf6;
+  --green-100: #e5faed;
+  --green-500: #22c55e;
+  --orange-50: #fff6f0;
+  --orange-100: #ffede0;
+  --orange-500: #ff6b00;
+  --blue-50: #f0f3fe;
+  --blue-100: #eaeefd;
+  --blue-500: #3158f6;
+  --indigo-500: #4a49cf;
+  --indigo-600: #3231ba;
+  --indigo-50: #eeeefb;
+
+  /* ===== Brand accent (GREEN — unified) ===== */
+  --accent-brand: #58b685;
+  --accent-600: #469b70;
+  --accent-50: #eef8f2;
+  --accent-100: #dcf0e4;
+
+  /* ===== Semantic roles ===== */
+  --error: var(--red-500);
+  --error-50: var(--red-50);
+  --error-600: var(--red-600);
+  --success: var(--green-500);
+  --success-50: var(--green-50);
+  --success-100: var(--green-100);
+  --warning: var(--orange-500);
+  --warning-50: var(--orange-50);
+  --info: var(--blue-500);
+  --info-50: var(--blue-50);
+  --info-100: var(--blue-100);
+
+  --text-primary: var(--gray-800);
+  --text-primary-hover: var(--gray-600);
+  --text-secondary: var(--gray-500);
+  --text-tertiary: var(--gray-300);
+  --text-inverse: #ffffff;
+  --text-accent: var(--accent-brand);
+  --text-success: var(--success);
+
+  --icon-primary: var(--gray-800);
+  --icon-secondary: var(--gray-500);
+  --icon-tertiary: var(--gray-300);
+  --icon-accent: var(--accent-brand);
+  --icon-inverse: #ffffff;
+
+  --bg-primary: #ffffff;
+  --bg-primary-hover: var(--gray-50);
+  --bg-secondary: var(--gray-50);
+  --bg-secondary-hover: var(--gray-100);
+  --bg-inverse: var(--gray-800);
+  --bg-inverse-hover: var(--gray-600);
+  --bg-accent: var(--accent-brand);
+  --bg-accent-hover: var(--accent-600);
+  --bg-disabled: var(--gray-100);
+  --bg-info: var(--info);
+
+  --border-default: var(--gray-200);
+  --border-default-hover: var(--gray-400);
+  --border-accent: var(--accent-brand);
+
+  /* ===== Typography scale (desktop / L) ===== */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  --h1-size: 3rem;        --h1-line: 3.5rem;
+  --h2-size: 2.5rem;      --h2-line: 3rem;
+  --h3-size: 2rem;        --h3-line: 2.5rem;
+  --h4-size: 1.75rem;     --h4-line: 2rem;
+  --h5-size: 1.5rem;      --h5-line: 1.75rem;
+  --h6-size: 1.25rem;     --h6-line: 1.5rem;
+  --body-lg-size: 1.25rem; --body-lg-line: 1.5rem;
+  --body-size: 1rem;       --body-line: 1.25rem;
+  --body-sm-size: 0.875rem; --body-sm-line: 1rem;
+  --caption-size: 0.75rem; --caption-line: 1rem;
+
+  /* ===== Spacing ===== */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 2.5rem;
+  --space-4xl: 3rem;
+  --space-5xl: 3.5rem;
+  --space-6xl: 4rem;
+  --space-7xl: 6rem;
+
+  /* ===== Radii ===== */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --radius-4xl: 1.5rem;
+  --radius-fill: 9999px;
+
+  /* ===== Elevation ===== */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 15, 16, 0.04);
+  --shadow-sm: 0 2px 4px 0 rgba(15, 15, 16, 0.06);
+  --shadow-md: 0 4px 12px 0 rgba(15, 15, 16, 0.08);
+  --shadow-lg: 0 8px 24px -2px rgba(15, 15, 16, 0.1);
+  --shadow-xl: 0 16px 40px -4px rgba(15, 15, 16, 0.12);
+
+  /* ===== Motion ===== */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+
+  /* ===== Layout frames ===== */
+  --sidebar-w: 256px;
+  --rail-w: 68px;
+
+  /* ===== shadcn bridge tokens (used by ui/ primitives) → green ===== */
   --radius: 0.75rem;
-
-  --background: #ffffff;
-  --foreground: #0f172a;
-
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
   --card: #ffffff;
-  --card-foreground: #0f172a;
-
+  --card-foreground: var(--text-primary);
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-
-  --primary: #4a49cf;
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-brand);
   --primary-foreground: #ffffff;
-
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-
-  --accent: #eef2ff;
-  --accent-foreground: #4a49cf;
-
-  --destructive: #ef4444;
+  --secondary: var(--gray-50);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--gray-50);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--accent-50);
+  --accent-foreground: var(--accent-600);
+  --destructive: var(--red-500);
   --destructive-foreground: #ffffff;
+  --border: var(--gray-200);
+  --input: var(--gray-200);
+  --ring: var(--accent-brand);
 
-  --success: #16a34a;
-  --warning: #f59e0b;
+  --brand: var(--accent-brand);
+  --brand-2: var(--accent-600);
+  --brand-accent: var(--orange-500);
 
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #4a49cf;
-
-  /* Brand accents for gradients / marketing surfaces. */
-  --brand: #4a49cf;
-  --brand-2: #3158f6;
-  --brand-accent: #ff6b00;
-
-  --sidebar: #fafafa;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #4a49cf;
+  --sidebar: var(--gray-50);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-brand);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef2ff;
-  --sidebar-accent-foreground: #4a49cf;
-  --sidebar-border: #e7e9ee;
-  --sidebar-ring: #4a49cf;
+  --sidebar-accent: var(--accent-50);
+  --sidebar-accent-foreground: var(--accent-600);
+  --sidebar-border: var(--gray-200);
+  --sidebar-ring: var(--accent-brand);
 
-  --chart-1: #4a49cf;
-  --chart-2: #3158f6;
-  --chart-3: #ff6b00;
-  --chart-4: #16a34a;
+  --chart-1: var(--accent-brand);
+  --chart-2: var(--blue-500);
+  --chart-3: var(--orange-500);
+  --chart-4: var(--indigo-500);
   --chart-5: #a855f7;
 }
 
 .dark {
-  --background: #0a0a0f;
-  --foreground: #e6e8ef;
+  --gray-50: #16161b;
+  --gray-100: #1b1b22;
+  --gray-200: #26262f;
+  --gray-300: #3a3a45;
+  --gray-400: #6b6b76;
+  --gray-500: #9aa0a8;
+  --gray-600: #c4c7cd;
+  --gray-700: #e2e4e8;
+  --gray-800: #f3f4f6;
 
-  --card: #111119;
-  --card-foreground: #e6e8ef;
+  --accent-brand: #6cc89a;
+  --accent-600: #58b685;
+  --accent-50: #15241c;
+  --accent-100: #1c3026;
 
-  --popover: #111119;
-  --popover-foreground: #e6e8ef;
+  --text-primary: #f3f4f6;
+  --text-primary-hover: #e2e4e8;
+  --text-secondary: #9aa0a8;
+  --text-tertiary: #54545f;
+  --text-inverse: #0f0f10;
+  --icon-primary: #f3f4f6;
+  --icon-secondary: #9aa0a8;
+  --icon-tertiary: #54545f;
+  --icon-inverse: #0f0f10;
 
-  --primary: #6d6cf0;
-  --primary-foreground: #0a0a0f;
+  --bg-primary: #0f0f12;
+  --bg-primary-hover: #16161b;
+  --bg-secondary: #16161b;
+  --bg-secondary-hover: #1b1b22;
+  --bg-inverse: #f3f4f6;
+  --bg-inverse-hover: #e2e4e8;
+  --bg-disabled: #1b1b22;
 
-  --secondary: #1b1b27;
-  --secondary-foreground: #e6e8ef;
+  --border-default: #26262f;
+  --border-default-hover: #3a3a45;
 
-  --muted: #16161f;
-  --muted-foreground: #9aa3b2;
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px -2px rgba(0, 0, 0, 0.65);
+  --shadow-xl: 0 16px 40px -4px rgba(0, 0, 0, 0.7);
 
-  --accent: #1d1b3a;
-  --accent-foreground: #c7d2fe;
-
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: #131318;
+  --card-foreground: var(--text-primary);
+  --popover: #131318;
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-brand);
+  --primary-foreground: #0f0f10;
+  --secondary: var(--bg-secondary);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--accent-50);
+  --accent-foreground: var(--accent-brand);
   --destructive: #f1554f;
-  --destructive-foreground: #0a0a0f;
-
-  --success: #22c55e;
-  --warning: #fbbf24;
-
-  --border: #24242f;
+  --destructive-foreground: #0f0f10;
+  --border: var(--border-default);
   --input: #2a2a37;
-  --ring: #6d6cf0;
+  --ring: var(--accent-brand);
 
-  --brand: #6d6cf0;
-  --brand-2: #4f74ff;
-  --brand-accent: #ff7a1a;
+  --brand: var(--accent-brand);
+  --brand-2: var(--accent-600);
 
-  --sidebar: #0c0c13;
-  --sidebar-foreground: #e6e8ef;
-  --sidebar-primary: #6d6cf0;
-  --sidebar-primary-foreground: #0a0a0f;
-  --sidebar-accent: #17172180;
-  --sidebar-accent-foreground: #c7d2fe;
-  --sidebar-border: #1d1d28;
-  --sidebar-ring: #6d6cf0;
-
-  --chart-1: #6d6cf0;
-  --chart-2: #4f74ff;
-  --chart-3: #ff7a1a;
-  --chart-4: #22c55e;
-  --chart-5: #c084fc;
+  --sidebar: #0c0c10;
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-brand);
+  --sidebar-primary-foreground: #0f0f10;
+  --sidebar-accent: var(--accent-50);
+  --sidebar-accent-foreground: var(--accent-brand);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--accent-brand);
 }
 
 /*
- * Accent themes. Settings sets `data-accent` on <html>; each preset re-points
- * the brand / primary / focus-ring / sidebar-highlight tokens so the whole UI
- * recolours. Soft tints are derived with color-mix so they track the active
- * accent and adapt to light/dark. `indigo` is the default = base tokens above.
+ * Optional accent personalization (Settings → Appearance). `data-accent` on
+ * <html> re-points the brand tokens. Default (no attribute) = brand green.
  */
-:root[data-accent="blue"] {
-  --primary: #2563eb;
-  --ring: #2563eb;
-  --brand: #2563eb;
-  --brand-2: #3b82f6;
-  --sidebar-primary: #2563eb;
-  --sidebar-ring: #2563eb;
-  --accent-foreground: #2563eb;
-  --sidebar-accent-foreground: #2563eb;
-  --accent: color-mix(in oklab, #2563eb 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #2563eb 12%, var(--background));
-}
-.dark[data-accent="blue"] {
-  --primary: #60a5fa;
-  --ring: #60a5fa;
-  --brand: #60a5fa;
-  --brand-2: #3b82f6;
-  --sidebar-primary: #60a5fa;
-  --sidebar-ring: #60a5fa;
-  --accent-foreground: #bfdbfe;
-  --sidebar-accent-foreground: #bfdbfe;
-  --accent: color-mix(in oklab, #60a5fa 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #60a5fa 25%, var(--background));
-}
-
-:root[data-accent="violet"] {
-  --primary: #7c3aed;
-  --ring: #7c3aed;
-  --brand: #7c3aed;
-  --brand-2: #8b5cf6;
-  --sidebar-primary: #7c3aed;
-  --sidebar-ring: #7c3aed;
-  --accent-foreground: #7c3aed;
-  --sidebar-accent-foreground: #7c3aed;
-  --accent: color-mix(in oklab, #7c3aed 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #7c3aed 12%, var(--background));
-}
-.dark[data-accent="violet"] {
-  --primary: #a78bfa;
-  --ring: #a78bfa;
-  --brand: #a78bfa;
-  --brand-2: #8b5cf6;
-  --sidebar-primary: #a78bfa;
-  --sidebar-ring: #a78bfa;
-  --accent-foreground: #ddd6fe;
-  --sidebar-accent-foreground: #ddd6fe;
-  --accent: color-mix(in oklab, #a78bfa 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #a78bfa 25%, var(--background));
-}
-
-:root[data-accent="emerald"] {
-  --primary: #059669;
-  --ring: #059669;
-  --brand: #059669;
-  --brand-2: #10b981;
-  --sidebar-primary: #059669;
-  --sidebar-ring: #059669;
-  --accent-foreground: #059669;
-  --sidebar-accent-foreground: #059669;
-  --accent: color-mix(in oklab, #059669 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #059669 12%, var(--background));
-}
-.dark[data-accent="emerald"] {
-  --primary: #34d399;
-  --ring: #34d399;
-  --brand: #34d399;
-  --brand-2: #10b981;
-  --sidebar-primary: #34d399;
-  --sidebar-ring: #34d399;
-  --accent-foreground: #a7f3d0;
-  --sidebar-accent-foreground: #a7f3d0;
-  --accent: color-mix(in oklab, #34d399 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #34d399 25%, var(--background));
-}
-
-:root[data-accent="teal"] {
-  --primary: #0d9488;
-  --ring: #0d9488;
-  --brand: #0d9488;
-  --brand-2: #14b8a6;
-  --sidebar-primary: #0d9488;
-  --sidebar-ring: #0d9488;
-  --accent-foreground: #0d9488;
-  --sidebar-accent-foreground: #0d9488;
-  --accent: color-mix(in oklab, #0d9488 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #0d9488 12%, var(--background));
-}
-.dark[data-accent="teal"] {
-  --primary: #2dd4bf;
-  --ring: #2dd4bf;
-  --brand: #2dd4bf;
-  --brand-2: #14b8a6;
-  --sidebar-primary: #2dd4bf;
-  --sidebar-ring: #2dd4bf;
-  --accent-foreground: #99f6e4;
-  --sidebar-accent-foreground: #99f6e4;
-  --accent: color-mix(in oklab, #2dd4bf 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #2dd4bf 25%, var(--background));
-}
-
-:root[data-accent="rose"] {
-  --primary: #e11d48;
-  --ring: #e11d48;
-  --brand: #e11d48;
-  --brand-2: #f43f5e;
-  --sidebar-primary: #e11d48;
-  --sidebar-ring: #e11d48;
-  --accent-foreground: #e11d48;
-  --sidebar-accent-foreground: #e11d48;
-  --accent: color-mix(in oklab, #e11d48 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #e11d48 12%, var(--background));
-}
-.dark[data-accent="rose"] {
-  --primary: #fb7185;
-  --ring: #fb7185;
-  --brand: #fb7185;
-  --brand-2: #f43f5e;
-  --sidebar-primary: #fb7185;
-  --sidebar-ring: #fb7185;
-  --accent-foreground: #fecdd3;
-  --sidebar-accent-foreground: #fecdd3;
-  --accent: color-mix(in oklab, #fb7185 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #fb7185 25%, var(--background));
-}
-
-:root[data-accent="orange"] {
-  --primary: #ea580c;
-  --ring: #ea580c;
-  --brand: #ea580c;
-  --brand-2: #f97316;
-  --sidebar-primary: #ea580c;
-  --sidebar-ring: #ea580c;
-  --accent-foreground: #ea580c;
-  --sidebar-accent-foreground: #ea580c;
-  --accent: color-mix(in oklab, #ea580c 12%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #ea580c 12%, var(--background));
-}
-.dark[data-accent="orange"] {
-  --primary: #fb923c;
-  --ring: #fb923c;
-  --brand: #fb923c;
-  --brand-2: #f97316;
-  --sidebar-primary: #fb923c;
-  --sidebar-ring: #fb923c;
-  --accent-foreground: #fed7aa;
-  --sidebar-accent-foreground: #fed7aa;
-  --accent: color-mix(in oklab, #fb923c 25%, var(--background));
-  --sidebar-accent: color-mix(in oklab, #fb923c 25%, var(--background));
-}
+:root[data-accent="blue"] { --primary: #2563eb; --ring: #2563eb; --brand: #2563eb; --accent-brand: #2563eb; --accent-600: #1d4ed8; }
+:root[data-accent="violet"] { --primary: #7c3aed; --ring: #7c3aed; --brand: #7c3aed; --accent-brand: #7c3aed; --accent-600: #6d28d9; }
+:root[data-accent="indigo"] { --primary: #4a49cf; --ring: #4a49cf; --brand: #4a49cf; --accent-brand: #4a49cf; --accent-600: #3231ba; }
+:root[data-accent="teal"] { --primary: #0d9488; --ring: #0d9488; --brand: #0d9488; --accent-brand: #0d9488; --accent-600: #0f766e; }
+:root[data-accent="rose"] { --primary: #e11d48; --ring: #e11d48; --brand: #e11d48; --accent-brand: #e11d48; --accent-600: #be123c; }
+:root[data-accent="orange"] { --primary: #ea580c; --ring: #ea580c; --brand: #ea580c; --accent-brand: #ea580c; --accent-600: #c2410c; }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-
   --color-success: var(--success);
   --color-warning: var(--warning);
-
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
   --color-brand: var(--brand);
   --color-brand-2: var(--brand-2);
   --color-brand-accent: var(--brand-accent);
-
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -316,7 +314,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -328,8 +325,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-nunito);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 
 @layer base {
@@ -346,34 +344,52 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-dm-sans), "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* User-selectable typefaces (Settings → Appearance). `default` = Geist above. */
-  :root[data-font="system"] body {
-    font-family: ui-sans-serif, system-ui, sans-serif;
-  }
-  :root[data-font="serif"] body {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
-  }
-  :root[data-font="mono"] body {
-    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
-  }
+  :root[data-font="system"] body { font-family: ui-sans-serif, system-ui, sans-serif; }
+  :root[data-font="serif"] body { font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif; }
+  :root[data-font="mono"] body { font-family: var(--font-mono); }
 
-  /* Thin, theme-aware scrollbars for chat/sidebars. */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) transparent;
   }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: var(--color-border);
     border-radius: 9999px;
   }
+}
+
+/* Display / heading face (Nunito ExtraBold) — opt-in utility. */
+.font-display {
+  font-family: var(--font-nunito), var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/*
+ * Brand-mark "lego drop" animation (prototype). Global so the shared
+ * PeoplorMark component can opt in with the `pl-mark-animated` class.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .pl-mark-animated path {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: legoDrop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .pl-mark-animated path:nth-child(1) { animation-delay: 0.18s; }
+  .pl-mark-animated path:nth-child(2) { animation-delay: 0.36s; }
+  .pl-mark-animated path:nth-child(3) { animation-delay: 0.54s; }
+}
+
+@keyframes legoDrop {
+  0% { opacity: 0; transform: translateY(-16px) scale(0.4); }
+  50% { opacity: 1; transform: translateY(0) scale(1.14); }
+  68% { transform: translateY(0) scale(0.92); }
+  84% { transform: scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @utility text-balance {

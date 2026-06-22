@@ -1,106 +1,125 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { BrandLogo } from "@/components/brand-logo";
-import { Container } from "@/components/container";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { routes } from "@/config/routes";
-import { NAV_LINKS } from "@/features/marketing/constants/landing";
-import { cn } from "@/lib/utils";
-import { Button } from "@/ui/button";
+import { siteConfig } from "@/config/site";
+import { useLanding } from "@/features/marketing/context/landing-context";
+import { LANG_LABELS, LANGS } from "@/features/marketing/i18n/landing-copy";
+import { IconBurger, IconCheck, IconClose } from "./icons";
+import { LanguageDropdown } from "./language-dropdown";
+import { PeoplorMark } from "./peoplor-mark";
+import { SideToggle } from "./side-toggle";
+import styles from "./landing.module.css";
 
-/** Sticky marketing header. Gains a blur/border once the page is scrolled, and
- * collapses the nav into a toggle on small screens. */
+/** Public site header: logo, find/hire toggle, language picker, sign in. */
 export function SiteHeader() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { copy, lang, setLang, setSide, openAuth } = useLanding();
+  const [menuOpen, setMenuOpen] = useState(false);
 
+  // Lock body scroll while the mobile menu is open.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [menuOpen]);
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-colors duration-300",
-        scrolled
-          ? "border-border/60 bg-background/80 border-b backdrop-blur-md"
-          : "border-b border-transparent",
-      )}
-    >
-      <Container className="flex h-16 items-center justify-between gap-4">
-        <BrandLogo />
+    <>
+      <header className={styles.nav}>
+        <div className={styles.navInner}>
+          <Link
+            href={routes.home}
+            className={styles.navLogo}
+            aria-label={siteConfig.name}
+          >
+            <PeoplorMark />
+            <span className={styles.navWordmark}>{siteConfig.name}</span>
+          </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          <div className={styles.navCenter}>
+            <SideToggle variant="nav" />
+          </div>
+
+          <div className={styles.navLinks}>
+            <LanguageDropdown />
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnDark}`}
+              onClick={() => openAuth("")}
             >
-              {link.label}
-            </a>
-          ))}
+              {copy.ui.navSignin}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className={styles.navBurger}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((value) => !value)}
+          >
+            {menuOpen ? <IconClose /> : <IconBurger />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile menu (≤980px) */}
+      <div className={styles.mobileMenu} data-open={menuOpen}>
+        <SideToggle variant="mobile" />
+
+        <nav className={styles.mmLinks}>
+          <Link href={routes.pricing} onClick={() => setMenuOpen(false)}>
+            {copy.ui.navPricing}
+          </Link>
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <ThemeToggle />
-          <Button asChild variant="ghost" size="sm">
-            <Link href={routes.auth}>Sign in</Link>
-          </Button>
-          <Button asChild variant="brand" size="sm">
-            <Link href={routes.signup}>Get started</Link>
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-1 md:hidden">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((open) => !open)}
-          >
-            {mobileOpen ? (
-              <X className="size-5" />
-            ) : (
-              <Menu className="size-5" />
-            )}
-          </Button>
-        </div>
-      </Container>
-
-      {mobileOpen ? (
-        <div className="border-border/60 bg-background/95 border-t backdrop-blur-md md:hidden">
-          <Container className="flex flex-col gap-1 py-4">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
+        <div className={styles.mmLang}>
+          <p className={styles.mmLangLabel}>{copy.ui.langLabel}</p>
+          <div className={styles.langddList}>
+            {LANGS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={option === lang}
+                className={styles.langOpt}
+                onClick={() => setLang(option)}
               >
-                {link.label}
-              </a>
+                {LANG_LABELS[option]}
+                <IconCheck className={styles.optTick} />
+              </button>
             ))}
-            <div className="mt-3 flex flex-col gap-2">
-              <Button asChild variant="outline">
-                <Link href={routes.auth}>Sign in</Link>
-              </Button>
-              <Button asChild variant="brand">
-                <Link href={routes.signup}>Get started</Link>
-              </Button>
-            </div>
-          </Container>
+          </div>
         </div>
-      ) : null}
-    </header>
+
+        <div className={styles.mmActions}>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={() => {
+              setMenuOpen(false);
+              openAuth("");
+            }}
+          >
+            {copy.ui.navSignin}
+          </button>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => {
+              setSide("find");
+              setMenuOpen(false);
+              openAuth("");
+            }}
+          >
+            {copy.ui.navFind}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

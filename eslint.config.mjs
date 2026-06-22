@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored design prototypes (HTML/CSS/JS reference material — not app code).
+    "_Peoplor_Design/**",
   ]),
 ]);
 
