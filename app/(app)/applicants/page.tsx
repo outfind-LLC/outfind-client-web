@@ -1,18 +1,6 @@
-import { Users } from "lucide-react";
+import { MessengerScreen } from "@/features/applications/components/messenger-screen";
 
-import { Container } from "@/components/container";
-import { ApplicantVacancyPicker } from "@/features/applications/components/applicant-vacancy-picker";
-import { PageHeader } from "@/features/dashboard/components/page-header";
-
+/** Employer "Candidates" — the prototype messenger (applicant chats + shortlist). */
 export default function ApplicantsPage() {
-  return (
-    <Container className="py-8">
-      <PageHeader
-        icon={Users}
-        title="Applicants"
-        description="Choose a vacancy to review and triage its candidates."
-      />
-      <ApplicantVacancyPicker />
-    </Container>
-  );
+  return <MessengerScreen scope="employer" />;
 }

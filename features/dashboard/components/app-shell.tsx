@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
+import { CandidateDetailSheet } from "@/features/applications/components/candidate-detail-sheet";
 import { ChatPanel } from "@/features/applications/components/chat-panel";
 import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue";
 import { JobDetailPanel } from "@/features/jobs/components/job-detail-panel";
@@ -48,6 +49,7 @@ export function AppShell({ user, children }: AppShellProps) {
       <BillingSoundCue />
       <ChatPanel />
       <JobToolPanel />
+      <CandidateDetailSheet />
 
       <aside className={s.sidebar} aria-label="Sidebar">
         <SidebarContent user={user} />

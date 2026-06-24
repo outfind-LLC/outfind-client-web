@@ -3,6 +3,10 @@
 import { isToolUIPart, type UIMessage } from "ai";
 
 import { splitThinking } from "@/features/chat/lib/think";
+import {
+  extractCandidates,
+  isCandidateSearchTool,
+} from "@/features/chat/types/candidate";
 import { extractJobs, isJobSearchTool } from "@/features/chat/types/job";
 import { ChatMark } from "@/features/dashboard/components/app-icons";
 import { cn } from "@/lib/utils";
@@ -32,19 +36,26 @@ function answerText(message: UIMessage): string {
 }
 
 /**
- * Whether the message has rendered job cards — a job-search tool that resolved
- * to at least one result. When true we show only the cards and drop the model's
- * prose, which otherwise re-lists the same jobs.
+ * Whether the message has rendered result cards — a job- or candidate-search
+ * tool that resolved to at least one result. When true we show only the cards
+ * and drop the model's prose, which otherwise re-lists the same results.
  */
-function hasJobCards(message: UIMessage): boolean {
+function hasResultCards(message: UIMessage): boolean {
   for (const part of message.parts) {
     if (!isToolUIPart(part)) continue;
     const toolType =
       part.type === "dynamic-tool" ? `tool-${part.toolName}` : part.type;
-    if (!isJobSearchTool(toolType)) continue;
     if (
+      isJobSearchTool(toolType) &&
       part.state === "output-available" &&
       extractJobs(toolType, part.output).length > 0
+    ) {
+      return true;
+    }
+    if (
+      isCandidateSearchTool(toolType) &&
+      part.state === "output-available" &&
+      extractCandidates(toolType, part.output).length > 0
     ) {
       return true;
     }
@@ -52,9 +63,9 @@ function hasJobCards(message: UIMessage): boolean {
   return false;
 }
 
-/** Final answer text or rendered job cards — reasoning never counts as visible. */
+/** Final answer text or rendered cards — reasoning never counts as visible. */
 function hasVisibleContent(message: UIMessage): boolean {
-  if (hasJobCards(message)) return true;
+  if (hasResultCards(message)) return true;
   for (const part of message.parts) {
     if (part.type === "text" && splitThinking(part.text).answer.length > 0) {
       return true;
@@ -124,14 +135,14 @@ export function MessageBubble({ message, streaming }: MessageBubbleProps) {
   }
 
   const working = Boolean(streaming) && !hasVisibleContent(message);
-  const jobCardsPresent = hasJobCards(message);
+  const cardsPresent = hasResultCards(message);
   const answer = answerText(message);
 
   return (
     <div className={s.row}>
       <ResponseMark done={!streaming} />
       <div className={s.msg}>
-        {jobCardsPresent ? (
+        {cardsPresent ? (
           message.parts.map((part, index) =>
             isToolUIPart(part) ? <ToolPart key={index} part={part} /> : null,
           )

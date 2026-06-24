@@ -1,18 +1,6 @@
-import { FileText } from "lucide-react";
+import { MessengerScreen } from "@/features/applications/components/messenger-screen";
 
-import { Container } from "@/components/container";
-import { ApplicationsList } from "@/features/applications/components/applications-list";
-import { PageHeader } from "@/features/dashboard/components/page-header";
-
+/** Worker "Saved & applied" — the prototype messenger (applied chats + saved jobs). */
 export default function ApplicationsPage() {
-  return (
-    <Container className="py-8">
-      <PageHeader
-        icon={FileText}
-        title="Applications"
-        description="Track the jobs you've applied to."
-      />
-      <ApplicationsList />
-    </Container>
-  );
+  return <MessengerScreen scope="worker" />;
 }

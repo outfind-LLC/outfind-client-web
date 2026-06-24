@@ -50,6 +50,17 @@ export function useVacancyApplicants(vacancyId: string) {
   });
 }
 
+/** Employer: flat list of all applicants across the employer's vacancies
+ * (Candidates inbox). PROPOSED endpoint — `retry:false` so a 404 degrades to an
+ * empty inbox instead of retrying/toasting. See api-need.md §2. */
+export function useEmployerApplications() {
+  return useQuery<EmployerApplication[]>({
+    queryKey: ["applicants", "all"],
+    queryFn: () => applicationsService.listAllApplicants(),
+    retry: false,
+  });
+}
+
 /** Employer: change an applicant's status. */
 export function useUpdateApplicationStatus(vacancyId: string) {
   const queryClient = useQueryClient();

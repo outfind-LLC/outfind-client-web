@@ -1,18 +1,6 @@
-import { Settings } from "lucide-react";
+import { SettingsModal } from "@/features/settings/components/settings-modal";
 
-import { Container } from "@/components/container";
-import { PageHeader } from "@/features/dashboard/components/page-header";
-import { SettingsView } from "@/features/settings/components/settings-view";
-
+/** Settings — the prototype's modal overlay (covers the app; closes back). */
 export default function SettingsPage() {
-  return (
-    <Container className="max-w-3xl py-8">
-      <PageHeader
-        icon={Settings}
-        title="Settings"
-        description="Account, subscription, and appearance."
-      />
-      <SettingsView />
-    </Container>
-  );
+  return <SettingsModal />;
 }

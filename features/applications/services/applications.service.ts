@@ -51,6 +51,17 @@ export const applicationsService = {
     );
   },
 
+  /** Flat list of every applicant across the employer's vacancies — powers the
+   *  Candidates inbox. PROPOSED endpoint (see api-need.md §2); consumers degrade
+   *  to an empty inbox if it isn't live yet. */
+  async listAllApplicants(
+    query: ListApplicationsQuery = {},
+  ): Promise<EmployerApplication[]> {
+    return api.get<EmployerApplication[]>(
+      `/employer/applications${buildQuery(query)}`,
+    );
+  },
+
   async updateStatus(
     applicationId: string,
     payload: UpdateApplicationStatusPayload,

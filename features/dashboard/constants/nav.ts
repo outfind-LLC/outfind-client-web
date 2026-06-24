@@ -19,10 +19,9 @@ const WORKER_NAV: NavItem[] = [
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
-  { label: "New chat", href: routes.assistant, icon: "plus", newChat: true },
-  { label: "Vacancies", href: routes.vacancies, icon: "briefcase" },
-  { label: "Applicants", href: routes.applicants, icon: "users" },
-  { label: "Profile", href: routes.profile, icon: "user" },
+  { label: "New search", href: routes.assistant, icon: "search", newChat: true },
+  { label: "Candidates", href: routes.applicants, icon: "users" },
+  { label: "Company", href: routes.employerProfile, icon: "company" },
 ];
 
 /** Sidebar nav for the given account type (admins see the worker layout). */

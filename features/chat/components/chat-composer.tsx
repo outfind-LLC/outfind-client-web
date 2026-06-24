@@ -25,6 +25,8 @@ interface ChatComposerProps {
   onStop?: () => void;
   autoFocus?: boolean;
   placeholder?: string;
+  /** Hide the disclaimer line (e.g. on the centered new-chat hero). */
+  showFoot?: boolean;
 }
 
 const MAX_TEXTAREA_HEIGHT = 160;
@@ -55,6 +57,7 @@ export function ChatComposer({
   onStop,
   autoFocus,
   placeholder = "Search jobs…",
+  showFoot = true,
 }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -162,10 +165,12 @@ export function ChatComposer({
         )}
       </form>
 
-      <div className={s["composer-foot"]}>
-        Peoplor helps you find jobs and apply. It can make mistakes — always check
-        job details before applying.
-      </div>
+      {showFoot ? (
+        <div className={s["composer-foot"]}>
+          Peoplor helps you find jobs and apply. It can make mistakes — always
+          check job details before applying.
+        </div>
+      ) : null}
     </div>
   );
 }

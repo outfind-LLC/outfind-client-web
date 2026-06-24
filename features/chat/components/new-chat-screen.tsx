@@ -6,10 +6,11 @@ import { routes } from "@/config/routes";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { useSession } from "@/features/auth/hooks/use-session";
+import { ChatMark } from "@/features/dashboard/components/app-icons";
 import { isApiClientError } from "@/lib/api/error";
-import type { AiSpecialist } from "@/interfaces/enums";
+import { ACCOUNT_TYPE, type AiSpecialist } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
-import { ChatEmptyState } from "./chat-empty-state";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 interface NewChatScreenProps {
   /**
@@ -23,19 +24,31 @@ interface NewChatScreenProps {
   defaultSpecialist?: AiSpecialist;
 }
 
-/** The "New chat" screen. Sending the first message creates a conversation and
- * routes to its thread (which auto-sends the queued message). */
+/** The "New chat" / "New search" hero. Employers describe who they need;
+ * everyone else gets the assistant hero. Sending the first message creates a
+ * conversation and routes to its thread (which auto-sends the queued message). */
 export function NewChatScreen({
   tab = "assistant",
   defaultSpecialist,
 }: NewChatScreenProps = {}) {
   const { user } = useSession();
-  const specialist = useComposerStore((s) => s.specialist);
+  const specialist = useComposerStore((st) => st.specialist);
   const threadHref =
     tab === "jobs" ? routes.jobsThread : routes.assistantThread;
   const startConversation = useStartConversation(threadHref);
 
   if (!user) return null;
+
+  const employer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
+  const title = employer
+    ? "Who are you looking to hire?"
+    : "How can I help with your career?";
+  const placeholder = employer
+    ? "Describe who you need…"
+    : "Ask anything…";
+  const chips = employer
+    ? ["Truck drivers", "Warehouse staff", "Delivery couriers", "Cleaners"]
+    : ["Build my CV", "Improve my resume", "Interview prep", "Career advice"];
 
   const send = (text: string) => {
     if (startConversation.isPending) return;
@@ -53,21 +66,29 @@ export function NewChatScreen({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-4 sm:py-8">
-        <ChatEmptyState
-          userName={user.name}
-          accountType={user.accountType}
-          onPick={send}
-        />
+    <div className={s.landing}>
+      <div className={s.hero}>
+        <div className={s["hero-head"]}>
+          <ChatMark className={s["hero-mark"]} />
+          <h1 className={s["hero-title"]}>{title}</h1>
+        </div>
       </div>
-      <div className="mx-auto w-full max-w-3xl px-4 pb-4 sm:pb-6">
-        <ChatComposer
-          accountType={user.accountType}
-          busy={startConversation.isPending}
-          onSend={send}
-          autoFocus
-        />
+
+      <ChatComposer
+        accountType={user.accountType}
+        busy={startConversation.isPending}
+        onSend={send}
+        autoFocus
+        placeholder={placeholder}
+        showFoot={false}
+      />
+
+      <div className={s["hero-chips"]}>
+        {chips.map((chip) => (
+          <button key={chip} type="button" onClick={() => send(chip)}>
+            {chip}
+          </button>
+        ))}
       </div>
     </div>
   );
