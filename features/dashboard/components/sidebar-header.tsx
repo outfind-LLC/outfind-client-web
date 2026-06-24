@@ -1,62 +1,47 @@
 "use client";
 
-import { Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import Link from "next/link";
 
-import { BrandLogo } from "@/components/brand-logo";
+import { routes } from "@/config/routes";
+import { siteConfig } from "@/config/site";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
-import { cn } from "@/lib/utils";
-import { Button } from "@/ui/button";
+import { ChatMark, Ic } from "./app-icons";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-/** Sidebar top bar: brand, inline theme switch, and the desktop collapse toggle. */
-export function SidebarHeader({ collapsed }: { collapsed: boolean }) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const toggleCollapsed = useSidebarStore((s) => s.toggleCollapsed);
-
-  const themeButton = (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label="Toggle theme"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-    >
-      <Sun className="size-4 dark:hidden" />
-      <Moon className="hidden size-4 dark:block" />
-    </Button>
-  );
-
-  const collapseButton = (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      onClick={toggleCollapsed}
-      className="hidden lg:inline-flex"
-    >
-      {collapsed ? (
-        <PanelLeft className="size-4" />
-      ) : (
-        <PanelLeftClose className="size-4" />
-      )}
-    </Button>
-  );
-
-  if (collapsed) {
-    return (
-      <div className="flex flex-col items-center gap-2 px-2 py-3">
-        <BrandLogo full={false} href="/" className="h-7" />
-        {collapseButton}
-      </div>
-    );
-  }
+/**
+ * Sidebar head: the brand mark (doubles as the expand toggle when collapsed,
+ * swapping to a panel glyph on hover), the wordmark, and the desktop collapse
+ * button (visible only when expanded).
+ */
+export function SidebarHeader() {
+  const toggleCollapsed = useSidebarStore((st) => st.toggleCollapsed);
 
   return (
-    <div className={cn("flex h-14 items-center gap-1 px-3")}>
-      <BrandLogo href="/" className="h-7" />
-      <div className="ml-auto flex items-center gap-0.5">
-        {themeButton}
-        {collapseButton}
-      </div>
+    <div className={s["sb-head"]}>
+      <button
+        type="button"
+        className={s["sb-toggle"]}
+        onClick={toggleCollapsed}
+        aria-label="Expand sidebar"
+        title="Expand sidebar"
+      >
+        <ChatMark className={s["sb-mark"]} />
+        <Ic name="panel" className={s["sb-panel"]} />
+      </button>
+
+      <Link href={routes.home} className={s.wm} aria-label={siteConfig.name}>
+        {siteConfig.name}
+      </Link>
+
+      <button
+        type="button"
+        className={s["sb-collapse"]}
+        onClick={toggleCollapsed}
+        aria-label="Collapse sidebar"
+        title="Collapse sidebar"
+      >
+        <Ic name="panel" />
+      </button>
     </div>
   );
 }

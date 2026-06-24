@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowUp, Square } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import { toast } from "sonner";
 
 import { getDefaultSpecialist } from "@/features/chat/constants/specialists";
 import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
 import { useComposerStore } from "@/features/chat/store/composer.store";
+import { Ic } from "@/features/dashboard/components/app-icons";
 import { cn } from "@/lib/utils";
 import type { AccountType } from "@/interfaces/enums";
-import { Button } from "@/ui/button";
-import { ModelSelector } from "./model-selector";
-import { VoiceInputButton } from "./voice-input-button";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 interface ChatComposerProps {
   accountType: AccountType;
@@ -20,9 +24,10 @@ interface ChatComposerProps {
   onSend: (text: string) => void;
   onStop?: () => void;
   autoFocus?: boolean;
+  placeholder?: string;
 }
 
-const MAX_TEXTAREA_HEIGHT = 200;
+const MAX_TEXTAREA_HEIGHT = 160;
 
 /** Friendly message for a Web Speech API error code. */
 function dictationError(code: string): string {
@@ -41,23 +46,23 @@ function dictationError(code: string): string {
   }
 }
 
-/** Message composer: auto-growing input plus specialist/model/voice controls. */
+/** Message composer (the prototype's rounded pill): auto-growing input, voice
+ * dictation, and a send button that becomes a stop control while streaming. */
 export function ChatComposer({
   accountType,
   busy,
   onSend,
   onStop,
   autoFocus,
+  placeholder = "Search jobs…",
 }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Text already in the field when dictation starts; new speech is appended to it.
   const dictationBaseRef = useRef("");
 
-  const storeSpecialist = useComposerStore((s) => s.specialist);
-  const setSpecialist = useComposerStore((s) => s.setSpecialist);
-  const model = useComposerStore((s) => s.model);
-  const setModel = useComposerStore((s) => s.setModel);
+  const storeSpecialist = useComposerStore((st) => st.specialist);
+  const setSpecialist = useComposerStore((st) => st.setSpecialist);
 
   const speech = useSpeechRecognition({
     onTranscript: (transcript) =>
@@ -86,6 +91,11 @@ export function ChatComposer({
     setInput("");
   };
 
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submit();
+  };
+
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -106,49 +116,55 @@ export function ChatComposer({
   };
 
   return (
-    <div className="border-border/50 bg-card/70 focus-within:border-primary/40 focus-within:ring-primary/30 dark:bg-card/55 rounded-[1.75rem] border shadow-[0_8px_30px_-12px_rgba(2,6,23,0.25)] ring-1 ring-white/15 backdrop-blur-xl transition-all ring-inset focus-within:shadow-[0_10px_40px_-12px_rgba(74,73,207,0.35)] dark:ring-white/[0.06]">
-      <textarea
-        ref={textareaRef}
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-        onKeyDown={onKeyDown}
-        autoFocus={autoFocus}
-        rows={1}
-        placeholder={speech.listening ? "Listening…" : "Ask anything…"}
-        className="placeholder:text-muted-foreground max-h-52 min-h-[4.5rem] w-full resize-none scrollbar-thin bg-transparent px-5 pt-5 text-[0.95rem] leading-relaxed outline-none"
-      />
+    <div className={s["composer-wrap"]}>
+      <form className={s.composer} autoComplete="off" onSubmit={onSubmit}>
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={onKeyDown}
+          autoFocus={autoFocus}
+          rows={1}
+          placeholder={speech.listening ? "Listening…" : placeholder}
+          aria-label={placeholder}
+        />
 
-      <div className="flex items-center justify-end gap-1.5 px-3 pb-3">
-        <ModelSelector value={model} onChange={setModel} disabled={busy} />
         {speech.supported ? (
-          <VoiceInputButton
-            listening={speech.listening}
-            disabled={busy}
-            onClick={toggleDictation}
-          />
-        ) : null}
-        {busy ? (
-          <Button
+          <button
             type="button"
-            size="icon"
+            className={cn(s.mic, speech.listening && s.listening)}
+            aria-label="Use voice"
+            aria-pressed={speech.listening}
+            onClick={toggleDictation}
+          >
+            <Ic name="mic" />
+          </button>
+        ) : null}
+
+        {busy ? (
+          <button
+            type="button"
+            className={s.send}
             aria-label="Stop"
             onClick={onStop}
-            className={cn("rounded-full")}
           >
-            <Square className="size-4 fill-current" />
-          </Button>
+            <Ic name="stop" />
+          </button>
         ) : (
-          <Button
-            type="button"
-            size="icon"
+          <button
+            type="submit"
+            className={s.send}
             aria-label="Send"
             disabled={!input.trim()}
-            onClick={submit}
-            className="rounded-full"
           >
-            <ArrowUp className="size-4" />
-          </Button>
+            <Ic name="arrowUp" />
+          </button>
         )}
+      </form>
+
+      <div className={s["composer-foot"]}>
+        Peoplor helps you find jobs and apply. It can make mistakes — always check
+        job details before applying.
       </div>
     </div>
   );

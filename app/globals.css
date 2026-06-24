@@ -147,6 +147,10 @@
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --duration-slow: 260ms;
+  /* Prototype-named aliases so ported chat CSS resolves verbatim. */
+  --dur-fast: var(--duration-fast);
+  --dur-base: var(--duration-base);
+  --dur-slow: var(--duration-slow);
 
   /* ===== Layout frames ===== */
   --sidebar-w: 256px;

@@ -1,40 +1,28 @@
-import {
-  Bookmark,
-  Briefcase,
-  FileText,
-  MessagesSquare,
-  Search,
-  UserRound,
-  Users,
-  Wand2,
-  type LucideIcon,
-} from "lucide-react";
-
 import { routes } from "@/config/routes";
 import { ACCOUNT_TYPE, type AccountType } from "@/interfaces/enums";
+import type { IconName } from "@/features/dashboard/components/app-icons";
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconName;
+  /** First item renders as the borderless "new" affordance (plus icon). */
+  newChat?: boolean;
   /** Highlight only on exact match (e.g. a tab root shouldn't match its threads). */
   exact?: boolean;
 }
 
 const WORKER_NAV: NavItem[] = [
-  { label: "Job Search", href: routes.jobs, icon: Search },
-  { label: "Assistant", href: routes.assistant, icon: MessagesSquare },
-  { label: "Career Tools", href: routes.tools, icon: Wand2 },
-  { label: "Applications", href: routes.applications, icon: FileText },
-  { label: "Bookmarks", href: routes.bookmarks, icon: Bookmark },
-  { label: "Profile", href: routes.profile, icon: UserRound },
+  { label: "New job", href: routes.jobs, icon: "plus", newChat: true },
+  { label: "Saved & applied", href: routes.applications, icon: "bookmark" },
+  { label: "Profile", href: routes.profile, icon: "user" },
 ];
 
 const EMPLOYER_NAV: NavItem[] = [
-  { label: "Assistant", href: routes.assistant, icon: MessagesSquare },
-  { label: "Vacancies", href: routes.vacancies, icon: Briefcase },
-  { label: "Applicants", href: routes.applicants, icon: Users },
-  { label: "Profile", href: routes.profile, icon: UserRound },
+  { label: "New chat", href: routes.assistant, icon: "plus", newChat: true },
+  { label: "Vacancies", href: routes.vacancies, icon: "briefcase" },
+  { label: "Applicants", href: routes.applicants, icon: "users" },
+  { label: "Profile", href: routes.profile, icon: "user" },
 ];
 
 /** Sidebar nav for the given account type (admins see the worker layout). */

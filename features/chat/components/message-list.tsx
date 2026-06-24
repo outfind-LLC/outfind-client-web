@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown } from "lucide-react";
 import type { ChatStatus, UIMessage } from "ai";
 
-import { Button } from "@/ui/button";
 import {
   MessageBubble,
   PendingAssistantBubble,
   type ChatSurface,
 } from "./message-bubble";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 interface MessageListProps {
   messages: UIMessage[];
@@ -20,13 +19,10 @@ interface MessageListProps {
 /** How close to the bottom (px) still counts as "stuck" to the latest message. */
 const STICK_THRESHOLD = 80;
 
-/** Scrollable transcript. Sticks to the bottom while the user is already there,
- * but never yanks them down once they scroll up to read. */
-export function MessageList({
-  messages,
-  status,
-  surface = "assistant",
-}: MessageListProps) {
+/** Scrollable transcript (`.thread-scroll` → `.thread`). Sticks to the bottom
+ * while the reader is already there, but never yanks them down once they scroll
+ * up to read. */
+export function MessageList({ messages, status }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
 
@@ -42,57 +38,32 @@ export function MessageList({
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, status, atBottom]);
 
-  const scrollToBottom = () => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  };
-
   const streaming = status === "submitted" || status === "streaming";
   const lastMessage = messages[messages.length - 1];
   const awaitingFirstToken =
     status === "submitted" && (!lastMessage || lastMessage.role === "user");
 
   return (
-    <div className="relative min-h-0 flex-1">
-      <div
-        ref={scrollRef}
-        onScroll={(event) => handleScroll(event.currentTarget)}
-        className="h-full scrollbar-thin overflow-x-hidden overflow-y-auto overscroll-contain"
-      >
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-4 sm:py-6">
-          {messages.map((message, index) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              surface={surface}
-              streaming={
-                streaming &&
-                index === messages.length - 1 &&
-                message.role === "assistant"
-              }
-            />
-          ))}
+    <div
+      ref={scrollRef}
+      onScroll={(event) => handleScroll(event.currentTarget)}
+      className={s["thread-scroll"]}
+    >
+      <div className={s.thread}>
+        {messages.map((message, index) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            streaming={
+              streaming &&
+              index === messages.length - 1 &&
+              message.role === "assistant"
+            }
+          />
+        ))}
 
-          {awaitingFirstToken ? (
-            <PendingAssistantBubble surface={surface} />
-          ) : null}
-        </div>
+        {awaitingFirstToken ? <PendingAssistantBubble /> : null}
       </div>
-
-      {!atBottom ? (
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          onClick={scrollToBottom}
-          aria-label="Scroll to latest"
-          className="absolute bottom-4 left-1/2 size-9 -translate-x-1/2 rounded-full shadow-md"
-        >
-          <ArrowDown className="size-4" />
-        </Button>
-      ) : null}
     </div>
   );
 }

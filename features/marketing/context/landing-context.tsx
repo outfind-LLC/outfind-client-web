@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 import { ACCOUNT_TYPE } from "@/interfaces/enums";
@@ -38,30 +39,49 @@ interface LandingContextValue {
 }
 
 const LandingContext = createContext<LandingContextValue | null>(null);
+const LANG_EVENT = "peoplor:lang";
 
 function isLang(value: string | null): value is Lang {
   return value === "en" || value === "ru" || value === "uz";
 }
 
+/** The language preference is read through an external store so the read stays
+ * out of a render-effect and SSR/CSR snapshots reconcile cleanly. */
+function subscribeLang(onChange: () => void): () => void {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(LANG_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(LANG_EVENT, onChange);
+  };
+}
+function readStoredLang(): Lang {
+  try {
+    const saved = localStorage.getItem(LANG_STORAGE_KEY);
+    if (isLang(saved)) return saved;
+  } catch {
+    // Ignore storage failures (private mode etc.).
+  }
+  return "en";
+}
+function serverLang(): Lang {
+  return "en";
+}
+
 export function LandingProvider({ children }: { children: React.ReactNode }) {
   const [side, setSide] = useState<Side>("find");
-  const [lang, setLangState] = useState<Lang>("en");
   const [authOpen, setAuthOpen] = useState(false);
   const [authPrompt, setAuthPrompt] = useState("");
 
-  // Hydrate the saved language after mount (avoids SSR/client mismatch).
-  useEffect(() => {
-    const saved = localStorage.getItem(LANG_STORAGE_KEY);
-    if (isLang(saved)) setLangState(saved);
-  }, []);
+  const lang = useSyncExternalStore(subscribeLang, readStoredLang, serverLang);
 
   const setLang = useCallback((next: Lang) => {
-    setLangState(next);
     try {
       localStorage.setItem(LANG_STORAGE_KEY, next);
     } catch {
       // Ignore storage failures (private mode etc.).
     }
+    window.dispatchEvent(new Event(LANG_EVENT));
     document.documentElement.lang = next;
   }, []);
 

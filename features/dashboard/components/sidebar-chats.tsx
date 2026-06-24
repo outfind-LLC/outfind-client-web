@@ -39,16 +39,17 @@ import {
 } from "@/ui/dropdown-menu";
 import { Input } from "@/ui/input";
 import { Skeleton } from "@/ui/skeleton";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 // Aligned with the Job Search landing query so both share one cached fetch.
 const SIDEBAR_CHAT_LIMIT = 50;
 const MAX_TITLE_LENGTH = 120;
 
 /**
- * Recent conversations for the active tab, split into Pinned and recent
- * sections. The history is contextual: Job Search shows past searches, the AI
- * Assistant shows everything else. There's no server-side specialist filter, so
- * we fetch the newest page and partition client-side.
+ * Recent conversations for the active tab, rendered as the prototype's plain
+ * `.conv` rows under the "Recent" heading. Pinned chats float to the top. The
+ * history is contextual: Job Search shows past searches, the AI Assistant shows
+ * everything else (partitioned client-side — there's no server specialist filter).
  */
 export function SidebarChats() {
   const pathname = usePathname();
@@ -57,63 +58,33 @@ export function SidebarChats() {
 
   if (isLoading) {
     return (
-      <div className="space-y-1 px-2 py-1">
+      <div className={s["conv-list"]}>
         {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-7 w-full rounded-md" />
+          <Skeleton key={index} className="mx-2.5 h-7 rounded-lg" />
         ))}
       </div>
     );
   }
 
-  const recentLabel = tab === "jobs" ? "Searches" : "Chats";
-  const emptyLabel = tab === "jobs" ? "No searches yet" : "No chats yet";
   const conversations = (data ?? []).filter(
     (c) => tabForConversation(c) === tab,
   );
-  const pinned = conversations.filter((c) => c.isPinned);
-  const recent = conversations.filter((c) => !c.isPinned);
+  const ordered = [
+    ...conversations.filter((c) => c.isPinned),
+    ...conversations.filter((c) => !c.isPinned),
+  ];
+
+  if (ordered.length === 0) {
+    return (
+      <p className="text-muted-foreground px-2.5 py-1.5 text-sm">
+        {tab === "jobs" ? "No searches yet" : "No chats yet"}
+      </p>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {pinned.length > 0 ? (
-        <ChatGroup label="Pinned" conversations={pinned} />
-      ) : null}
-
-      {recent.length > 0 ? (
-        <ChatGroup label={recentLabel} conversations={recent} />
-      ) : null}
-
-      {conversations.length === 0 ? (
-        <div className="flex flex-col gap-0.5">
-          <GroupLabel>{recentLabel}</GroupLabel>
-          <p className="text-sidebar-foreground/50 px-3 py-1.5 text-sm">
-            {emptyLabel}
-          </p>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function GroupLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-sidebar-foreground/50 px-3 pb-1 text-xs font-medium tracking-wide uppercase">
-      {children}
-    </p>
-  );
-}
-
-function ChatGroup({
-  label,
-  conversations,
-}: {
-  label: string;
-  conversations: Conversation[];
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <GroupLabel>{label}</GroupLabel>
-      {conversations.map((conversation) => (
+    <div className={s["conv-list"]}>
+      {ordered.map((conversation) => (
         <ChatRow key={conversation.id} conversation={conversation} />
       ))}
     </div>
@@ -124,7 +95,7 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
   const pathname = usePathname();
   const deleteConversation = useDeleteConversation();
   const pinConversation = usePinConversation();
-  const setMobileOpen = useSidebarStore((s) => s.setMobileOpen);
+  const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -148,37 +119,26 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
     });
 
   return (
-    <div
-      className={cn(
-        "group/chat relative flex items-center rounded-lg transition-colors",
-        active
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-      )}
-    >
+    <div className="group/chat relative">
       <Link
         href={href}
         onClick={() => setMobileOpen(false)}
         aria-current={active ? "page" : undefined}
-        className="focus-visible:ring-sidebar-ring/40 min-w-0 flex-1 truncate rounded-lg px-3 py-1.5 text-sm outline-none focus-visible:ring-[3px]"
+        className={cn(s.conv, active && s.active, "pr-8")}
       >
-        {title}
+        <span className={s.txt}>{title}</span>
       </Link>
 
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Chat options"
-          className="text-sidebar-foreground/50 hover:text-sidebar-foreground mr-1 shrink-0 rounded p-1 opacity-0 transition-opacity outline-none group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+          className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 opacity-0 outline-none transition-opacity group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreVertical className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="bottom" className="w-44">
           <DropdownMenuItem onSelect={togglePin} className="gap-2">
-            {pinned ? (
-              <PinOff className="size-4" />
-            ) : (
-              <Pin className="size-4" />
-            )}
+            {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
             {pinned ? "Unpin" : "Pin"}
           </DropdownMenuItem>
           <DropdownMenuItem

@@ -1,90 +1,45 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
 import {
-  ArrowLeft,
-  Bookmark,
-  BookmarkCheck,
-  Building2,
-  Loader2,
-  MapPin,
-  MessageSquare,
-  Send,
-  Sparkles,
-  ThumbsDown,
-  ThumbsUp,
-  Wallet,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { Loader2, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  ContactActions,
   hasAnyContact,
   primaryContactHref,
 } from "@/features/chat/components/contact-actions";
-import { JobAiTools } from "@/features/jobs/components/job-ai-tools";
-import { useJobActions, type JobActions } from "@/features/jobs/hooks/use-job-actions";
+import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useVacancyDetail } from "@/features/recommendations/hooks/use-vacancy-detail";
 import { enrichJobWithVacancy } from "@/features/jobs/lib/vacancy-to-job";
 import { jobKey } from "@/features/jobs/lib/job-context";
 import { useGenerateCoverLetter } from "@/features/ai-tools/hooks/use-worker-ai";
-import { useSession } from "@/features/auth/hooks/use-session";
-import {
-  useCreateComment,
-  useDeleteComment,
-  useVacancyComments,
-} from "@/features/engagement/hooks/use-vacancy-engagement";
+import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
 import type { JobCardData } from "@/features/chat/types/job";
 import { isApiClientError } from "@/lib/api/error";
-import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { REACTION_TYPE } from "@/interfaces/enums";
-import type { VacancyComment } from "@/interfaces/engagement.interface";
-import { UserAvatar } from "@/components/user-avatar";
-import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
-
-/** Lock body scroll on mobile (full-screen) only; Escape closes. */
-function usePanelChrome(active: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!active) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, onClose]);
-
-  useEffect(() => {
-    if (!active) return;
-    const mobile = window.matchMedia("(max-width: 639px)");
-    if (!mobile.matches) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [active]);
-}
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 /**
- * App-wide job detail panel, mounted once in `AppShell`. A non-blocking docked
- * drawer (full-screen on mobile) — NOT a modal — so the AI-tool and apply panels
- * stack cleanly above it instead of fighting a blur overlay. Holds the full job
- * detail, company info, AI tools, comments, and the apply action. The same panel
- * serves chat results and recommendations; the worker is never shown a role's
- * source.
+ * App-wide job detail sheet, mounted once in `AppShell`. The prototype's
+ * right-side drawer over a dimmed scrim: a source pill (platform vs found
+ * online), the role, salary, facts, sections, and how-to-apply. Platform
+ * vacancies apply in one tap (cover-letter step); roles found online surface the
+ * employer's direct contact details. Reuses the existing apply/bookmark hooks.
  */
 export function JobDetailPanel() {
-  const target = useJobDetailPanelStore((s) => s.target);
+  const target = useJobDetailPanelStore((st) => st.target);
   if (!target) return null;
   return (
-    <JobDetailContent
+    <JobDetailSheet
       key={target.vacancyId ?? jobKey(target.job)}
       initialJob={target.job}
       vacancyId={target.vacancyId}
@@ -92,45 +47,116 @@ export function JobDetailPanel() {
   );
 }
 
-function JobDetailContent({
+function JobDetailSheet({
   initialJob,
   vacancyId,
 }: {
   initialJob: JobCardData;
   vacancyId: string | null;
 }) {
-  const close = useJobDetailPanelStore((s) => s.close);
+  const storeClose = useJobDetailPanelStore((st) => st.close);
+  const [show, setShow] = useState(false);
+
+  // Play the enter transition on mount; defer the actual unmount so the exit
+  // transition can run. setShow lives in a rAF/timeout callback (not the effect
+  // body), so it doesn't trip the cascading-render rule.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShow(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const close = useCallback(() => {
+    setShow(false);
+    window.setTimeout(storeClose, 240);
+  }, [storeClose]);
+
+  // Escape to close + lock the page behind the sheet while it's open.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [close]);
+
   // Recommendations open thin; load the full vacancy to fill the detail in.
   const needsFetch = Boolean(vacancyId) && !initialJob.description;
   const { data: full } = useVacancyDetail(vacancyId ?? "", needsFetch);
   const job = full ? enrichJobWithVacancy(initialJob, full) : initialJob;
 
   return vacancyId ? (
-    <InternalDetail job={job} vacancyId={vacancyId} onClose={close} />
+    <InternalSheet job={job} vacancyId={vacancyId} show={show} onClose={close} />
   ) : (
-    <ExternalDetail job={job} onClose={close} />
+    <ExternalSheet job={job} show={show} onClose={close} />
   );
 }
 
-function InternalDetail({
+function InternalSheet({
   job,
   vacancyId,
+  show,
   onClose,
 }: {
   job: JobCardData;
   vacancyId: string;
+  show: boolean;
   onClose: () => void;
 }) {
   const actions = useJobActions(vacancyId);
-  return (
+
+  const applySection = (
+    <div className={s["jd-sec"]}>
+      <h3>How to apply</h3>
+      <p>
+        This role was posted on Peoplor, so you can apply in one tap — we&apos;ll
+        send your CV tailored to this job.
+      </p>
+    </div>
+  );
+
+  const footer = actions.applied ? (
+    <button
+      type="button"
+      className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+      onClick={onClose}
+    >
+      Done
+    </button>
+  ) : (
     <>
-      <DetailShell
-        job={job}
-        vacancyId={vacancyId}
-        onClose={onClose}
-        engagement={<EngagementBar actions={actions} vacancyId={vacancyId} />}
-        footer={<InternalFooter actions={actions} />}
-      />
+      <button
+        type="button"
+        className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+        onClick={actions.toggleSave}
+        disabled={actions.savePending}
+      >
+        {actions.saved ? "Saved" : "Save"}
+      </button>
+      <button
+        type="button"
+        className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+        onClick={actions.applyToJob}
+        disabled={actions.applyPending}
+      >
+        Apply with my CV
+      </button>
+    </>
+  );
+
+  return (
+    <Sheet
+      job={job}
+      isPlatform
+      show={show}
+      onClose={onClose}
+      applySection={applySection}
+      footer={footer}
+    >
       <ApplyPanel
         open={actions.applyDialogOpen}
         onClose={actions.closeApplyDialog}
@@ -138,279 +164,253 @@ function InternalDetail({
         submitting={actions.applyPending}
         onSubmit={actions.confirmApply}
       />
-    </>
+    </Sheet>
   );
 }
 
-function ExternalDetail({
+function ExternalSheet({
   job,
+  show,
   onClose,
 }: {
   job: JobCardData;
+  show: boolean;
   onClose: () => void;
 }) {
+  const { email, phone } = job.contact;
+  const fallbackHref = primaryContactHref(job.contact);
+
+  const applySection = (
+    <div className={s["jd-sec"]}>
+      <h3>How to apply</h3>
+      <p>
+        Peoplor found this role online, so you apply with the employer directly.
+        {hasAnyContact(job.contact) ? " Here are their contact details:" : ""}
+      </p>
+      {hasAnyContact(job.contact) ? (
+        <div className={s["jd-contact"]} style={{ marginTop: 13 }}>
+          {job.company ? (
+            <div className={s["jd-crow"]}>
+              <Ic name="user" />
+              <span className={s.nm}>{job.company}</span>
+            </div>
+          ) : null}
+          {phone ? (
+            <div className={s["jd-crow"]}>
+              <Ic name="phone" />
+              <a href={`tel:${phone}`}>{phone}</a>
+            </div>
+          ) : null}
+          {email ? (
+            <div className={s["jd-crow"]}>
+              <Ic name="mail" />
+              <a href={`mailto:${email}`}>{email}</a>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <p className={s["jd-note"]}>
+        Peoplor can&apos;t apply on your behalf for roles found online. Always
+        verify the employer and never pay for a job or share documents before
+        you&apos;re sure.
+      </p>
+    </div>
+  );
+
+  const footer = (
+    <>
+      {email ? (
+        <a
+          className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+          href={`mailto:${email}`}
+        >
+          Email
+        </a>
+      ) : null}
+      {phone ? (
+        <a
+          className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+          href={`tel:${phone}`}
+        >
+          Call employer
+        </a>
+      ) : fallbackHref ? (
+        <a
+          className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+          href={fallbackHref}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Apply
+        </a>
+      ) : (
+        <span className={s["jd-note"]} style={{ margin: 0 }}>
+          No application channel was provided for this role.
+        </span>
+      )}
+    </>
+  );
+
   return (
-    <DetailShell
+    <Sheet
       job={job}
-      vacancyId={null}
+      isPlatform={false}
+      show={show}
       onClose={onClose}
-      footer={<ExternalFooter job={job} />}
+      applySection={applySection}
+      footer={footer}
     />
   );
 }
 
-function DetailShell({
+/** Presentational sheet shell shared by the platform + external variants. */
+function Sheet({
   job,
-  vacancyId,
+  isPlatform,
+  show,
   onClose,
-  engagement,
+  applySection,
   footer,
+  children,
 }: {
   job: JobCardData;
-  vacancyId: string | null;
+  isPlatform: boolean;
+  show: boolean;
   onClose: () => void;
-  engagement?: React.ReactNode;
-  footer: React.ReactNode;
+  applySection: ReactNode;
+  footer: ReactNode;
+  children?: ReactNode;
 }) {
-  usePanelChrome(true, onClose);
+  const facts: ReactNode[] = [];
+  if (job.location)
+    facts.push(
+      <span key="loc" className={s.f}>
+        <Ic name="pin" />
+        {job.location}
+      </span>,
+    );
+  if (job.jobType)
+    facts.push(
+      <span key="type" className={s.f}>
+        <Ic name="type" />
+        {job.jobType}
+      </span>,
+    );
+  if (job.isRemote)
+    facts.push(
+      <span key="remote" className={s.f}>
+        <Ic name="globe" />
+        Remote
+      </span>,
+    );
 
   return (
-    <div
-      role="dialog"
-      aria-label={`${job.title} details`}
-      className="bg-background animate-in fade-in absolute inset-0 z-30 flex flex-col duration-200"
-    >
-      <header className="border-b">
-        <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
+    <>
+      <div
+        className={cn(s["jd-scrim"], show && s.show)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) onClose();
+        }}
+      >
+        <div
+          className={s.jd}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${job.title} details`}
+        >
           <button
             type="button"
+            className={s["jd-close"]}
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground -ml-1.5 mb-2 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm transition-colors"
+            aria-label="Close"
           >
-            <ArrowLeft className="size-4" />
-            Back
+            <Ic name="close" />
           </button>
-          <div className="space-y-1">
-            <h1 className="text-xl leading-tight font-semibold break-words">
-              {job.title}
-            </h1>
-            {job.company ? (
-              <p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-sm">
-                <Building2 className="size-3.5 shrink-0" />
-                <span className="min-w-0 break-words">{job.company}</span>
-              </p>
-            ) : null}
-            <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
-              {job.location ? (
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <MapPin className="size-3.5 shrink-0" />
-                  <span className="min-w-0 break-words">{job.location}</span>
-                </span>
-              ) : null}
-              {job.salary ? (
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <Wallet className="size-3.5 shrink-0" />
-                  <span className="min-w-0 break-words">{job.salary}</span>
-                </span>
-              ) : null}
-              {job.isRemote ? <Badge variant="success">Remote</Badge> : null}
-              {job.jobType ? (
-                <Badge variant="outline" className="max-w-full">
-                  <span className="truncate">{job.jobType}</span>
-                </Badge>
+
+          <div className={s["jd-body"]}>
+            <span className={s["jd-src"]}>
+              {isPlatform ? (
+                <>
+                  <ChatMark />
+                  Posted on Peoplor
+                </>
+              ) : (
+                <>
+                  <Ic name="globe" />
+                  Found online by Peoplor AI
+                </>
+              )}
+            </span>
+
+            <div className={s["jd-title"]}>
+              <span>{job.title}</span>
+              {isPlatform ? (
+                <Ic name="verified" title="Verified employer" />
               ) : null}
             </div>
-          </div>
-        </div>
-      </header>
 
-      <div className="min-h-0 flex-1 scrollbar-thin overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-5 sm:px-6">
-          {job.description ? (
-            <Section title="About this role">
-              <p className="text-foreground/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                {job.description}
-              </p>
-            </Section>
-          ) : null}
-
-          {job.requirements.length > 0 ? (
-            <Section title="Requirements">
-              <ul className="text-foreground/90 list-disc space-y-1 pl-4 text-sm">
-                {job.requirements.map((item) => (
-                  <li key={item} className="break-words">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          ) : null}
-
-          {job.skills.length > 0 ? (
-            <Section title="Skills">
-              <div className="flex flex-wrap gap-1.5">
-                {job.skills.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant="outline"
-                    className="max-w-full font-normal whitespace-normal break-words"
-                  >
-                    {skill}
-                  </Badge>
-                ))}
+            {job.company || job.location ? (
+              <div className={s["jd-co"]}>
+                {job.company ? <span>{job.company}</span> : null}
+                {job.company && job.location ? (
+                  <span className={s.dotsep} />
+                ) : null}
+                {job.location ? <span>{job.location}</span> : null}
               </div>
-            </Section>
-          ) : null}
+            ) : null}
 
-          <Section title="Company">
-            <div className="space-y-2">
-              <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
-                <Building2 className="text-muted-foreground size-4 shrink-0" />
-                <span className="min-w-0 break-words">
-                  {job.company ?? "Company"}
-                </span>
-              </p>
-              {job.location ? (
-                <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
-                  <MapPin className="size-3.5 shrink-0" />
-                  <span className="break-words">{job.location}</span>
-                </p>
-              ) : null}
-              {hasAnyContact(job.contact) ? (
-                <ContactActions contact={job.contact} />
-              ) : null}
-            </div>
-          </Section>
+            {job.salary ? <div className={s["jd-salary"]}>{job.salary}</div> : null}
 
-          <JobAiTools job={job} />
+            {facts.length > 0 ? (
+              <div className={s["jd-facts"]}>{facts}</div>
+            ) : null}
 
-          {engagement}
+            {job.description ? (
+              <div className={s["jd-sec"]}>
+                <h3>About this role</h3>
+                <p>{job.description}</p>
+              </div>
+            ) : null}
 
-          {vacancyId ? <CommentThread vacancyId={vacancyId} /> : null}
+            {job.requirements.length > 0 ? (
+              <div className={s["jd-sec"]}>
+                <h3>What you&apos;ll need</h3>
+                <ul className={s["jd-list"]}>
+                  {job.requirements.map((item) => (
+                    <li key={item}>
+                      <Ic name="checkBold" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {job.skills.length > 0 ? (
+              <div className={s["jd-sec"]}>
+                <h3>Skills</h3>
+                <div className={s["jd-skills"]}>
+                  {job.skills.map((skill) => (
+                    <span key={skill} className={s.tag}>
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {applySection}
+          </div>
+
+          <div className={s["jd-foot"]}>{footer}</div>
         </div>
       </div>
-
-      <div className="bg-background/95 border-t backdrop-blur-sm">
-        <div className="mx-auto w-full max-w-3xl px-4 py-4 sm:px-6">{footer}</div>
-      </div>
-    </div>
+      {children}
+    </>
   );
 }
 
-function InternalFooter({ actions }: { actions: JobActions }) {
-  return (
-    <Button
-      variant="brand"
-      onClick={actions.applyToJob}
-      disabled={actions.applyPending || actions.applied}
-      className="w-full"
-    >
-      {actions.applyPending ? <Loader2 className="size-4 animate-spin" /> : null}
-      {actions.applied ? "Applied" : "Apply"}
-    </Button>
-  );
-}
-
-/** Social-style action row: like / dislike / comment / save, spread evenly. */
-function EngagementBar({
-  actions,
-  vacancyId,
-}: {
-  actions: JobActions;
-  vacancyId: string;
-}) {
-  const { data } = useVacancyComments(vacancyId, true);
-  const commentCount = data?.length ?? 0;
-
-  const focusComposer = () => {
-    const el = document.getElementById("job-comment-input");
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    (el as HTMLTextAreaElement | null)?.focus();
-  };
-
-  return (
-    <div className="flex items-center gap-1 border-y py-1">
-      <EngageButton
-        icon={ThumbsUp}
-        label={actions.reaction === REACTION_TYPE.LIKE ? "Liked" : "Like"}
-        active={actions.reaction === REACTION_TYPE.LIKE}
-        disabled={actions.reactionPending}
-        onClick={() => actions.react(REACTION_TYPE.LIKE)}
-      />
-      <EngageButton
-        icon={ThumbsDown}
-        label="Dislike"
-        active={actions.reaction === REACTION_TYPE.DISLIKE}
-        disabled={actions.reactionPending}
-        onClick={() => actions.react(REACTION_TYPE.DISLIKE)}
-      />
-      <EngageButton
-        icon={MessageSquare}
-        label={commentCount > 0 ? `Comment · ${commentCount}` : "Comment"}
-        onClick={focusComposer}
-      />
-      <EngageButton
-        icon={actions.saved ? BookmarkCheck : Bookmark}
-        label={actions.saved ? "Saved" : "Save"}
-        active={actions.saved}
-        disabled={actions.savePending}
-        onClick={actions.toggleSave}
-      />
-    </div>
-  );
-}
-
-function EngageButton({
-  icon: Icon,
-  label,
-  active,
-  disabled,
-  onClick,
-}: {
-  icon: LucideIcon;
-  label: string;
-  active?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      className={cn(
-        "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium transition-colors disabled:opacity-60",
-        active
-          ? "text-brand bg-brand/10"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      <span className="truncate">{label}</span>
-    </button>
-  );
-}
-
-function ExternalFooter({ job }: { job: JobCardData }) {
-  const href = primaryContactHref(job.contact);
-  if (!href) {
-    return (
-      <p className="text-muted-foreground text-center text-sm">
-        No application channel was provided for this role.
-      </p>
-    );
-  }
-  return (
-    <Button asChild variant="brand" className="w-full">
-      <a href={href} target="_blank" rel="noreferrer">
-        Apply
-      </a>
-    </Button>
-  );
-}
-
-/** The cover-letter apply step, as a right-side panel stacked above the detail. */
+/** The cover-letter apply step, as a right-side panel stacked above the sheet. */
 function ApplyPanel({
   open,
   onClose,
@@ -429,7 +429,14 @@ function ApplyPanel({
   const generate = useGenerateCoverLetter();
   const canGenerate = Boolean(job.description?.trim());
 
-  usePanelChrome(open, onClose);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -457,7 +464,7 @@ function ApplyPanel({
     <aside
       role="dialog"
       aria-label={`Apply to ${job.title}`}
-      className="bg-card animate-in slide-in-from-right fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l shadow-xl duration-200 sm:z-40 sm:max-w-[460px] lg:max-w-[520px]"
+      className="bg-card animate-in slide-in-from-right fixed inset-y-0 right-0 z-[120] flex w-full flex-col border-l shadow-xl duration-200 sm:max-w-[460px] lg:max-w-[520px]"
     >
       <header className="flex items-start gap-3 border-b p-4 sm:p-5">
         <div className="min-w-0 flex-1 space-y-0.5">
@@ -563,164 +570,5 @@ function ApplyPanel({
         </Button>
       </div>
     </aside>
-  );
-}
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-2">
-      <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-        {title}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-function CommentThread({ vacancyId }: { vacancyId: string }) {
-  const { user } = useSession();
-  const { data, isLoading } = useVacancyComments(vacancyId, true);
-  const createComment = useCreateComment(vacancyId);
-  const deleteComment = useDeleteComment(vacancyId);
-  const [draft, setDraft] = useState("");
-
-  const comments = data ?? [];
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const content = draft.trim();
-    if (!content || createComment.isPending) return;
-    createComment.mutate(content, {
-      onSuccess: () => setDraft(""),
-      onError: (error) =>
-        toast.error(
-          isApiClientError(error) ? error.message : "Couldn't post the comment",
-        ),
-    });
-  };
-
-  return (
-    <section className="space-y-4">
-      <h3 className="flex items-center gap-2 text-sm font-semibold">
-        <MessageSquare className="text-muted-foreground size-4" />
-        Comments
-        {comments.length > 0 ? (
-          <span className="text-muted-foreground font-normal">
-            ({comments.length})
-          </span>
-        ) : null}
-      </h3>
-
-      <form onSubmit={submit} className="flex gap-2.5">
-        <UserAvatar
-          name={user?.name ?? "You"}
-          avatarUrl={user?.avatarUrl}
-          className="mt-0.5 size-8 shrink-0"
-        />
-        <div className="min-w-0 flex-1 space-y-2">
-          <Textarea
-            id="job-comment-input"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Ask a question or share what you know…"
-            rows={2}
-            maxLength={2000}
-          />
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              size="sm"
-              variant="brand"
-              disabled={draft.trim().length === 0 || createComment.isPending}
-              className="w-full sm:w-auto"
-            >
-              {createComment.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Send className="size-4" />
-              )}
-              Post
-            </Button>
-          </div>
-        </div>
-      </form>
-
-      {isLoading ? (
-        <p className="text-muted-foreground py-4 text-center text-sm">
-          Loading comments…
-        </p>
-      ) : comments.length === 0 ? (
-        <p className="text-muted-foreground py-6 text-center text-sm">
-          No comments yet — be the first to ask.
-        </p>
-      ) : (
-        <ul className="space-y-4">
-          {comments.map((comment) => (
-            <CommentRow
-              key={comment.id}
-              comment={comment}
-              isOwn={comment.userId === user?.id}
-              onDelete={() =>
-                deleteComment.mutate(comment.id, {
-                  onError: () => toast.error("Couldn't delete the comment"),
-                })
-              }
-              deleting={deleteComment.isPending}
-            />
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function CommentRow({
-  comment,
-  isOwn,
-  onDelete,
-  deleting,
-}: {
-  comment: VacancyComment;
-  isOwn: boolean;
-  onDelete: () => void;
-  deleting: boolean;
-}) {
-  return (
-    <li className="flex gap-2.5">
-      <UserAvatar
-        name={comment.author.name}
-        avatarUrl={comment.author.avatarUrl}
-        className="size-8 shrink-0"
-      />
-      <div className="min-w-0 flex-1">
-        <div className="bg-muted rounded-2xl px-3.5 py-2">
-          <p className="text-sm font-semibold break-words">
-            {comment.author.name}
-          </p>
-          <p className="text-foreground/90 text-sm break-words whitespace-pre-wrap">
-            {comment.content}
-          </p>
-        </div>
-        <div className="text-muted-foreground mt-1 flex items-center gap-3 px-1.5 text-xs">
-          <span>{formatRelativeTime(comment.createdAt)}</span>
-          {isOwn ? (
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={deleting}
-              className="hover:text-destructive font-medium transition-colors disabled:opacity-50"
-            >
-              Delete
-            </button>
-          ) : null}
-        </div>
-      </div>
-    </li>
   );
 }

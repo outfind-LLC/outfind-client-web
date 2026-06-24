@@ -119,15 +119,14 @@ function ChatRuntime({
         status={chat.status}
         surface={surface}
       />
-      <div className="mx-auto w-full max-w-3xl px-4 pb-4 sm:pb-6">
-        <ChatComposer
-          accountType={accountType}
-          busy={busy}
-          onSend={(text) => void chat.sendMessage({ text })}
-          onStop={() => void chat.stop()}
-          autoFocus
-        />
-      </div>
+      <ChatComposer
+        accountType={accountType}
+        busy={busy}
+        onSend={(text) => void chat.sendMessage({ text })}
+        onStop={() => void chat.stop()}
+        autoFocus
+        placeholder={surface === "jobs" ? "Search jobs…" : "Ask anything…"}
+      />
     </div>
   );
 }

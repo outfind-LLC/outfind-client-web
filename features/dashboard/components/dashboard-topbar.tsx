@@ -1,31 +1,44 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 
-import { BrandLogo } from "@/components/brand-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
-import { Button } from "@/ui/button";
+import { cn } from "@/lib/utils";
+import { Ic } from "./app-icons";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-/** Mobile-only top bar: opens the drawer and shows the brand. Hidden on desktop
- * where the sidebar is always visible. */
+/** A readable title for the current section (the live conversation title is
+ * shown by the chat surface itself; this is the shell-level fallback). */
+function titleForPath(pathname: string): string {
+  if (pathname.startsWith("/jobs")) return "Job search";
+  if (pathname.startsWith("/assistant")) return "Assistant";
+  if (pathname.startsWith("/applications")) return "Saved & applied";
+  if (pathname.startsWith("/bookmarks")) return "Saved & applied";
+  if (pathname.startsWith("/tools")) return "Career tools";
+  if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/settings")) return "Settings";
+  if (pathname.startsWith("/vacancies")) return "Vacancies";
+  if (pathname.startsWith("/applicants")) return "Applicants";
+  return "";
+}
+
+/** App top bar: the mobile menu button plus the current section title. */
 export function DashboardTopbar() {
-  const setMobileOpen = useSidebarStore((s) => s.setMobileOpen);
+  const pathname = usePathname();
+  const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
   return (
-    <header className="border-border/60 bg-background/80 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md lg:hidden">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Open menu"
-          onClick={() => setMobileOpen(true)}
-        >
-          <Menu className="size-5" />
-        </Button>
-        <BrandLogo href="/" />
-      </div>
-      <ThemeToggle />
+    <header className={s.topbar} id="topbar">
+      <button
+        type="button"
+        className={cn(s["icon-btn"], s["menu-btn"])}
+        aria-label="Open menu"
+        onClick={() => setMobileOpen(true)}
+      >
+        <Ic name="menu" />
+      </button>
+      <div className={s["tb-title"]}>{titleForPath(pathname)}</div>
+      <div className={s["tb-spacer"]} />
     </header>
   );
 }

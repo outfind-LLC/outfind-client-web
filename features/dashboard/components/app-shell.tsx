@@ -9,11 +9,10 @@ import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue
 import { JobDetailPanel } from "@/features/jobs/components/job-detail-panel";
 import { JobToolPanel } from "@/features/jobs/components/job-tool-panel";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
-import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { DashboardTopbar } from "./dashboard-topbar";
-import { MobileSidebar } from "./mobile-sidebar";
 import { SidebarContent } from "./sidebar-content";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 interface AppShellProps {
   user: SessionUser;
@@ -21,13 +20,18 @@ interface AppShellProps {
 }
 
 /**
- * Authenticated app frame: a persistent desktop sidebar, a mobile drawer, and
- * the scrollable content region. Seeds the React Query session cache with the
- * server-resolved user so client hooks don't re-fetch `/auth/me` on first paint.
+ * Authenticated app frame, re-skinned to the Peoplor prototype: a single
+ * `.sidebar` that collapses to an icon rail on desktop (`data-collapsed`) and
+ * becomes a transform-driven drawer on mobile (`data-mobile-open` + `.scrim`).
+ * Seeds the React Query session cache with the server-resolved user so client
+ * hooks don't re-fetch `/auth/me` on first paint.
  */
 export function AppShell({ user, children }: AppShellProps) {
   const queryClient = useQueryClient();
-  const collapsed = useSidebarStore((s) => s.collapsed);
+  const collapsed = useSidebarStore((st) => st.collapsed);
+  const mobileOpen = useSidebarStore((st) => st.mobileOpen);
+  const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+
   // Seed the session cache exactly once (useState initializer runs a single
   // time) so client `useSession` consumers resolve without re-fetching /auth/me.
   useState(() => {
@@ -36,29 +40,31 @@ export function AppShell({ user, children }: AppShellProps) {
   });
 
   return (
-    <div className="flex h-svh overflow-hidden">
+    <div
+      className={s.app}
+      data-collapsed={collapsed ? "true" : "false"}
+      data-mobile-open={mobileOpen ? "true" : "false"}
+    >
       <BillingSoundCue />
       <ChatPanel />
       <JobToolPanel />
-      <aside
-        className={cn(
-          "border-sidebar-border hidden shrink-0 border-r transition-[width] duration-200 lg:block",
-          collapsed ? "w-[72px]" : "w-64",
-        )}
-      >
-        <div className="h-svh">
-          <SidebarContent user={user} collapsed={collapsed} />
-        </div>
+
+      <aside className={s.sidebar} aria-label="Sidebar">
+        <SidebarContent user={user} />
       </aside>
 
-      <MobileSidebar user={user} />
+      <div
+        className={s.scrim}
+        aria-hidden="true"
+        onClick={() => setMobileOpen(false)}
+      />
 
-      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className={s.main}>
         <DashboardTopbar />
         <main className="flex min-h-0 flex-1 scrollbar-thin flex-col overflow-y-auto">
           {children}
         </main>
-        {/* Detail takes over the content area only — the sidebar stays visible. */}
+        {/* Job detail slides in from the right as its own fixed sheet. */}
         <JobDetailPanel />
       </div>
     </div>

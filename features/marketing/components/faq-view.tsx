@@ -25,7 +25,10 @@ function FaqRow({ item }: { item: FaqItem }) {
       </button>
       <div
         className={styles.ans}
-        style={{ maxHeight: open ? innerRef.current?.scrollHeight ?? 0 : 0 }}
+        // Measure-to-animate: reading scrollHeight here is intentional and safe —
+        // toggling `open` re-renders this row, so the height is always current.
+        // eslint-disable-next-line react-hooks/refs
+        style={{ maxHeight: open ? (innerRef.current?.scrollHeight ?? 0) : 0 }}
       >
         <div ref={innerRef}>
           <p>{item.a}</p>

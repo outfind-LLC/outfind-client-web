@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import { isToolUIPart, type UIMessage } from "ai";
 
 import { splitThinking } from "@/features/chat/lib/think";
 import { extractJobs, isJobSearchTool } from "@/features/chat/types/job";
+import { ChatMark } from "@/features/dashboard/components/app-icons";
 import { cn } from "@/lib/utils";
-import type { ReactionType } from "@/interfaces/enums";
 import { Markdown } from "./markdown";
-import { MessageActions } from "./message-actions";
 import { ToolPart } from "./tool-part";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-/** Which surface a thread belongs to — drives the working-state copy. */
+/** Which surface a thread belongs to (kept for call-site compatibility). */
 export type ChatSurface = "jobs" | "assistant";
 
 interface MessageBubbleProps {
@@ -22,22 +20,7 @@ interface MessageBubbleProps {
   surface?: ChatSurface;
 }
 
-/** Warm, human status lines shown while a job search is running. */
-const JOB_SEARCH_STATUS = [
-  "Finding the best opportunities for you…",
-  "Analyzing relevant job matches…",
-  "Discovering opportunities from multiple sources…",
-  "Preparing personalized recommendations…",
-] as const;
-
-function readReaction(message: UIMessage): ReactionType | null {
-  const meta = message.metadata as
-    | { reaction?: ReactionType | null }
-    | undefined;
-  return meta?.reaction ?? null;
-}
-
-/** Plain-text answer (tags + thinking stripped) for the copy button. */
+/** Plain-text answer (tags + thinking stripped). */
 function answerText(message: UIMessage): string {
   return message.parts
     .filter((part) => part.type === "text")
@@ -51,8 +34,7 @@ function answerText(message: UIMessage): string {
 /**
  * Whether the message has rendered job cards — a job-search tool that resolved
  * to at least one result. When true we show only the cards and drop the model's
- * prose, which otherwise re-lists the same jobs (duplicate). Works the same on a
- * live turn and on reloaded history, so there's never a card + text repeat.
+ * prose, which otherwise re-lists the same jobs.
  */
 function hasJobCards(message: UIMessage): boolean {
   for (const part of message.parts) {
@@ -70,12 +52,7 @@ function hasJobCards(message: UIMessage): boolean {
   return false;
 }
 
-/**
- * Whether the message already has something for the reader to see — final answer
- * text or rendered job cards. Reasoning never counts: while the model is only
- * thinking or running a search, the message is still "working" and we show the
- * loader instead of exposing the internal process.
- */
+/** Final answer text or rendered job cards — reasoning never counts as visible. */
 function hasVisibleContent(message: UIMessage): boolean {
   if (hasJobCards(message)) return true;
   for (const part of message.parts) {
@@ -87,109 +64,50 @@ function hasVisibleContent(message: UIMessage): boolean {
   return false;
 }
 
-/** Peoplor logo avatar; pulses while the assistant is generating a reply. */
-function AssistantAvatar({ loading }: { loading?: boolean }) {
+/** Animated Peoplor brand mark beside an assistant turn (the prototype's
+ * "lego" mark: pulses while thinking, settles once the reply is done). */
+function ResponseMark({ done }: { done: boolean }) {
   return (
-    <span
-      className={cn(
-        "bg-card border-border/60 mt-0.5 flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border",
-        loading && "ring-primary/40 animate-pulse ring-2",
-      )}
-    >
-      <Image
-        src="/peoplor-mark.svg"
-        alt="Peoplor"
-        width={20}
-        height={20}
-        className="size-5"
-      />
+    <span className={cn(s["resp-av"], done && s.done)} aria-hidden="true">
+      <ChatMark />
     </span>
   );
 }
 
-/** The animated three dots used inside the working indicator. */
-function Dots() {
+/** Three-dot typing indicator shown while the assistant is working. */
+function Typing() {
   return (
-    <span className="flex items-center gap-1">
-      <span className="bg-primary/60 size-1.5 animate-bounce rounded-full [animation-delay:-300ms]" />
-      <span className="bg-primary/60 size-1.5 animate-bounce rounded-full [animation-delay:-150ms]" />
-      <span className="bg-primary/60 size-1.5 animate-bounce rounded-full" />
+    <span className={s.typing} role="status" aria-label="Working">
+      <span />
+      <span />
+      <span />
     </span>
-  );
-}
-
-/**
- * The "working" indicator next to the logo. On the job-search surface it cycles
- * warm, human status lines; elsewhere it's a quiet three-dot pulse. Never
- * exposes anything about the model or its internal steps.
- */
-function GeneratingStatus({ surface }: { surface: ChatSurface }) {
-  const [index, setIndex] = useState(0);
-  const rotating = surface === "jobs";
-
-  useEffect(() => {
-    if (!rotating) return;
-    const id = setInterval(
-      () => setIndex((prev) => (prev + 1) % JOB_SEARCH_STATUS.length),
-      2400,
-    );
-    return () => clearInterval(id);
-  }, [rotating]);
-
-  if (!rotating) {
-    return (
-      <div
-        className="flex items-center gap-1 pt-2"
-        role="status"
-        aria-label="Working"
-      >
-        <Dots />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="text-muted-foreground flex items-center gap-2.5 pt-2 text-sm"
-      role="status"
-      aria-live="polite"
-    >
-      <Dots />
-      <span key={index} className="animate-in fade-in duration-500">
-        {JOB_SEARCH_STATUS[index]}
-      </span>
-    </div>
   );
 }
 
 /**
  * Placeholder assistant turn shown the instant a message is sent, before any
- * token streams back. Mirrors the streaming bubble so the loader stays anchored
- * to the logo without a visual jump.
+ * token streams back.
  */
-export function PendingAssistantBubble({
-  surface = "assistant",
-}: {
-  surface?: ChatSurface;
-}) {
+export function PendingAssistantBubble() {
   return (
-    <div className="flex gap-3">
-      <AssistantAvatar loading />
-      <div className="min-w-0 flex-1">
-        <GeneratingStatus surface={surface} />
+    <div className={s.row}>
+      <ResponseMark done={false} />
+      <div className={s.msg}>
+        <div className={cn(s.bubble, s.assistant)}>
+          <Typing />
+        </div>
       </div>
     </div>
   );
 }
 
-/** Renders one chat message. User turns are a compact right-aligned bubble;
- * assistant turns walk their parts (text → markdown, job tools → cards) and
- * never surface reasoning — a loader by the logo covers the "thinking" phase. */
-export function MessageBubble({
-  message,
-  streaming,
-  surface = "assistant",
-}: MessageBubbleProps) {
+/**
+ * Renders one chat message. User turns are a right-aligned light-green pill;
+ * assistant turns are plain text beside the animated brand mark, walking their
+ * parts (text → markdown, job tools → card stack) and never surfacing reasoning.
+ */
+export function MessageBubble({ message, streaming }: MessageBubbleProps) {
   if (message.role === "user") {
     const text = message.parts
       .filter((part) => part.type === "text")
@@ -197,47 +115,36 @@ export function MessageBubble({
       .join("\n");
 
     return (
-      <div className="flex justify-end">
-        <div className="bg-primary text-primary-foreground max-w-[80%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
-          {text}
+      <div className={cn(s.row, s.user)}>
+        <div className={s.msg}>
+          <div className={cn(s.bubble, s.user)}>{text}</div>
         </div>
       </div>
     );
   }
 
-  const copyText = answerText(message);
-  const showActions = !streaming && copyText.length > 0;
   const working = Boolean(streaming) && !hasVisibleContent(message);
-  // When job cards are shown, drop the model's prose so the same roles aren't
-  // listed twice (once as cards, once as text).
   const jobCardsPresent = hasJobCards(message);
+  const answer = answerText(message);
 
   return (
-    <div className="group/msg flex gap-3">
-      <AssistantAvatar loading={working} />
+    <div className={s.row}>
+      <ResponseMark done={!streaming} />
+      <div className={s.msg}>
+        {jobCardsPresent ? (
+          message.parts.map((part, index) =>
+            isToolUIPart(part) ? <ToolPart key={index} part={part} /> : null,
+          )
+        ) : answer ? (
+          <div className={cn(s.bubble, s.assistant)}>
+            <Markdown content={answer} />
+          </div>
+        ) : null}
 
-      <div className="min-w-0 flex-1 space-y-3 pt-1">
-        {message.parts.map((part, index) => {
-          // Reasoning is intentionally never rendered.
-          if (part.type === "text") {
-            if (jobCardsPresent) return null;
-            const { answer } = splitThinking(part.text);
-            return answer ? <Markdown key={index} content={answer} /> : null;
-          }
-          if (isToolUIPart(part)) {
-            return <ToolPart key={index} part={part} />;
-          }
-          return null;
-        })}
-
-        {working ? <GeneratingStatus surface={surface} /> : null}
-
-        {showActions ? (
-          <MessageActions
-            messageId={message.id}
-            text={copyText}
-            initialReaction={readReaction(message)}
-          />
+        {working ? (
+          <div className={cn(s.bubble, s.assistant)}>
+            <Typing />
+          </div>
         ) : null}
       </div>
     </div>
