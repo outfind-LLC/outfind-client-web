@@ -16,7 +16,9 @@ export default async function AppLayout({
 }) {
   const session = await getServerSession();
   if (!session) {
-    redirect(routes.auth);
+    // Auth is modal-first: send signed-out users to the landing sign-in modal
+    // rather than the standalone /auth page.
+    redirect(`${routes.home}?signin=1`);
   }
 
   return <AppShell user={session}>{children}</AppShell>;

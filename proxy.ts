@@ -53,11 +53,17 @@ function cookiePair(setCookie: string): string {
   return setCookie.split(";", 1)[0];
 }
 
-function redirectToAuth(request: NextRequest): NextResponse {
+/**
+ * Bounce a signed-out user to the landing with the sign-in **modal** auto-opened
+ * (`/?signin=1`), carrying the original path so login returns there. Auth is
+ * modal-first; the standalone `/auth` page is kept only for OAuth-error retries.
+ */
+function redirectToSignIn(request: NextRequest): NextResponse {
   const { pathname, search } = request.nextUrl;
   const url = request.nextUrl.clone();
-  url.pathname = routes.auth;
+  url.pathname = routes.home;
   url.search = "";
+  url.searchParams.set("signin", "1");
   url.searchParams.set("redirect", `${pathname}${search}`);
   return NextResponse.redirect(url);
 }
@@ -95,8 +101,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  // Genuinely signed out (no refresh token) or refresh failed → sign-in.
-  return redirectToAuth(request);
+  // Genuinely signed out (no refresh token) or refresh failed → sign-in modal.
+  return redirectToSignIn(request);
 }
 
 export const config = {

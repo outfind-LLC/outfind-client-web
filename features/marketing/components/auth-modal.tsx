@@ -8,6 +8,7 @@ import { GoogleIcon } from "@/components/icons/google-icon";
 import { TelegramIcon } from "@/components/icons/telegram-icon";
 import { authService } from "@/features/auth/services/auth.service";
 import type { TelegramWidgetPayload } from "@/features/auth/services/auth.service";
+import { consumePostLoginRedirect } from "@/features/auth/lib/post-login-redirect";
 import { useTelegramLogin } from "@/features/auth/hooks/use-auth-mutations";
 import { useLanding } from "@/features/marketing/context/landing-context";
 import { routes } from "@/config/routes";
@@ -74,7 +75,7 @@ export function AuthModal() {
       telegramLogin.mutate(
         { payload: user, accountType },
         {
-          onSuccess: () => router.replace(routes.chat),
+          onSuccess: () => router.replace(consumePostLoginRedirect(routes.chat)),
           onError: (error) =>
             toast.error(
               isApiClientError(error)

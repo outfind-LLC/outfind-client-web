@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import type { NavItem } from "@/features/dashboard/constants/nav";
+import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import { Ic } from "./app-icons";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
@@ -16,16 +17,19 @@ function isActive(pathname: string, item: NavItem): boolean {
 
 /**
  * Primary navigation as flat, borderless rows. The first item ("New job" /
- * "New chat") carries the plus affordance. Closes the mobile drawer on select.
+ * "New search") carries the plus affordance. Labels are localised. Closes the
+ * mobile drawer on select.
  */
 export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+  const t = useT();
 
   return (
     <>
       {items.map((item) => {
         const active = isActive(pathname, item);
+        const label = t(item.labelKey);
         return (
           <Link
             key={item.href}
@@ -39,7 +43,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
             )}
           >
             <Ic name={item.icon} />
-            <span>{item.label}</span>
+            <span>{label}</span>
           </Link>
         );
       })}

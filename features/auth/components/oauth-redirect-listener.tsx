@@ -12,6 +12,7 @@ import {
   OAUTH_RESULT,
   resolveAuthErrorMessage,
 } from "@/features/auth/constants/auth.constants";
+import { consumePostLoginRedirect } from "@/features/auth/lib/post-login-redirect";
 
 /**
  * Handles the OAuth return. The backend sets httpOnly cookies, then redirects to
@@ -42,7 +43,8 @@ export function OAuthRedirectListener() {
     if (result === OAUTH_RESULT.success) {
       toast.success("Signed in successfully");
       queryClient.invalidateQueries({ queryKey: qk.session });
-      router.replace(routes.chat);
+      // Return to the protected route the user was bounced from, else the app.
+      router.replace(consumePostLoginRedirect(routes.chat));
       return;
     }
 

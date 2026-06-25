@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -14,6 +8,8 @@ import { routes } from "@/config/routes";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { isApiClientError } from "@/lib/api/error";
+import { LOCALE_LABELS, LOCALES } from "@/lib/i18n/config";
+import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { PLAN_TYPE } from "@/interfaces/enums";
@@ -23,39 +19,6 @@ import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 const FREE_PLANS: string[] = [PLAN_TYPE.FREE, PLAN_TYPE.EMPLOYER_FREE];
 
-const LANGS = [
-  { code: "en", label: "English" },
-  { code: "ru", label: "Русский" },
-  { code: "uz", label: "Oʻzbekcha" },
-] as const;
-type LangCode = (typeof LANGS)[number]["code"];
-const LANG_KEY = "peoplor_lang";
-const LANG_EVENT = "peoplor:lang";
-
-/** The language preference lives in localStorage and is read through an external
- * store so reads stay out of render-effects and SSR/CSR snapshots reconcile
- * cleanly (no hydration mismatch). */
-function subscribeLang(onChange: () => void): () => void {
-  window.addEventListener("storage", onChange);
-  window.addEventListener(LANG_EVENT, onChange);
-  return () => {
-    window.removeEventListener("storage", onChange);
-    window.removeEventListener(LANG_EVENT, onChange);
-  };
-}
-function readStoredLang(): LangCode {
-  try {
-    const saved = localStorage.getItem(LANG_KEY);
-    if (LANGS.some((l) => l.code === saved)) return saved as LangCode;
-  } catch {
-    /* ignore */
-  }
-  return "en";
-}
-function serverLang(): LangCode {
-  return "en";
-}
-
 function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "U";
 }
@@ -63,27 +26,21 @@ function initial(name: string): string {
 /**
  * Sidebar footer: the language picker (opens upward) and the account control —
  * a profile row that opens a popover menu (Upgrade / Account / Settings / Help /
- * Logout), mirroring the prototype. Reuses the app's plan, logout, and i18n
- * persistence.
+ * Logout), mirroring the prototype. Language + labels run through the shared i18n
+ * layer, so switching here updates the whole app (and the marketing surface).
  */
 export function SidebarFooter({ user }: { user: SessionUser }) {
   const { plan } = useMyPlan();
   const logout = useLogout();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+  const { locale, setLocale, t } = useI18n();
 
-  const planLabel = plan?.name ?? "Free plan";
+  const planLabel = plan?.name ?? t("common.freePlan");
   const isFree = !plan || FREE_PLANS.includes(plan.planType);
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const footRef = useRef<HTMLDivElement>(null);
-
-  const lang = useSyncExternalStore(subscribeLang, readStoredLang, serverLang);
-
-  // Keep <html lang> in sync with the selection (external-system update).
-  useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
 
   // Close both popovers on outside click / Escape.
   useEffect(() => {
@@ -108,16 +65,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     };
   }, [langOpen, menuOpen]);
 
-  const chooseLang = useCallback((code: LangCode) => {
-    try {
-      localStorage.setItem(LANG_KEY, code);
-    } catch {
-      /* ignore */
-    }
-    window.dispatchEvent(new Event(LANG_EVENT));
-    setLangOpen(false);
-  }, []);
-
   const onLogout = () => {
     setMenuOpen(false);
     logout.mutate(undefined, {
@@ -133,8 +80,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     setMobileOpen(false);
   };
 
-  const currentLang = LANGS.find((l) => l.code === lang) ?? LANGS[0];
-
   return (
     <div className={s["sb-foot"]} ref={footRef}>
       {/* Language picker */}
@@ -144,26 +89,29 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           className={s["langdd-btn"]}
           aria-haspopup="true"
           aria-expanded={langOpen}
-          aria-label="Language"
+          aria-label={t("common.language")}
           onClick={() => {
             setLangOpen((v) => !v);
             setMenuOpen(false);
           }}
         >
           <LangGlobe className={s.globe} />
-          <span className={s["lang-cur"]}>{currentLang.label}</span>
+          <span className={s["lang-cur"]}>{LOCALE_LABELS[locale]}</span>
           <LangCaret className={s.caret} />
         </button>
         <div className={s["langdd-menu"]}>
-          {LANGS.map((l) => (
+          {LOCALES.map((code) => (
             <button
-              key={l.code}
+              key={code}
               type="button"
               className={s["lang-opt"]}
-              aria-pressed={l.code === lang}
-              onClick={() => chooseLang(l.code)}
+              aria-pressed={code === locale}
+              onClick={() => {
+                setLocale(code);
+                setLangOpen(false);
+              }}
             >
-              {l.label}
+              {LOCALE_LABELS[code]}
               <LangTick className={s.tick} />
             </button>
           ))}
@@ -191,7 +139,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
             onClick={closeMenuThen}
           >
             <Ic name="zap" />
-            <span>Upgrade plan</span>
+            <span>{t("accountMenu.upgradePlan")}</span>
           </Link>
         ) : null}
         <Link
@@ -200,7 +148,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           onClick={closeMenuThen}
         >
           <Ic name="user" />
-          <span>Account</span>
+          <span>{t("accountMenu.account")}</span>
         </Link>
         <Link
           href={routes.settings}
@@ -208,7 +156,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           onClick={closeMenuThen}
         >
           <Ic name="settings" />
-          <span>Settings</span>
+          <span>{t("accountMenu.settings")}</span>
         </Link>
         <Link
           href={routes.help}
@@ -216,7 +164,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           onClick={closeMenuThen}
         >
           <Ic name="help" />
-          <span>Help</span>
+          <span>{t("accountMenu.help")}</span>
         </Link>
         <div className={s["pm-sep"]} />
         <button
@@ -226,7 +174,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           disabled={logout.isPending}
         >
           <Ic name="logout" />
-          <span>Logout</span>
+          <span>{t("accountMenu.logout")}</span>
         </button>
       </div>
 
@@ -246,7 +194,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <span className={s.pname}>{user.name}</span>
           <span className={s.pmail}>{planLabel}</span>
         </span>
-        {isFree ? <span className={s["upgrade-badge"]}>Upgrade</span> : null}
+        {isFree ? (
+          <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
+        ) : null}
       </button>
     </div>
   );

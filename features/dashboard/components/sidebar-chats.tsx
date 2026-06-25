@@ -19,6 +19,7 @@ import {
   tabForPath,
 } from "@/features/chat/lib/conversation-route";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/interfaces/chat.interface";
 import { Button } from "@/ui/button";
@@ -54,6 +55,7 @@ const MAX_TITLE_LENGTH = 120;
 export function SidebarChats() {
   const pathname = usePathname();
   const tab = tabForPath(pathname);
+  const t = useT();
   const { data, isLoading } = useConversations({ limit: SIDEBAR_CHAT_LIMIT });
 
   if (isLoading) {
@@ -77,7 +79,7 @@ export function SidebarChats() {
   if (ordered.length === 0) {
     return (
       <p className="text-muted-foreground px-2.5 py-1.5 text-sm">
-        {tab === "jobs" ? "No searches yet" : "No chats yet"}
+        {tab === "jobs" ? t("sidebar.noSearches") : t("sidebar.noChats")}
       </p>
     );
   }

@@ -24,6 +24,9 @@ export const routes = {
   profileCv: "/profile/cv",
   /** Employer company-profile create/edit form. */
   employerProfile: "/profile/company",
+  /** Career & migration (worker) / Global hiring (employer) — same screen,
+   * branches on account type. */
+  career: "/career",
 
   // Employer
   vacancies: "/vacancies",
@@ -54,6 +57,7 @@ export const PROTECTED_PREFIXES = [
   "/applications",
   "/bookmarks",
   "/profile",
+  "/career",
   "/vacancies",
   "/applicants",
   "/history",

@@ -26,6 +26,8 @@ export const ICONS = {
   messages: stroke("%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E", 1.6),
   search: stroke("%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E", 1.6),
   company: stroke("%3Cpath d='M3 21h18'/%3E%3Cpath d='M5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16'/%3E%3Cpath d='M15 21V9h3a1 1 0 0 1 1 1v11'/%3E%3Cpath d='M8 8h2M8 12h2M8 16h2'/%3E", 1.5),
+  // Career & migration (worker) / Global hiring (employer) nav glyph — exact prototype `route` icon.
+  route: stroke("%3Ccircle cx='6' cy='19' r='2.4'/%3E%3Ccircle cx='18' cy='5' r='2.4'/%3E%3Cpath d='M8.4 19H14a3.6 3.6 0 0 0 0-7.2H10A3.6 3.6 0 0 1 10 4.6h5.6'/%3E", 1.6),
   zap: stroke("%3Cpath d='M13 2L3 14h7l-1 8 10-12h-7z'/%3E", 1.6),
   settings: stroke(
     "%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E",
