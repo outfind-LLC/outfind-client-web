@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { PLAN_TYPE } from "@/interfaces/enums";
 import { Ic, LangCaret, LangGlobe, LangTick } from "./app-icons";
+import {
+  AccountModal,
+  HelpModal,
+  LogoutModal,
+} from "@/features/dashboard/components/account-menu-modals";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
@@ -40,6 +45,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [modal, setModal] = useState<null | "account" | "help" | "logout">(null);
   const footRef = useRef<HTMLDivElement>(null);
 
   // Close both popovers on outside click / Escape.
@@ -66,11 +72,10 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   }, [langOpen, menuOpen]);
 
   const onLogout = () => {
-    setMenuOpen(false);
     logout.mutate(undefined, {
       onError: (error) =>
         toast.error(
-          isApiClientError(error) ? error.message : "Couldn't log out",
+          isApiClientError(error) ? error.message : t("accountMenu.logoutError"),
         ),
     });
   };
@@ -78,6 +83,10 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const closeMenuThen = () => {
     setMenuOpen(false);
     setMobileOpen(false);
+  };
+  const openModal = (name: "account" | "help" | "logout") => {
+    setMenuOpen(false);
+    setModal(name);
   };
 
   return (
@@ -142,14 +151,14 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
             <span>{t("accountMenu.upgradePlan")}</span>
           </Link>
         ) : null}
-        <Link
-          href={routes.profile}
+        <button
+          type="button"
           className={s["pm-item"]}
-          onClick={closeMenuThen}
+          onClick={() => openModal("account")}
         >
           <Ic name="user" />
           <span>{t("accountMenu.account")}</span>
-        </Link>
+        </button>
         <Link
           href={routes.settings}
           className={s["pm-item"]}
@@ -158,20 +167,19 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <Ic name="settings" />
           <span>{t("accountMenu.settings")}</span>
         </Link>
-        <Link
-          href={routes.help}
+        <button
+          type="button"
           className={s["pm-item"]}
-          onClick={closeMenuThen}
+          onClick={() => openModal("help")}
         >
           <Ic name="help" />
           <span>{t("accountMenu.help")}</span>
-        </Link>
+        </button>
         <div className={s["pm-sep"]} />
         <button
           type="button"
           className={cn(s["pm-item"], s["pm-danger"])}
-          onClick={onLogout}
-          disabled={logout.isPending}
+          onClick={() => openModal("logout")}
         >
           <Ic name="logout" />
           <span>{t("accountMenu.logout")}</span>
@@ -198,6 +206,18 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
         ) : null}
       </button>
+
+      {modal === "account" ? (
+        <AccountModal user={user} onClose={() => setModal(null)} />
+      ) : null}
+      {modal === "help" ? <HelpModal onClose={() => setModal(null)} /> : null}
+      {modal === "logout" ? (
+        <LogoutModal
+          onClose={() => setModal(null)}
+          onConfirm={onLogout}
+          pending={logout.isPending}
+        />
+      ) : null}
     </div>
   );
 }

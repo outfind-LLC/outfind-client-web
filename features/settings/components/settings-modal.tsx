@@ -4,7 +4,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -20,6 +19,9 @@ import { useSession } from "@/features/auth/hooks/use-session";
 import { useSoundSettings } from "@/features/settings/hooks/use-sound-settings";
 import { useLocalSettings } from "@/features/settings/hooks/use-local-settings";
 import { isApiClientError } from "@/lib/api/error";
+import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
+import { type MessageKey } from "@/lib/i18n/translate";
+import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import s from "@/features/settings/styles/settings.module.css";
@@ -64,84 +66,12 @@ function SIc({ name, className }: { name: SettingsIcon; className?: string }) {
   );
 }
 
-/* ---------------- Language (shared peoplor_lang store) ---------------- */
-const LANGS = [
-  { v: "en", l: "English" },
-  { v: "ru", l: "Русский" },
-  { v: "uz", l: "Oʻzbekcha" },
-] as const;
-const LANG_KEY = "peoplor_lang";
-const LANG_EVENT = "peoplor:lang";
-function subscribeLang(cb: () => void): () => void {
-  window.addEventListener("storage", cb);
-  window.addEventListener(LANG_EVENT, cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener(LANG_EVENT, cb);
-  };
-}
-function readLang(): string {
-  try {
-    const v = window.localStorage.getItem(LANG_KEY);
-    if (LANGS.some((l) => l.v === v)) return v as string;
-  } catch {
-    /* ignore */
-  }
-  return "en";
-}
-function serverLang(): string {
-  return "en";
-}
-function setStoredLang(v: string) {
-  try {
-    window.localStorage.setItem(LANG_KEY, v);
-  } catch {
-    /* ignore */
-  }
-  window.dispatchEvent(new Event(LANG_EVENT));
-  document.documentElement.lang = v;
-}
-
-/* ---------------- Option sets ---------------- */
+/* ---------------- Option model ---------------- */
 interface Opt {
   v: string;
   l: string;
   dot?: string;
   icon?: SettingsIcon;
-}
-const THEME_OPTS: Opt[] = [
-  { v: "light", l: "Light", icon: "sun" },
-  { v: "dark", l: "Dark", icon: "moon" },
-  { v: "system", l: "System", icon: "desktop" },
-];
-const FREQ_OPTS: Opt[] = [
-  { v: "instant", l: "Instantly" },
-  { v: "daily", l: "Daily digest" },
-  { v: "weekly", l: "Weekly digest" },
-  { v: "off", l: "Off" },
-];
-const SEARCH_OPTS: Opt[] = [
-  { v: "active", l: "Actively looking", dot: "var(--accent-brand)" },
-  { v: "open", l: "Open to offers", dot: "var(--warning)" },
-  { v: "closed", l: "Not looking", dot: "var(--gray-400)" },
-];
-const HIRE_OPTS: Opt[] = [
-  { v: "active", l: "Actively hiring", dot: "var(--accent-brand)" },
-  { v: "open", l: "Open to applications", dot: "var(--warning)" },
-  { v: "paused", l: "Hiring paused", dot: "var(--gray-400)" },
-];
-const EMP_OPTS: Opt[] = [
-  { v: "full", l: "Full-time" },
-  { v: "part", l: "Part-time" },
-  { v: "shift", l: "Shift work" },
-  { v: "any", l: "Any" },
-];
-function visOpts(employer: boolean): Opt[] {
-  return [
-    { v: "all", l: employer ? "Visible to all candidates" : "Visible to all employers" },
-    { v: "applied", l: employer ? "Only people who apply" : "Only companies I apply to" },
-    { v: "hidden", l: "Hidden" },
-  ];
 }
 
 /* ---------------- Reusable controls ---------------- */
@@ -314,31 +244,32 @@ function initials(name: string): string {
   );
 }
 
-const SECTIONS: { id: SectionId; label: (e: boolean) => string; icon: SettingsIcon }[] = [
-  { id: "general", label: () => "General", icon: "gear" },
-  { id: "notif", label: () => "Notifications", icon: "bell" },
-  { id: "jobs", label: (e) => (e ? "Hiring" : "Job search"), icon: "briefcase" },
-  { id: "privacy", label: () => "Privacy", icon: "shield" },
-  { id: "account", label: () => "Account", icon: "user" },
-  { id: "security", label: () => "Security & login", icon: "lock" },
-];
 type SectionId = "general" | "notif" | "jobs" | "privacy" | "account" | "security";
+const SECTIONS: { id: SectionId; icon: SettingsIcon; label: (employer: boolean) => MessageKey }[] = [
+  { id: "general", icon: "gear", label: () => "settings.secGeneral" },
+  { id: "notif", icon: "bell", label: () => "settings.secNotif" },
+  { id: "jobs", icon: "briefcase", label: (e) => (e ? "settings.secHiring" : "settings.secJobs") },
+  { id: "privacy", icon: "shield", label: () => "settings.secPrivacy" },
+  { id: "account", icon: "user", label: () => "settings.secAccount" },
+  { id: "security", icon: "lock", label: () => "settings.secSecurity" },
+];
 
 /**
  * Settings — the prototype's modal-on-desktop / tabs-on-mobile surface, rendered
  * as a route overlay. Theme (next-themes), language, account type, logout, and
  * sounds are wired to live app state; the remaining preferences persist locally
- * until the settings API ships (see api-need.md).
+ * until the settings API ships (see api-need.md). Every label runs through the
+ * shared i18n layer, so the panel follows the app language (en/ru/uz).
  */
 export function SettingsModal() {
   const router = useRouter();
   const { user } = useSession();
+  const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const switchAccount = useSwitchAccount();
   const logout = useLogout();
   const { settings: sound, update: updateSound } = useSoundSettings();
   const { settings: local, update } = useLocalSettings();
-  const lang = useSyncExternalStore(subscribeLang, readLang, serverLang);
   const [active, setActive] = useState<SectionId>("general");
 
   const close = () => router.back();
@@ -356,6 +287,41 @@ export function SettingsModal() {
   if (!user) return null;
   const employer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
 
+  // Localized option sets (rebuilt per render so they follow the active locale).
+  const langOpts: Opt[] = LOCALES.map((code) => ({ v: code, l: LOCALE_LABELS[code] }));
+  const themeOpts: Opt[] = [
+    { v: "light", l: t("settings.themeLight"), icon: "sun" },
+    { v: "dark", l: t("settings.themeDark"), icon: "moon" },
+    { v: "system", l: t("settings.themeSystem"), icon: "desktop" },
+  ];
+  const freqOpts: Opt[] = [
+    { v: "instant", l: t("settings.freqInstant") },
+    { v: "daily", l: t("settings.freqDaily") },
+    { v: "weekly", l: t("settings.freqWeekly") },
+    { v: "off", l: t("settings.freqOff") },
+  ];
+  const searchOpts: Opt[] = [
+    { v: "active", l: t("settings.searchActive"), dot: "var(--accent-brand)" },
+    { v: "open", l: t("settings.searchOpen"), dot: "var(--warning)" },
+    { v: "closed", l: t("settings.searchClosed"), dot: "var(--gray-400)" },
+  ];
+  const hireOpts: Opt[] = [
+    { v: "active", l: t("settings.hireActive"), dot: "var(--accent-brand)" },
+    { v: "open", l: t("settings.hireOpen"), dot: "var(--warning)" },
+    { v: "paused", l: t("settings.hirePaused"), dot: "var(--gray-400)" },
+  ];
+  const empOpts: Opt[] = [
+    { v: "full", l: t("settings.empFull") },
+    { v: "part", l: t("settings.empPart") },
+    { v: "shift", l: t("settings.empShift") },
+    { v: "any", l: t("settings.empAny") },
+  ];
+  const visOpts: Opt[] = [
+    { v: "all", l: employer ? t("settings.visAllHire") : t("settings.visAll") },
+    { v: "applied", l: employer ? t("settings.visAppliedHire") : t("settings.visApplied") },
+    { v: "hidden", l: t("settings.visHidden") },
+  ];
+
   const editValue = (title: string, current: string, key: "expectedSalary" | "preferredCity") => {
     const next = window.prompt(title, current);
     if (next && next.trim()) update({ [key]: next.trim() });
@@ -365,17 +331,17 @@ export function SettingsModal() {
     const next = target === "employer" ? ACCOUNT_TYPE.EMPLOYER : ACCOUNT_TYPE.WORKER;
     if (next === user.accountType) return;
     switchAccount.mutate(next, {
-      onSuccess: () => toast.success("Account type updated"),
+      onSuccess: () => toast.success(t("settings.toastAcctSwitched")),
       onError: (error) =>
-        toast.error(isApiClientError(error) ? error.message : "Couldn't switch account"),
+        toast.error(isApiClientError(error) ? error.message : t("settings.errAcctSwitch")),
     });
   };
 
   const doLogout = () => {
-    if (!window.confirm("Log out on this device?")) return;
+    if (!window.confirm(t("settings.confirmLogout"))) return;
     logout.mutate(undefined, {
       onError: (error) =>
-        toast.error(isApiClientError(error) ? error.message : "Couldn't log out"),
+        toast.error(isApiClientError(error) ? error.message : t("settings.errLogout")),
     });
   };
 
@@ -388,23 +354,20 @@ export function SettingsModal() {
               <SIc name="shield" />
             </div>
             <div className={s["set-banner-main"]}>
-              <div className={s["set-banner-t"]}>Secure your account</div>
-              <div className={s["set-banner-d"]}>
-                Add an email so you can recover access and get hiring updates even
-                if you lose your phone number.
-              </div>
+              <div className={s["set-banner-t"]}>{t("settings.bannerTitle")}</div>
+              <div className={s["set-banner-d"]}>{t("settings.bannerDesc")}</div>
               <button
                 type="button"
                 className={s["set-banner-btn"]}
-                onClick={() => toast("Adding an email is coming soon")}
+                onClick={() => toast(t("settings.toastEmailSoon"))}
               >
-                Add email
+                {t("settings.bannerBtn")}
               </button>
             </div>
             <button
               type="button"
               className={s["set-banner-x"]}
-              aria-label="Dismiss"
+              aria-label={t("settings.ariaDismiss")}
               onClick={() => update({ bannerDismissed: true })}
             >
               <SIc name="x" />
@@ -412,7 +375,7 @@ export function SettingsModal() {
           </div>
         ) : null}
 
-        <GroupLabel>Account type</GroupLabel>
+        <GroupLabel>{t("settings.acctType")}</GroupLabel>
         <div className={s["set-acct"]}>
           <button
             type="button"
@@ -420,8 +383,8 @@ export function SettingsModal() {
             aria-pressed={!employer}
             onClick={() => switchTo("seeker")}
           >
-            <span className={s.t}>Find a job</span>
-            <span className={s.d}>Search roles and apply</span>
+            <span className={s.t}>{t("settings.acctSeeker")}</span>
+            <span className={s.d}>{t("settings.acctSeekerD")}</span>
           </button>
           <button
             type="button"
@@ -429,32 +392,32 @@ export function SettingsModal() {
             aria-pressed={employer}
             onClick={() => switchTo("employer")}
           >
-            <span className={s.t}>Hire talent</span>
-            <span className={s.d}>Post jobs and find candidates</span>
+            <span className={s.t}>{t("settings.acctEmployer")}</span>
+            <span className={s.d}>{t("settings.acctEmployerD")}</span>
           </button>
         </div>
 
         <Row
-          label="Language"
-          desc="Changes the language across Peoplor"
-          control={
-            <SettingsSelect value={lang} options={LANGS as unknown as Opt[]} onChange={setStoredLang} />
-          }
-        />
-        <Row
-          label="Appearance"
-          desc="Choose how Peoplor looks on this device"
+          label={t("settings.lang")}
+          desc={t("settings.langD")}
           control={
             <SettingsSelect
-              value={theme ?? "system"}
-              options={THEME_OPTS}
-              onChange={setTheme}
+              value={locale}
+              options={langOpts}
+              onChange={(v) => setLocale(v as Locale)}
             />
           }
         />
         <Row
-          label="Send with Enter"
-          desc="Press Enter to send a message; Shift+Enter for a new line"
+          label={t("settings.appear")}
+          desc={t("settings.appearD")}
+          control={
+            <SettingsSelect value={theme ?? "system"} options={themeOpts} onChange={setTheme} />
+          }
+        />
+        <Row
+          label={t("settings.enter")}
+          desc={t("settings.enterD")}
           control={
             <Toggle
               checked={local.enterToSend}
@@ -466,9 +429,9 @@ export function SettingsModal() {
     ),
     notif: (
       <>
-        <GroupLabel>Push notifications</GroupLabel>
+        <GroupLabel>{t("settings.pushGroup")}</GroupLabel>
         <Row
-          label={employer ? "Messages from candidates" : "Messages from employers"}
+          label={employer ? t("settings.notifMsgHire") : t("settings.notifMsg")}
           control={
             <Toggle
               checked={local.notif_messages}
@@ -477,12 +440,8 @@ export function SettingsModal() {
           }
         />
         <Row
-          label={employer ? "Candidate activity" : "Application status updates"}
-          desc={
-            employer
-              ? "When a candidate applies, replies or accepts"
-              : "When an employer views, replies or makes a decision"
-          }
+          label={employer ? t("settings.notifStatusHire") : t("settings.notifStatus")}
+          desc={employer ? t("settings.notifStatusDHire") : t("settings.notifStatusD")}
           control={
             <Toggle
               checked={local.notif_status}
@@ -491,12 +450,8 @@ export function SettingsModal() {
           }
         />
         <Row
-          label={employer ? "New matching candidates" : "New matching jobs"}
-          desc={
-            employer
-              ? "Candidates that fit your open roles"
-              : "Jobs that fit your search and resume"
-          }
+          label={employer ? t("settings.notifJobsHire") : t("settings.notifJobs")}
+          desc={employer ? t("settings.notifJobsDHire") : t("settings.notifJobsD")}
           control={
             <Toggle
               checked={local.notif_jobs}
@@ -505,7 +460,7 @@ export function SettingsModal() {
           }
         />
         <Row
-          label="Sounds"
+          label={t("settings.sounds")}
           control={
             <Toggle
               checked={sound.enabled}
@@ -513,26 +468,26 @@ export function SettingsModal() {
             />
           }
         />
-        <GroupLabel>Email</GroupLabel>
+        <GroupLabel>{t("settings.emailGroup")}</GroupLabel>
         <Row
-          label={employer ? "Email me candidate alerts" : "Email me job alerts"}
+          label={employer ? t("settings.emailJobHire") : t("settings.emailJob")}
           control={
             <Toggle
               checked={local.notif_email}
               onChange={() => {
                 const next = !local.notif_email;
                 update({ notif_email: next });
-                if (next) toast("Job alerts on — sent to your email");
+                if (next) toast(t("settings.toastAlertsOn"));
               }}
             />
           }
         />
         <Row
-          label="Alert frequency"
+          label={t("settings.freq")}
           control={
             <SettingsSelect
               value={local.jobAlertFreq}
-              options={FREQ_OPTS}
+              options={freqOpts}
               onChange={(v) => update({ jobAlertFreq: v as never })}
             />
           }
@@ -542,84 +497,99 @@ export function SettingsModal() {
     jobs: employer ? (
       <>
         <Row
-          label="Hiring status"
-          desc="Shows on your company profile"
+          label={t("settings.hStatus")}
+          desc={t("settings.hStatusD")}
           control={
             <SettingsSelect
               value={local.hireStatus}
-              options={HIRE_OPTS}
+              options={hireOpts}
               withDot
               onChange={(v) => update({ hireStatus: v as never })}
             />
           }
         />
         <Row
-          label="Roles you hire for"
+          label={t("settings.hEmpType")}
           control={
             <SettingsSelect
               value={local.employmentType}
-              options={EMP_OPTS}
+              options={empOpts}
               onChange={(v) => update({ employmentType: v as never })}
             />
           }
         />
         <Row
-          label="Default job location"
-          control={<GoRow value={local.preferredCity} onClick={() => editValue("Default job location", local.preferredCity, "preferredCity")} />}
+          label={t("settings.hLoc")}
+          control={
+            <GoRow
+              value={local.preferredCity}
+              onClick={() => editValue(t("settings.hLoc"), local.preferredCity, "preferredCity")}
+            />
+          }
         />
         <Row
-          label="Hiring for remote roles"
+          label={t("settings.hRemote")}
           control={<Toggle checked={local.openRemote} onChange={() => update({ openRemote: !local.openRemote })} />}
         />
         <Row
-          label="AI screening"
-          desc="Let Peoplor screen applicants before they reach you"
+          label={t("settings.hScreen")}
+          desc={t("settings.hScreenD")}
           control={<Toggle checked={local.aiScreen} onChange={() => update({ aiScreen: !local.aiScreen })} />}
         />
         <Row
-          label="Auto-invite top matches"
-          desc="Automatically message candidates above 90% match"
+          label={t("settings.hAutoInvite")}
+          desc={t("settings.hAutoInviteD")}
           control={<Toggle checked={local.autoInvite} onChange={() => update({ autoInvite: !local.autoInvite })} />}
         />
       </>
     ) : (
       <>
         <Row
-          label="Job search status"
-          desc="Lets employers know whether to reach out"
+          label={t("settings.jStatus")}
+          desc={t("settings.jStatusD")}
           control={
             <SettingsSelect
               value={local.searchStatus}
-              options={SEARCH_OPTS}
+              options={searchOpts}
               withDot
               onChange={(v) => update({ searchStatus: v as never })}
             />
           }
         />
         <Row
-          label="Preferred employment"
+          label={t("settings.jEmp")}
           control={
             <SettingsSelect
               value={local.employmentType}
-              options={EMP_OPTS}
+              options={empOpts}
               onChange={(v) => update({ employmentType: v as never })}
             />
           }
         />
         <Row
-          label="Expected salary"
-          control={<GoRow value={local.expectedSalary} onClick={() => editValue("Expected salary", local.expectedSalary, "expectedSalary")} />}
+          label={t("settings.jSalary")}
+          control={
+            <GoRow
+              value={local.expectedSalary}
+              onClick={() => editValue(t("settings.jSalary"), local.expectedSalary, "expectedSalary")}
+            />
+          }
         />
         <Row
-          label="Preferred location"
-          control={<GoRow value={local.preferredCity} onClick={() => editValue("Preferred location", local.preferredCity, "preferredCity")} />}
+          label={t("settings.jLoc")}
+          control={
+            <GoRow
+              value={local.preferredCity}
+              onClick={() => editValue(t("settings.jLoc"), local.preferredCity, "preferredCity")}
+            />
+          }
         />
         <Row
-          label="Open to remote work"
+          label={t("settings.jRemote")}
           control={<Toggle checked={local.openRemote} onChange={() => update({ openRemote: !local.openRemote })} />}
         />
         <Row
-          label="Ready to relocate"
+          label={t("settings.jRelocate")}
           control={<Toggle checked={local.readyRelocate} onChange={() => update({ readyRelocate: !local.readyRelocate })} />}
         />
       </>
@@ -627,32 +597,32 @@ export function SettingsModal() {
     privacy: (
       <>
         <Row
-          label={employer ? "Company profile visibility" : "Resume visibility"}
-          desc={employer ? "Who can find and view your company" : "Who can find and view your resume"}
+          label={employer ? t("settings.visHire") : t("settings.vis")}
+          desc={employer ? t("settings.visDHire") : t("settings.visD")}
           control={
             <SettingsSelect
               value={local.resumeVisibility}
-              options={visOpts(employer)}
+              options={visOpts}
               onChange={(v) => update({ resumeVisibility: v as never })}
             />
           }
         />
         <Row
-          label={employer ? "Hidden from" : "Hidden companies"}
-          desc={employer ? "Hide your posts from specific people" : "Hide your resume from specific employers"}
-          control={<GoRow value="None" onClick={() => toast("Nothing hidden yet")} />}
+          label={employer ? t("settings.hiddenHire") : t("settings.hidden")}
+          desc={employer ? t("settings.hiddenDHire") : t("settings.hiddenD")}
+          control={<GoRow value={t("settings.none")} onClick={() => toast(t("settings.toastNothingHidden"))} />}
         />
         <Row
-          label="Show when I'm online"
+          label={t("settings.online")}
           control={<Toggle checked={local.showOnline} onChange={() => update({ showOnline: !local.showOnline })} />}
         />
         <Row
-          label="Send read receipts"
-          desc={employer ? "Candidates see when you've read their message" : "Employers see when you've read their message"}
+          label={t("settings.receipts")}
+          desc={employer ? t("settings.receiptsDHire") : t("settings.receiptsD")}
           control={<Toggle checked={local.readReceipts} onChange={() => update({ readReceipts: !local.readReceipts })} />}
         />
         <Row
-          label={employer ? "Allow candidates to call us" : "Allow employers to call me"}
+          label={employer ? t("settings.callsHire") : t("settings.calls")}
           control={<Toggle checked={local.allowCalls} onChange={() => update({ allowCalls: !local.allowCalls })} />}
         />
       </>
@@ -664,22 +634,24 @@ export function SettingsModal() {
             <span className={s["set-id-av"]}>{initials(user.name)}</span>
             <div>
               <div className={s["set-id-name"]}>{user.name}</div>
-              <div className={s["set-id-sub"]}>{employer ? "Employer" : "Job seeker"}</div>
+              <div className={s["set-id-sub"]}>
+                {employer ? t("settings.subEmployer") : t("settings.subSeeker")}
+              </div>
             </div>
           </div>
           <div className={s["set-row-ctl"]}>
-            <Pill label="Edit" onClick={() => toast("Edit your details in Profile")} />
+            <Pill label={t("settings.edit")} onClick={() => toast(t("settings.toastEditProfile"))} />
           </div>
         </div>
 
-        <GroupLabel>Contact</GroupLabel>
+        <GroupLabel>{t("settings.contact")}</GroupLabel>
         <Row
-          label="Email"
-          desc={user.email ?? "Not added yet"}
+          label={t("settings.email")}
+          desc={user.email ?? t("settings.notAdded")}
           control={
             <Pill
-              label={user.email ? "Change" : "Add"}
-              onClick={() => toast("Adding an email is coming soon")}
+              label={user.email ? t("settings.change") : t("settings.add")}
+              onClick={() => toast(t("settings.toastEmailSoon"))}
             />
           }
         />
@@ -690,50 +662,46 @@ export function SettingsModal() {
             control={
               <span className={cn(s["set-conn"], s["is-on"])}>
                 <span className={s["set-conn-dot"]} />
-                Connected
+                {t("settings.connected")}
               </span>
             }
           />
         ) : null}
 
-        <GroupLabel>Connected accounts</GroupLabel>
+        <GroupLabel>{t("settings.connGroup")}</GroupLabel>
         <Row
           label="Google"
-          desc={user.provider === "GOOGLE" ? "Connected" : "Sign in faster"}
+          desc={user.provider === "GOOGLE" ? t("settings.connected") : t("settings.signInFaster")}
           control={
             user.provider === "GOOGLE" ? (
               <span className={cn(s["set-conn"], s["is-on"])}>
                 <span className={s["set-conn-dot"]} />
-                Connected
+                {t("settings.connected")}
               </span>
             ) : (
-              <Pill label="Connect" onClick={() => toast("Connecting Google…")} />
+              <Pill label={t("settings.connect")} onClick={() => toast(t("settings.toastConnectGoogle"))} />
             )
           }
         />
 
-        <GroupLabel>Danger zone</GroupLabel>
+        <GroupLabel>{t("settings.danger")}</GroupLabel>
         <Row
-          label="Log out"
-          desc="Sign out on this device"
-          control={<Pill label="Log out" icon="logout" onClick={doLogout} />}
+          label={t("settings.logout")}
+          desc={t("settings.logoutD")}
+          control={<Pill label={t("settings.logout")} icon="logout" onClick={doLogout} />}
         />
         <Row
           stack
-          label={employer ? "Delete company account" : "Delete account"}
-          desc={
-            employer
-              ? "Permanently remove your company, job posts and chats"
-              : "Permanently remove your profile, resumes and chats"
-          }
+          label={employer ? t("settings.delAccountHire") : t("settings.delAccount")}
+          desc={employer ? t("settings.delDHire") : t("settings.delD")}
           control={
             <Pill
-              label="Delete"
+              label={t("settings.delBtn")}
               kind="danger"
               icon="trash"
               onClick={() => {
-                if (window.confirm("Delete your account? This permanently removes your profile, resumes and chats.")) {
-                  toast("Account scheduled for deletion");
+                if (window.confirm(t("settings.confirmDelete"))) {
+                  toast(t("settings.toastDeleteSched"));
                 }
               }}
             />
@@ -744,46 +712,46 @@ export function SettingsModal() {
     security: (
       <>
         <Row
-          label="Sign-in method"
+          label={t("settings.signInMethod")}
           desc={user.provider === "TELEGRAM" ? "Telegram" : "Google"}
           control={
             <span className={s["set-verified"]}>
               <SIc name="verified" />
-              Active
+              {t("settings.active")}
             </span>
           }
         />
         <Row
-          label="Password"
-          desc="Add a password to sign in without an SMS code"
-          control={<Pill label="Set up" icon="key" onClick={() => toast("Set up a password — coming soon")} />}
+          label={t("settings.password")}
+          desc={t("settings.passwordD")}
+          control={<Pill label={t("settings.setup")} icon="key" onClick={() => toast(t("settings.toastPwSoon"))} />}
         />
         <Row
-          label="Two-step verification"
-          desc="Require a second step when signing in on a new device"
+          label={t("settings.twoStep")}
+          desc={t("settings.twoStepD")}
           control={<Toggle checked={local.twoStep} onChange={() => update({ twoStep: !local.twoStep })} />}
         />
-        <GroupLabel>Sessions</GroupLabel>
+        <GroupLabel>{t("settings.sessions")}</GroupLabel>
         <Row
-          label="This device"
-          desc="Active now"
+          label={t("settings.thisDevice")}
+          desc={t("settings.activeNow")}
           control={
             <span className={cn(s["set-conn"], s["is-on"])}>
               <span className={s["set-conn-dot"]} />
-              Current
+              {t("settings.current")}
             </span>
           }
         />
         <Row
           stack
-          label="Log out of all devices"
+          label={t("settings.logoutAll")}
           control={
             <Pill
-              label="Log out everywhere"
+              label={t("settings.logoutAllBtn")}
               kind="danger"
               icon="logout"
               onClick={() => {
-                if (window.confirm("Log out of all devices?")) doLogout();
+                if (window.confirm(t("settings.confirmLogoutAll"))) doLogout();
               }}
             />
           }
@@ -799,14 +767,14 @@ export function SettingsModal() {
         if (event.target === event.currentTarget) close();
       }}
     >
-      <div className={s["set-modal"]} role="dialog" aria-modal="true" aria-label="Settings">
+      <div className={s["set-modal"]} role="dialog" aria-modal="true" aria-label={t("settings.title")}>
         <header className={s["set-topbar"]}>
-          <div className={s["set-title"]}>Settings</div>
+          <div className={s["set-title"]}>{t("settings.title")}</div>
           <button
             type="button"
             className={s["set-iconbtn"]}
             onClick={close}
-            aria-label="Close settings"
+            aria-label={t("settings.ariaClose")}
           >
             <SIc name="x" />
           </button>
@@ -823,7 +791,7 @@ export function SettingsModal() {
               onClick={() => setActive(sec.id)}
             >
               <SIc name={sec.icon} />
-              {sec.label(employer)}
+              {t(sec.label(employer))}
             </button>
           ))}
         </div>
@@ -838,7 +806,7 @@ export function SettingsModal() {
                 onClick={() => setActive(sec.id)}
               >
                 <SIc name={sec.icon} />
-                <span className={s["set-navitem-l"]}>{sec.label(employer)}</span>
+                <span className={s["set-navitem-l"]}>{t(sec.label(employer))}</span>
               </button>
             ))}
           </nav>
@@ -847,7 +815,7 @@ export function SettingsModal() {
             <div className={s["set-inner"]}>
               <div className={s["set-head"]}>
                 <h1 className={s["set-h2"]}>
-                  {SECTIONS.find((sec) => sec.id === active)?.label(employer)}
+                  {t(SECTIONS.find((sec) => sec.id === active)!.label(employer))}
                 </h1>
               </div>
               {sections[active]}

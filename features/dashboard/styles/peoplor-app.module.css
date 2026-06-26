@@ -832,6 +832,106 @@
   .landing .hero-chips button:nth-child(6) { animation-delay: 0.58s; }
 }
 
+/* ============ ACCOUNT-MENU MODALS (Account / Help / Logout) ============ */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 15, 16, 0.42);
+  animation: modalScrimIn var(--dur-base) var(--ease-standard);
+}
+@keyframes modalScrimIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-xl);
+  animation: modalIn var(--dur-slow) var(--ease-out);
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+.modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px 8px; flex: 0 0 auto; }
+.modal-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; flex: 1; min-width: 0; }
+.modal-close {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--icon-secondary);
+  transition: background var(--dur-base), color var(--dur-base);
+}
+.modal-close:hover { background: var(--bg-secondary-hover); color: var(--icon-primary); }
+.modal-close .ic { width: 20px; height: 20px; }
+.modal-body { padding: 20px; overflow-y: auto; }
+.modal-foot { padding: 8px 20px 18px; display: flex; gap: 10px; justify-content: flex-end; flex: 0 0 auto; }
+.modal-note { font-size: 13.5px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.55; }
+.modal-confirm { text-align: center; padding: 8px 4px 6px; }
+.modal-confirm-t { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+.modal-confirm-d { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+/* account fields */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+.field input,
+.field select {
+  width: 100%;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  outline: none;
+  transition: border-color var(--dur-base);
+}
+.field input:focus,
+.field select:focus { border-color: var(--border-default-hover); }
+/* help list */
+.help-list { display: flex; flex-direction: column; gap: 8px; }
+.help-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 13px 14px;
+  background: var(--bg-primary);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color var(--dur-base), background var(--dur-base);
+}
+.help-item:hover { border-color: var(--border-default-hover); background: var(--bg-secondary); }
+.help-item .ic { width: 21px; height: 21px; color: var(--icon-secondary); flex: 0 0 auto; }
+.help-item .t { font-size: 14px; font-weight: 600; }
+.help-item .d { font-size: 12.5px; color: var(--text-secondary); margin-top: 1px; }
+@media (max-width: 600px) {
+  .modal-scrim { align-items: flex-end; padding: 0; }
+  .modal { max-width: none; width: 100%; max-height: 92dvh; border-radius: var(--radius-3xl) var(--radius-3xl) 0 0; }
+  .modal-head { padding: 16px 18px; }
+  .modal-body { padding: 18px; }
+  .modal-foot { padding: 10px 18px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+  .modal-foot .btn { flex: 1; }
+}
+
 /* ============ JOB DETAIL SHEET ============ */
 .jd-scrim {
   position: fixed;

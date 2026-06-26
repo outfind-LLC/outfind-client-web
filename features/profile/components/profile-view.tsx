@@ -1,9 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Loader2, UserRound } from "lucide-react";
 
 import { routes } from "@/config/routes";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/features/dashboard/components/page-header";
 import { useSession } from "@/features/auth/hooks/use-session";
 import {
   useEmployerProfile,
@@ -13,11 +16,12 @@ import { EmptyState } from "@/features/dashboard/components/empty-state";
 import { isApiClientError } from "@/lib/api/error";
 import { Button } from "@/ui/button";
 import { EmployerProfileView } from "./employer-profile-view";
+import { WorkerProfileScreen } from "./worker-profile-screen";
 import { WorkerProfileSetup } from "./worker-profile-setup";
-import { WorkerProfileView } from "./worker-profile-view";
 
-/** Resolves the right profile for the session's account type. A worker with no
- * profile yet gets a guided setup; an employer gets a create-profile CTA. */
+/** Resolves the right profile for the session's account type. The worker profile
+ * is the full-bleed pixel-perfect screen; setup / employer / errors keep the
+ * standard padded shell. */
 export function ProfileView() {
   const { user, isWorker, isEmployer } = useSession();
 
@@ -27,32 +31,67 @@ export function ProfileView() {
   );
 
   if (!user) {
-    return <CenteredSpinner />;
+    return (
+      <Shell>
+        <CenteredSpinner />
+      </Shell>
+    );
   }
 
   if (isWorker) {
+    // Full-bleed pixel-perfect screen (its own topbar + scroll).
     if (workerQuery.data)
-      return <WorkerProfileView profile={workerQuery.data} />;
+      return <WorkerProfileScreen profile={workerQuery.data} user={user} />;
     if (workerQuery.isError) {
-      // A 404 means the worker simply hasn't set up a profile yet — guide them
-      // through creating one. Any other error is a genuine load failure.
       const notFound =
         isApiClientError(workerQuery.error) &&
         workerQuery.error.status === 404;
-      return notFound ? <WorkerProfileSetup /> : <ProfileError />;
+      return (
+        <Shell>{notFound ? <WorkerProfileSetup /> : <ProfileError />}</Shell>
+      );
     }
-    return <CenteredSpinner />;
+    return (
+      <Shell>
+        <CenteredSpinner />
+      </Shell>
+    );
   }
 
   if (isEmployer) {
-    if (!user.isEmployerProfileSet) return <EmployerProfileNotSet />;
-    if (employerQuery.isLoading) return <CenteredSpinner />;
-    if (employerQuery.data)
-      return <EmployerProfileView profile={employerQuery.data} />;
-    return <ProfileError />;
+    return (
+      <Shell>
+        {!user.isEmployerProfileSet ? (
+          <EmployerProfileNotSet />
+        ) : employerQuery.isLoading ? (
+          <CenteredSpinner />
+        ) : employerQuery.data ? (
+          <EmployerProfileView profile={employerQuery.data} />
+        ) : (
+          <ProfileError />
+        )}
+      </Shell>
+    );
   }
 
-  return <ProfileError />;
+  return (
+    <Shell>
+      <ProfileError />
+    </Shell>
+  );
+}
+
+/** The standard padded profile shell (used for setup / employer / states). */
+function Shell({ children }: { children: ReactNode }) {
+  return (
+    <Container className="py-8">
+      <PageHeader
+        icon={UserRound}
+        title="Profile"
+        description="How you appear across Peoplor."
+      />
+      {children}
+    </Container>
+  );
 }
 
 function EmployerProfileNotSet() {
