@@ -20,7 +20,7 @@ import { enrichJobWithVacancy } from "@/features/jobs/lib/vacancy-to-job";
 import { jobKey } from "@/features/jobs/lib/job-context";
 import { useGenerateCoverLetter } from "@/features/ai-tools/hooks/use-worker-ai";
 import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
-import type { JobCardData } from "@/features/chat/types/job";
+import { isConciseSalary, type JobCardData } from "@/features/chat/types/job";
 import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
@@ -209,7 +209,7 @@ function ExternalSheet({
           ) : null}
         </div>
       ) : null}
-      <p className={s["jd-note"]}>{t("chat.jdOnlineNote")}</p>
+      <p className={s["jd-note-warn"]}>{t("chat.jdOnlineNote")}</p>
     </div>
   );
 
@@ -356,7 +356,9 @@ function Sheet({
               </div>
             ) : null}
 
-            {job.salary ? <div className={s["jd-salary"]}>{job.salary}</div> : null}
+            {isConciseSalary(job.salary) ? (
+              <div className={s["jd-salary"]}>{job.salary}</div>
+            ) : null}
 
             {facts.length > 0 ? (
               <div className={s["jd-facts"]}>{facts}</div>

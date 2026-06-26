@@ -199,6 +199,8 @@ function jobFromBookmark(v: BookmarkVacancyPreview, salary: string | null): JobC
     requirements: [],
     responsibilities: [],
     contact: { ...EMPTY_CONTACT },
+    matchScore: null,
+    postedAt: null,
   };
 }
 function jobFromThread(thread: Thread): JobCardData {
@@ -215,6 +217,8 @@ function jobFromThread(thread: Thread): JobCardData {
     requirements: [],
     responsibilities: [],
     contact: { ...EMPTY_CONTACT },
+    matchScore: null,
+    postedAt: null,
   };
 }
 

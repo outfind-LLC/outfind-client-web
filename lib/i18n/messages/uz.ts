@@ -94,6 +94,9 @@ export const uz: Messages = {
     ariaUseVoice: "Ovozli kiritish",
     ariaSend: "Yuborish",
     ariaStop: "To‘xtatish",
+    recAdd: "Qo‘shish",
+    recCancel: "Yozuvni bekor qilish",
+    recConfirm: "Yozuvdan foydalanish",
     micBlocked:
       "Mikrofon bloklangan. Brauzer sozlamalarida mikrofonga ruxsat bering.",
     micNoSpeech: "Eshitmadim — yana gapirib ko‘ring.",

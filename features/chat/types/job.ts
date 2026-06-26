@@ -34,6 +34,10 @@ export interface JobCardData {
   /** "What you'll need" — the role's requirements. */
   requirements: string[];
   contact: JobContact;
+  /** Profile fit 0–100 → the "N% match" pill (null until the backend scores it). */
+  matchScore: number | null;
+  /** ISO posting date → the card's "Posted {when}" line (null when unknown). */
+  postedAt: string | null;
 }
 
 /** A platform vacancy, as returned by the `findJobs` tool. */
@@ -50,6 +54,7 @@ interface InternalVacancyOutput {
   responsibilities?: string[];
   requirements?: string[];
   contact: Partial<JobContact> | null;
+  matchScore?: number | null;
   postedAt: string | null;
 }
 
@@ -66,6 +71,8 @@ interface ExternalJobOutput {
   responsibilities?: string[];
   requirements?: string[];
   contact: Partial<JobContact> | null;
+  matchScore?: number | null;
+  postedAt?: string | null;
 }
 
 const EMPTY_CONTACT: JobContact = {
@@ -108,6 +115,8 @@ function normaliseInternal(item: InternalVacancyOutput): JobCardData {
     responsibilities: item.responsibilities ?? [],
     requirements: item.requirements ?? [],
     contact: normaliseContact(item.contact),
+    matchScore: item.matchScore ?? null,
+    postedAt: item.postedAt ?? null,
   };
 }
 
@@ -125,6 +134,8 @@ function normaliseExternal(item: ExternalJobOutput): JobCardData {
     responsibilities: item.responsibilities ?? [],
     requirements: item.requirements ?? [],
     contact: normaliseContact(item.contact),
+    matchScore: item.matchScore ?? null,
+    postedAt: item.postedAt ?? null,
   };
 }
 
@@ -154,4 +165,20 @@ export function extractJobs(toolType: string, output: unknown): JobCardData[] {
 /** Whether a tool part type is one of the job-search tools. */
 export function isJobSearchTool(toolType: string): boolean {
   return toolType === "tool-findJobs" || toolType === "tool-findMoreJobs";
+}
+
+/** Longest a `salary` string can be and still read as a salary (vs. prose). */
+const MAX_SALARY_LENGTH = 40;
+
+/**
+ * Whether a salary string is concise enough to show in a prominent slot (the
+ * card pill / the sheet's big salary line). Web-sourced jobs sometimes return a
+ * whole sentence in `salary` ("Often published as a transparent band…"); those
+ * are omitted (graceful) rather than rendered as giant text — the backend should
+ * return a concise salary or null (see docs/api/job-search-chat.md).
+ */
+export function isConciseSalary(salary: string | null): salary is string {
+  if (!salary) return false;
+  const trimmed = salary.trim();
+  return trimmed.length > 0 && trimmed.length <= MAX_SALARY_LENGTH;
 }

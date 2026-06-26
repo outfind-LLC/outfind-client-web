@@ -1,9 +1,10 @@
 "use client";
 
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
-import type { JobCardData } from "@/features/chat/types/job";
+import { isConciseSalary, type JobCardData } from "@/features/chat/types/job";
 import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
 import { useT } from "@/providers/i18n-provider";
+import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
@@ -50,9 +51,16 @@ export function JobCard({ job }: { job: JobCardData }) {
             </div>
           ) : null}
         </div>
+        {job.matchScore != null ? (
+          <div className={s["jc-match"]}>
+            <span className={s.pct}>{t("chat.cardMatch", { n: job.matchScore })}</span>
+          </div>
+        ) : null}
       </div>
 
-      {job.salary ? <div className={s["jc-salary"]}>{job.salary}</div> : null}
+      {isConciseSalary(job.salary) ? (
+        <div className={s["jc-salary"]}>{job.salary}</div>
+      ) : null}
 
       {tags.length > 0 ? (
         <div className={s["jc-tags"]}>
@@ -61,6 +69,14 @@ export function JobCard({ job }: { job: JobCardData }) {
               {tag}
             </span>
           ))}
+        </div>
+      ) : null}
+
+      {job.postedAt ? (
+        <div className={s["jc-foot"]}>
+          <span className={s["jc-posted"]}>
+            {t("chat.cardPosted", { when: formatRelativeTime(job.postedAt) })}
+          </span>
         </div>
       ) : null}
     </button>

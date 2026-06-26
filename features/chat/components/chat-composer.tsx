@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { getDefaultSpecialist } from "@/features/chat/constants/specialists";
 import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
 import { useComposerStore } from "@/features/chat/store/composer.store";
+import { VoiceRecorder } from "@/features/chat/components/voice-recorder";
 import { Ic } from "@/features/dashboard/components/app-icons";
 import { useT, type TranslateFn } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,7 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const t = useT();
   const [input, setInput] = useState("");
+  const [recording, setRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Text already in the field when dictation starts; new speech is appended to it.
   const dictationBaseRef = useRef("");
@@ -109,21 +111,43 @@ export function ChatComposer({
     }
   };
 
-  const toggleDictation = () => {
-    if (speech.listening) {
-      speech.stop();
-      return;
-    }
-    // Continue from the current text, with a separating space if needed.
+  // Tapping the mic flips the composer into the waveform recorder. Speech is
+  // transcribed into the input live (hidden behind the waveform); confirm keeps
+  // it, cancel restores the text from before recording.
+  const startRecording = () => {
+    if (recording || busy) return;
     dictationBaseRef.current = input.trim()
       ? `${input.replace(/\s+$/, "")} `
       : "";
-    speech.start();
+    // The waveform always runs (Web Audio); transcription only when supported.
+    if (speech.supported) speech.start();
+    setRecording(true);
   };
+  const stopRecording = (keep: boolean) => {
+    speech.stop();
+    if (!keep) setInput(dictationBaseRef.current.replace(/\s+$/, ""));
+    setRecording(false);
+  };
+
+  // Esc cancels an active recording.
+  useEffect(() => {
+    if (!recording) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") stopRecording(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // stopRecording closes over stable setters/refs; re-bind only on toggle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recording]);
 
   return (
     <div className={s["composer-wrap"]}>
-      <form className={s.composer} autoComplete="off" onSubmit={onSubmit}>
+      <form
+        className={cn(s.composer, recording && s["is-recording"])}
+        autoComplete="off"
+        onSubmit={onSubmit}
+      >
         <textarea
           ref={textareaRef}
           value={input}
@@ -131,21 +155,18 @@ export function ChatComposer({
           onKeyDown={onKeyDown}
           autoFocus={autoFocus}
           rows={1}
-          placeholder={speech.listening ? t("chat.composerListening") : resolvedPlaceholder}
+          placeholder={resolvedPlaceholder}
           aria-label={resolvedPlaceholder}
         />
 
-        {speech.supported ? (
-          <button
-            type="button"
-            className={cn(s.mic, speech.listening && s.listening)}
-            aria-label={t("chat.ariaUseVoice")}
-            aria-pressed={speech.listening}
-            onClick={toggleDictation}
-          >
-            <Ic name="mic" />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className={s.mic}
+          aria-label={t("chat.ariaUseVoice")}
+          onClick={startRecording}
+        >
+          <Ic name="mic" />
+        </button>
 
         {busy ? (
           <button
@@ -166,6 +187,13 @@ export function ChatComposer({
             <Ic name="arrowUp" />
           </button>
         )}
+
+        {recording ? (
+          <VoiceRecorder
+            onCancel={() => stopRecording(false)}
+            onConfirm={() => stopRecording(true)}
+          />
+        ) : null}
       </form>
 
       {showFoot ? (

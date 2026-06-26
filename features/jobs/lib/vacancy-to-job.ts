@@ -64,6 +64,8 @@ export function thinJobFromRecommendation(rec: RecommendedVacancy): JobCardData 
       website: null,
       contactForm: null,
     },
+    matchScore: rec.matchScore,
+    postedAt: rec.postedAt,
   };
 }
 
@@ -92,6 +94,7 @@ export function enrichJobWithVacancy(
         : (full.responsibilities ?? []),
     requirements:
       job.requirements.length > 0 ? job.requirements : (full.requirements ?? []),
+    postedAt: job.postedAt ?? full.postedAt,
     contact:
       job.contact.email ||
       job.contact.phone ||
