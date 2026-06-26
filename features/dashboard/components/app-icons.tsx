@@ -1,65 +1,48 @@
 /**
- * Peoplor chat-app icons — ported verbatim from the _Peoplor_Design prototype.
- * Most are CSS mask icons (`.ic` + `--i`), exactly as the prototype renders them,
- * so the chat CSS module's contextual sizing rules apply automatically and the
- * glyphs are pixel-identical. A few multi-colour / structural marks are inline
- * SVGs (brand mark, verified badge, language dropdown chrome).
+ * Peoplor chat-app icons. Glyph data now lives in the central registry
+ * (`@/components/icons`, one file per icon); this module keeps the dashboard's
+ * local names + the feature `.ic` CSS context, plus the few inline/structural
+ * marks (brand mark, language-dropdown chrome) that aren't mask icons.
  */
 import type { CSSProperties } from "react";
 
+import { ICONS as REG } from "@/components/icons";
 import styles from "@/features/dashboard/styles/peoplor-app.module.css";
 import { cn } from "@/lib/utils";
 
-/** Build a stroke-style mask data-uri matching the prototype's inline `jdIcon`. */
-function stroke(inner: string, sw = 1.7): string {
-  return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='${sw}' stroke-linecap='round' stroke-linejoin='round'%3E${inner}%3C/svg%3E")`;
-}
-
-/** Exact data-uris transcribed from the prototype markup. */
+/** Dashboard icon names → central registry entries. */
 export const ICONS = {
-  panel: stroke("%3Crect x='3' y='4' width='18' height='16' rx='2.5'/%3E%3Cline x1='9' y1='4' x2='9' y2='20'/%3E", 1.6),
-  plus: stroke("%3Cpath d='M12 5v14M5 12h14'/%3E", 1.6),
-  bookmark: stroke("%3Cpath d='M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z'/%3E", 1.5),
-  // "Saved & applied" nav glyph — exact doc-with-check-mark.svg from the design's icon set.
-  docCheck: stroke(
-    "%3Cpath d='M15 7C15 7 15.5 7.5 16 8.5C16 8.5 17.5882 6 19 5.5'/%3E%3Cpath d='M10.0144 2.00578C7.51591 1.9 5.58565 2.18782 5.58565 2.18782C4.3668 2.27496 2.03099 2.95829 2.03101 6.94898C2.03103 10.9058 2.00517 15.7837 2.03101 17.7284C2.03101 18.9164 2.76663 21.6877 5.31279 21.8363C8.40763 22.0168 13.9822 22.0552 16.54 21.8363C17.2247 21.7976 19.5042 21.2602 19.7927 18.7801C20.0915 16.2107 20.032 14.4251 20.032 14.0001'/%3E%3Cpath d='M22.0192 7C22.0192 9.76142 19.7785 12 17.0144 12C14.2504 12 12.0096 9.76142 12.0096 7C12.0096 4.23858 14.2504 2 17.0144 2C19.7785 2 22.0192 4.23858 22.0192 7Z'/%3E%3Cpath d='M7 13H11'/%3E%3Cpath d='M7 17H15'/%3E",
-    1.5,
-  ),
-  user: stroke("%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M5 20c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5'/%3E", 1.6),
-  briefcase: stroke("%3Crect x='2' y='7' width='20' height='14' rx='2'/%3E%3Cpath d='M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16'/%3E", 1.6),
-  users: stroke("%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/%3E", 1.6),
-  messages: stroke("%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E", 1.6),
-  search: stroke("%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E", 1.6),
-  company: stroke("%3Cpath d='M3 21h18'/%3E%3Cpath d='M5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16'/%3E%3Cpath d='M15 21V9h3a1 1 0 0 1 1 1v11'/%3E%3Cpath d='M8 8h2M8 12h2M8 16h2'/%3E", 1.5),
-  // Career & migration (worker) / Global hiring (employer) nav glyph — exact prototype `route` icon.
-  route: stroke("%3Ccircle cx='6' cy='19' r='2.4'/%3E%3Ccircle cx='18' cy='5' r='2.4'/%3E%3Cpath d='M8.4 19H14a3.6 3.6 0 0 0 0-7.2H10A3.6 3.6 0 0 1 10 4.6h5.6'/%3E", 1.6),
-  zap: stroke("%3Cpath d='M13 2L3 14h7l-1 8 10-12h-7z'/%3E", 1.6),
-  settings: stroke(
-    "%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E",
-    1.6,
-  ),
-  help: stroke("%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M9.6 9.2a2.5 2.5 0 1 1 3.6 2.4c-.8.4-1.2 1-1.2 1.9'/%3E%3Cpath d='M12 17h.01'/%3E", 1.6),
-  logout: stroke("%3Cpath d='M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E", 1.6),
-  menu: stroke("%3Cpath d='M3 6h18M3 12h18M3 18h18'/%3E", 1.7),
-  close: stroke("%3Cpath d='M6 6l12 12M18 6L6 18'/%3E", 1.7),
-  mic: stroke("%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E", 1.5),
-  arrowUp: stroke("%3Cpath d='M12 20V5M6 11l6-6 6 6'/%3E", 1.8),
-  chevronDown: stroke("%3Cpath d='M6 9l6 6 6-6'/%3E", 1.8),
-  checkThin: stroke("%3Cpath d='M20 6L9 17l-5-5'/%3E", 1.8),
-  checkBold: stroke("%3Cpath d='M20 6L9 17l-5-5'/%3E", 1.9),
-  // job-detail facts
-  globe: stroke("%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M12 3c2.4 2.5 2.4 15 0 18M12 3c-2.4 2.5-2.4 15 0 18'/%3E", 1.5),
-  type: stroke("%3Crect x='3' y='7' width='18' height='13' rx='2'/%3E%3Cpath d='M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E", 1.6),
-  clock: stroke("%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E", 1.6),
-  cal: stroke("%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 9h18M8 3v4M16 3v4'/%3E", 1.6),
-  pin: stroke("%3Cpath d='M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E", 1.6),
-  phone: stroke("%3Cpath d='M6.6 10.8a12 12 0 0 0 5.6 5.6l1.9-1.9a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V19a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z'/%3E", 1.6),
-  mail: stroke("%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 7l9 6 9-6'/%3E", 1.6),
-  // multi-colour verified badge (rendered as a mask → solid accent silhouette, as in the prototype)
-  verified:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2'%3E%3Cpath d='M12 2l2.4 1.8 3 .1 1 2.8 2.4 1.7-.9 2.9.9 2.9-2.4 1.7-1 2.8-3 .1L12 22l-2.4-1.8-3-.1-1-2.8L3.2 15.6l.9-2.9-.9-2.9 2.4-1.7 1-2.8 3-.1z' fill='%2358b685'/%3E%3Cpath d='M8.5 12l2.5 2.5 4.5-5' stroke='%23fff'/%3E%3C/svg%3E\")",
-  // stop (busy send) — filled square
-  stop: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6.5' y='6.5' width='11' height='11' rx='2.5' fill='black'/%3E%3C/svg%3E\")",
+  panel: REG.panel,
+  plus: REG.plus,
+  bookmark: REG.bookmark,
+  docCheck: REG.docCheck,
+  user: REG.user,
+  briefcase: REG.briefcase,
+  users: REG.users,
+  messages: REG.messages,
+  search: REG.search,
+  company: REG.company,
+  route: REG.route,
+  zap: REG.zap,
+  settings: REG.settings,
+  help: REG.help,
+  logout: REG.logout,
+  menu: REG.menu,
+  close: REG.close,
+  mic: REG.mic,
+  arrowUp: REG.arrowUp,
+  chevronDown: REG.chevronDown,
+  checkThin: REG.checkThin,
+  checkBold: REG.checkBold,
+  globe: REG.globe,
+  type: REG.type,
+  clock: REG.clock,
+  cal: REG.calendar,
+  pin: REG.pin,
+  phone: REG.phone,
+  mail: REG.mail,
+  verified: REG.verified,
+  stop: REG.stop,
 } as const;
 
 export type IconName = keyof typeof ICONS;

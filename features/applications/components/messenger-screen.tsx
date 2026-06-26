@@ -25,6 +25,7 @@ import { useBookmarks, useRemoveBookmark } from "@/features/bookmarks/hooks/use-
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
+import { ICONS as REG } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
   APPLICATION_STATUS,
@@ -46,32 +47,22 @@ import type { MessageKey } from "@/lib/i18n/translate";
 import type { TranslateFn } from "@/providers/i18n-provider";
 import s from "@/features/applications/styles/messenger.module.css";
 
-/* ---------------- icons (exact prototype paths, 1.5px solar set) ------------ */
-function mIcon(inner: string, sw = 1.5, fill = false): string {
-  const svg = fill
-    ? `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'>${inner}</svg>`
-    : `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='${sw}' stroke-linecap='round' stroke-linejoin='round'>${inner}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
+/* Messenger icon names → central registry entries (glyph data: @/components/icons) */
 const MICONS = {
-  back: mIcon("<path d='M20 12H4'/><path d='M10 6l-6 6 6 6'/>", 1.8),
-  send: mIcon("<path d='M12 20V5M6 11l6-6 6 6'/>", 1.8),
-  phone: mIcon("<path d='M5 7c0-1 0-1.5.3-1.9.6-.8 1.7-1.1 2.6-.8.5.2.9.8 1.6 2 .3.5.5.8.5 1.2.1.4 0 .8-.2 1.5l-.5 1.3c-.1.3-.1.4 0 .7a8 8 0 0 0 4 4c.3.1.4.1.7 0l1.3-.5c.7-.2 1.1-.3 1.5-.2.4 0 .7.2 1.2.5 1.2.7 1.8 1.1 2 1.6.3.9 0 2-.8 2.6-.4.3-.9.3-1.9.3A14 14 0 0 1 5 7z'/>", 1.6),
-  check: mIcon("<path d='M5 13l4 4L19 7'/>", 2),
-  checks: mIcon("<path d='M1.5 13l4 4 8.5-9.5'/><path d='M10.5 17l8.5-9.5'/>", 1.7),
-  plus: mIcon("<path d='M12 5v14M5 12h14'/>", 1.8),
-  bookmark: mIcon("<path d='M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1z'/>", 1.6),
-  open: mIcon("<path d='M14 4h6v6'/><path d='M20 4l-9 9'/><path d='M18 14v3.5c0 1.4-1.1 2.5-2.5 2.5H6.5C5.1 20 4 18.9 4 17.5V8.5C4 7.1 5.1 6 6.5 6H10'/>", 1.7),
-  wallet: mIcon("<path d='M3 8.5c0-1.4 0-2.1.4-2.6.5-.6 1.5-.6 3.6-.6h6c2.1 0 3.1 0 3.6.6.4.5.4 1.2.4 2.6v7c0 1.4 0 2.1-.4 2.6-.5.6-1.5.6-3.6.6H7c-2.1 0-3.1 0-3.6-.6C3 17.6 3 16.9 3 15.5z'/><path d='M16 12h2.5'/><path d='M3 9h13c1.4 0 2.1 0 2.6.4.4.5.4 1.2.4 2.6'/>", 1.5),
-  menu: mIcon("<path d='M4 9h16M4 15h10'/>", 1.7),
-  chat: mIcon("<path d='M4 8c0-1.9 0-2.83.6-3.41C5.17 4 6.1 4 8 4h8c1.9 0 2.83 0 3.41.59C20 5.17 20 6.1 20 8v5c0 1.9 0 2.83-.59 3.41C18.83 17 17.9 17 16 17H9l-3.4 3c-.6.5-1.6.1-1.6-.7z'/>", 1.5),
-  eye: mIcon("<path d='M3 12c0-1.2.32-1.6 1-2.4C5.7 7.6 8.6 5 12 5s6.3 2.6 8 4.6c.68.8 1 1.2 1 2.4s-.32 1.6-1 2.4C18.3 16.4 15.4 19 12 19s-6.3-2.6-8-4.6C2.32 13.6 2 13.2 2 12z'/><circle cx='12' cy='12' r='3'/>", 1.5),
-  dots: mIcon("<circle cx='12' cy='5' r='1.6'/><circle cx='12' cy='12' r='1.6'/><circle cx='12' cy='19' r='1.6'/>", 1.5),
-  verified: mIcon(
-    "<path d='M12 2.2l2.3 1.7 2.85-.2 .9 2.72 2.35 1.63-.85 2.73.85 2.73-2.35 1.63-.9 2.72-2.85-.2L12 21.8l-2.3-1.7-2.85.2-.9-2.72-2.35-1.63.85-2.73-.85-2.73 2.35-1.63.9-2.72 2.85.2z'/><path d='M8.6 12.2l2.2 2.2 4.6-4.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/>",
-    1.5,
-    true,
-  ),
+  back: REG.back,
+  send: REG.arrowUp,
+  phone: REG.phoneClassic,
+  check: REG.check,
+  checks: REG.checks,
+  plus: REG.plusBold,
+  bookmark: REG.bookmarkCard,
+  open: REG.externalLink,
+  wallet: REG.wallet,
+  menu: REG.menuShort,
+  chat: REG.chat,
+  eye: REG.eye,
+  dots: REG.dotsVertical,
+  verified: REG.verifiedSeal,
 } as const;
 function MIc({ name, className }: { name: keyof typeof MICONS; className?: string }) {
   return (

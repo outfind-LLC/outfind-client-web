@@ -19,6 +19,7 @@ import { useSession } from "@/features/auth/hooks/use-session";
 import { useSoundSettings } from "@/features/settings/hooks/use-sound-settings";
 import { useLocalSettings } from "@/features/settings/hooks/use-local-settings";
 import { isApiClientError } from "@/lib/api/error";
+import { ICONS as REG } from "@/components/icons";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
 import { type MessageKey } from "@/lib/i18n/translate";
 import { useI18n } from "@/providers/i18n-provider";
@@ -27,32 +28,27 @@ import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import s from "@/features/settings/styles/settings.module.css";
 
 /* ---------------- Icons (exact prototype paths) ---------------- */
-function sIcon(inner: string, sw = 1.5): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='${sw}' stroke-linecap='round' stroke-linejoin='round'>${inner}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
+/* Settings icon names → central registry entries (glyph data: @/components/icons) */
 const SETTINGS_ICONS = {
-  gear: sIcon(
-    "<circle cx='12' cy='12' r='3'/><path d='M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.04z'/>",
-  ),
-  bell: sIcon("<path d='M18 8.5a6 6 0 1 0-12 0c0 6-2.5 8-2.5 8h17S18 14.5 18 8.5z'/><path d='M13.7 20a2 2 0 0 1-3.4 0'/>"),
-  briefcase: sIcon("<rect x='2.5' y='7' width='19' height='13' rx='2.5'/><path d='M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7'/><path d='M2.5 12.5h19'/>"),
-  shield: sIcon("<path d='M12 3l7 2.8V11c0 4.6-3 7.7-7 9-4-1.3-7-4.4-7-9V5.8z'/><path d='M9 12l2 2 4-4.2'/>"),
-  user: sIcon("<circle cx='12' cy='8' r='3.6'/><path d='M5.5 19.5c.7-3.2 3.3-5 6.5-5s5.8 1.8 6.5 5'/>"),
-  lock: sIcon("<rect x='4.5' y='10.5' width='15' height='10' rx='2.5'/><path d='M8 10.5V7.5a4 4 0 0 1 8 0v3'/><circle cx='12' cy='15.5' r='1.3'/>"),
-  chev: sIcon("<path d='M9 5l6.5 6.3a1 1 0 0 1 0 1.4L9 19'/>", 1.8),
-  chevD: sIcon("<path d='M5 9l6.3 6.5a1 1 0 0 0 1.4 0L19 9'/>", 1.8),
-  check: sIcon("<path d='M5 13l4 4L19 7'/>", 2),
-  x: sIcon("<path d='M6 6l12 12M18 6L6 18'/>", 1.8),
-  mail: sIcon("<rect x='2.5' y='5' width='19' height='14' rx='3'/><path d='M5 8l5.5 4a2.5 2.5 0 0 0 3 0L19 8'/>"),
-  phone: sIcon("<path d='M5 7c0-1 0-1.5.3-1.9.6-.8 1.7-1.1 2.6-.8.5.2.9.8 1.6 2 .3.5.5.8.5 1.2.1.4 0 .8-.2 1.5l-.5 1.3c-.1.3-.1.4 0 .7a8 8 0 0 0 4 4c.3.1.4.1.7 0l1.3-.5c.7-.2 1.1-.3 1.5-.2.4 0 .7.2 1.2.5 1.2.7 1.8 1.1 2 1.6.3.9 0 2-.8 2.6-.4.3-.9.3-1.9.3A14 14 0 0 1 5 7z'/>"),
-  key: sIcon("<circle cx='8' cy='15' r='4.5'/><path d='M11.2 11.8L20 3'/><path d='M16 7l2.5 2.5M14 9l2 2'/>"),
-  verified: sIcon("<path d='M12 2.2l2.3 1.7 2.85-.2.9 2.72 2.35 1.63-.85 2.73.85 2.73-2.35 1.63-.9 2.72-2.85-.2L12 21.8l-2.3-1.7-2.85.2-.9-2.72-2.35-1.63.85-2.73-.85-2.73 2.35-1.63.9-2.72 2.85.2z'/>", 1.6),
-  trash: sIcon("<path d='M5 7h14'/><path d='M10 11v5M14 11v5'/><path d='M6 7l.7 11.2A2 2 0 0 0 8.7 20h6.6a2 2 0 0 0 2-1.8L18 7'/><path d='M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/>"),
-  logout: sIcon("<path d='M15 12H5m0 0l3.5-3.5M5 12l3.5 3.5'/><path d='M12 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4'/>"),
-  sun: sIcon("<circle cx='12' cy='12' r='4'/><path d='M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4'/>"),
-  moon: sIcon("<path d='M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z'/>"),
-  desktop: sIcon("<rect x='3' y='4' width='18' height='12' rx='2'/><path d='M8 20h8M12 16v4'/>"),
+  gear: REG.gear,
+  bell: REG.bell,
+  briefcase: REG.briefcaseAlt,
+  shield: REG.shield,
+  user: REG.userSmall,
+  lock: REG.lock,
+  chev: REG.chevronRightBold,
+  chevD: REG.chevronDownRound,
+  check: REG.check,
+  x: REG.closeMed,
+  mail: REG.mailRound,
+  phone: REG.phoneClassicThin,
+  key: REG.key,
+  verified: REG.verifiedOutline,
+  trash: REG.trash,
+  logout: REG.logoutAlt,
+  sun: REG.sun,
+  moon: REG.moon,
+  desktop: REG.desktop,
 } as const;
 type SettingsIcon = keyof typeof SETTINGS_ICONS;
 

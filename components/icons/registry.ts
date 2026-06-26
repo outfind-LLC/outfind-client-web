@@ -1,16 +1,122 @@
 import type { IconDef } from "./types";
+
+// Dashboard / app-shell
+import panel from "./panel";
+import plus from "./plus";
 import bookmark from "./bookmark";
 import docCheck from "./doc-check";
+import user from "./user";
+import briefcase from "./briefcase";
+import users from "./users";
+import messages from "./messages";
+import search from "./search";
+import company from "./company";
+import route from "./route";
+import zap from "./zap";
+import settings from "./settings";
+import help from "./help";
+import logout from "./logout";
+import menu from "./menu";
+import close from "./close";
+import mic from "./mic";
+import arrowUp from "./arrow-up";
+import chevronDown from "./chevron-down";
+import checkThin from "./check-thin";
+import checkBold from "./check-bold";
+import globe from "./globe";
+import type_ from "./type";
+import clock from "./clock";
+import calendar from "./calendar";
+import pin from "./pin";
+import phone from "./phone";
+import mail from "./mail";
+import verified from "./verified";
+import stop from "./stop";
+
+// Messenger
+import back from "./back";
+import phoneClassic from "./phone-classic";
+import check from "./check";
+import checks from "./checks";
+import plusBold from "./plus-bold";
+import bookmarkCard from "./bookmark-card";
+import externalLink from "./external-link";
+import wallet from "./wallet";
+import menuShort from "./menu-short";
+import chat from "./chat";
+import eye from "./eye";
+import dotsVertical from "./dots-vertical";
+import verifiedSeal from "./verified-seal";
+
+// Profile
+import userRound from "./user-round";
+import chevronRight from "./chevron-right";
+import dotsHorizontal from "./dots-horizontal";
+import backThin from "./back-thin";
+import closeThin from "./close-thin";
+import file from "./file";
+import eyeOff from "./eye-off";
+import pen from "./pen";
+import copy from "./copy";
+import download from "./download";
+import share from "./share";
+import trash from "./trash";
+import phoneClassicThin from "./phone-classic-thin";
+import mailRound from "./mail-round";
+import companyTallThin from "./company-tall-thin";
+import print from "./print";
+import checkStrong from "./check-strong";
+import telegram from "./telegram";
+import whatsapp from "./whatsapp";
+
+// Settings
+import gear from "./gear";
+import bell from "./bell";
+import briefcaseAlt from "./briefcase-alt";
+import shield from "./shield";
+import userSmall from "./user-small";
+import lock from "./lock";
+import chevronRightBold from "./chevron-right-bold";
+import chevronDownRound from "./chevron-down-round";
+import closeMed from "./close-med";
+import key from "./key";
+import verifiedOutline from "./verified-outline";
+import logoutAlt from "./logout-alt";
+import sun from "./sun";
+import moon from "./moon";
+import desktop from "./desktop";
+
+// Employer / company
+import companyTall from "./company-tall";
+import pencil from "./pencil";
+import alert from "./alert";
+import usersRound from "./users-round";
 
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
- * default-exported `IconDef`) and registering it here. Names must be unique per
- * glyph — where the legacy per-feature sets reused a name for a *different* shape,
- * register both under distinct names and alias them at the call site.
+ * default-exported `IconDef`) and registering it here. Names are unique per
+ * glyph — where the legacy per-feature sets reused a name for a *different* shape
+ * or stroke, both are kept under distinct names (e.g. `menu` vs `menuShort`,
+ * `close`/`closeThin`/`closeMed`) so nothing changes visually.
  */
 const DEFS = {
-  bookmark,
-  docCheck,
+  // dashboard / app-shell
+  panel, plus, bookmark, docCheck, user, briefcase, users, messages, search,
+  company, route, zap, settings, help, logout, menu, close, mic, arrowUp,
+  chevronDown, checkThin, checkBold, globe, type: type_, clock, calendar, pin,
+  phone, mail, verified, stop,
+  // messenger
+  back, phoneClassic, check, checks, plusBold, bookmarkCard, externalLink,
+  wallet, menuShort, chat, eye, dotsVertical, verifiedSeal,
+  // profile
+  userRound, chevronRight, dotsHorizontal, backThin, closeThin, file, eyeOff,
+  pen, copy, download, share, trash, phoneClassicThin, mailRound,
+  companyTallThin, print, checkStrong, telegram, whatsapp,
+  // settings
+  gear, bell, briefcaseAlt, shield, userSmall, lock, chevronRightBold,
+  chevronDownRound, closeMed, key, verifiedOutline, logoutAlt, sun, moon, desktop,
+  // employer / company
+  companyTall, pencil, alert, usersRound,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

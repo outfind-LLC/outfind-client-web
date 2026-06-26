@@ -1,47 +1,33 @@
 import { type CSSProperties } from "react";
 
+import { ICONS as REG } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import s from "@/features/profile/styles/profile.module.css";
 
-/** Mask-icon URL from the prototype's exact path data (stroke, or `fill` solid). */
-function mIcon(inner: string, sw = 1.5, fill = false): string {
-  const svg = fill
-    ? `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'>${inner}</svg>`
-    : `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='${sw}' stroke-linecap='round' stroke-linejoin='round'>${inner}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
-
+/** Profile icon names → central registry entries (glyph data: `@/components/icons`). */
 export const ICONS = {
-  user: mIcon("<circle cx='12' cy='6' r='4'/><path d='M18 17.5C18 19.99 18 22 12 22s-6-2.01-6-4.5S8.69 13 12 13s6 2.01 6 4.5z'/>"),
-  chev: mIcon("<path d='M9 5l6.5 6.3a1 1 0 0 1 0 1.4L9 19'/>"),
-  dots: mIcon("<circle cx='5' cy='12' r='1.7'/><circle cx='12' cy='12' r='1.7'/><circle cx='19' cy='12' r='1.7'/>"),
-  menu: mIcon("<path d='M4 9h16M4 15h10'/>", 1.7),
-  back: mIcon("<path d='M20 12H4'/><path d='M10 6l-6 6 6 6'/>"),
-  close: mIcon("<path d='M6 6l12 12M18 6L6 18'/>"),
-  file: mIcon("<path d='M14 3.5V7c0 .94 0 1.41.29 1.71.3.29.77.29 1.71.29h3.5'/><path d='M5.5 5c0-.47 0-.71.15-.85.14-.15.38-.15.85-.15h7l5.5 5.5V19c0 .47 0 .71-.15.85-.14.15-.38.15-.85.15H6.5c-.47 0-.71 0-.85-.15C5.5 19.71 5.5 19.47 5.5 19z'/>"),
-  plus: mIcon("<path d='M12 5v14M5 12h14'/>", 1.8),
-  eye: mIcon("<path d='M3 12c0-1.2.32-1.6 1-2.4C5.7 7.6 8.6 5 12 5s6.3 2.6 8 4.6c.68.8 1 1.2 1 2.4s-.32 1.6-1 2.4C18.3 16.4 15.4 19 12 19s-6.3-2.6-8-4.6C2.32 13.6 2 13.2 2 12z'/><circle cx='12' cy='12' r='3'/>"),
-  eyeOff: mIcon("<path d='M3 3l18 18'/><path d='M10.6 6.1A8.9 8.9 0 0 1 12 6c3.4 0 6.3 2.6 8 4.6.55.65.83 1 .9 1.7M6.2 7.7C4.7 8.95 3.5 10.4 3 11.6c-.13.4-.13.8 0 1.2C4 14.4 7 17 12 17c1.3 0 2.5-.23 3.6-.63M9.9 10.2a3 3 0 0 0 4 4'/>"),
-  pen: mIcon("<path d='M11.4 18.16l-4.13 1.04c-.78.2-1.5-.52-1.3-1.3l1.04-4.13a2 2 0 0 1 .53-.92L16.2 3.4a2 2 0 0 1 2.83 0l1.57 1.57a2 2 0 0 1 0 2.83l-9.45 9.45a2 2 0 0 1-.92.53z'/><path d='M14.5 5.5l3 3'/>"),
-  copy: mIcon("<path d='M9 15c0-2.83 0-4.24.88-5.12C10.76 9 12.17 9 15 9s4.24 0 5.12.88C21 10.76 21 12.17 21 15s0 4.24-.88 5.12C19.24 21 17.83 21 15 21s-4.24 0-5.12-.88C9 19.24 9 17.83 9 15z'/><path d='M5.13 16A2.5 2.5 0 0 1 3 13.5V8c0-2.83 0-4.24.88-5.12C4.76 2 6.17 2 9 2h4.5A2.5 2.5 0 0 1 16 4.13'/>"),
-  download: mIcon("<path d='M12 3v12m0 0l4-4.2M12 15l-4-4.2'/><path d='M4 17v.8C4 19.5 5.5 21 7.3 21h9.4c1.8 0 3.3-1.5 3.3-3.2V17'/>"),
-  share: mIcon("<circle cx='6' cy='12' r='2.5'/><circle cx='17' cy='5.5' r='2.5'/><circle cx='17' cy='18.5' r='2.5'/><path d='M14.8 6.8L8.2 10.7M8.2 13.3l6.6 3.9'/>"),
-  trash: mIcon("<path d='M5 7h14'/><path d='M10 11v5M14 11v5'/><path d='M6 7l.7 11.2A2 2 0 0 0 8.7 20h6.6a2 2 0 0 0 2-1.8L18 7'/><path d='M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/>"),
-  phone: mIcon("<path d='M5 7c0-1 0-1.5.3-1.9.6-.8 1.7-1.1 2.6-.8.5.2.9.8 1.6 2 .3.5.5.8.5 1.2.1.4 0 .8-.2 1.5l-.5 1.3c-.1.3-.1.4 0 .7a8 8 0 0 0 4 4c.3.1.4.1.7 0l1.3-.5c.7-.2 1.1-.3 1.5-.2.4 0 .7.2 1.2.5 1.2.7 1.8 1.1 2 1.6.3.9 0 2-.8 2.6-.4.3-.9.3-1.9.3A14 14 0 0 1 5 7z'/>"),
-  mail: mIcon("<rect x='2.5' y='5' width='19' height='14' rx='3'/><path d='M5 8l5.5 4a2.5 2.5 0 0 0 3 0L19 8'/>"),
-  company: mIcon("<path d='M3 21h18'/><path d='M5 21V6.4c0-1.13 0-1.7.35-2.05C5.7 4 6.27 4 7.4 4h5.2c1.13 0 1.7 0 2.05.35.35.35.35.92.35 2.05V21'/><path d='M15 9h1.6c1.13 0 1.7 0 2.05.35.35.35.35.92.35 2.05V21'/><path d='M8.5 8h3M8.5 11.5h3M8.5 15h3'/>"),
-  print: mIcon("<path d='M7 8V4.5c0-.28.22-.5.5-.5h9c.28 0 .5.22.5.5V8'/><path d='M6 17.5H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-1'/><rect x='7' y='14' width='10' height='6' rx='1'/><path d='M16.5 11.5h.5'/>"),
-  check: mIcon("<path d='M5 13l4 4L19 7'/>", 2.4),
-  telegram: mIcon(
-    "<path d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.64 6.8-1.56 7.36c-.12.55-.43.68-.86.42l-2.37-1.75-1.14 1.1c-.13.13-.24.24-.48.24l.17-2.43 4.42-3.99c.19-.17-.04-.27-.3-.1L9.04 13.1l-2.35-.73c-.51-.16-.52-.51.11-.76l9.18-3.54c.43-.16.8.1.66.73z'/>",
-    1.5,
-    true,
-  ),
-  whatsapp: mIcon(
-    "<path d='M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.25 8.24a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-2.83 4.43c-.13 0-.35.05-.53.25-.18.2-.7.69-.7 1.67 0 .99.72 1.94.82 2.07.1.13 1.4 2.14 3.4 3 .48.2.84.33 1.13.42.48.15.9.13 1.24.08.38-.06 1.17-.48 1.33-.94.17-.46.17-.85.12-.94-.05-.08-.18-.13-.38-.23s-1.17-.58-1.35-.64c-.18-.07-.31-.1-.44.1-.13.2-.51.64-.62.77-.11.13-.23.15-.43.05-.2-.1-.84-.31-1.6-.99-.59-.53-.99-1.18-1.1-1.38-.12-.2-.01-.31.09-.41.09-.09.2-.23.3-.35.1-.12.13-.2.2-.34.07-.13.03-.25-.02-.35-.05-.1-.44-1.08-.62-1.48-.16-.39-.32-.33-.44-.34l-.37-.01z'/>",
-    1.5,
-    true,
-  ),
+  user: REG.userRound,
+  chev: REG.chevronRight,
+  dots: REG.dotsHorizontal,
+  menu: REG.menuShort,
+  back: REG.backThin,
+  close: REG.closeThin,
+  file: REG.file,
+  plus: REG.plusBold,
+  eye: REG.eye,
+  eyeOff: REG.eyeOff,
+  pen: REG.pen,
+  copy: REG.copy,
+  download: REG.download,
+  share: REG.share,
+  trash: REG.trash,
+  phone: REG.phoneClassicThin,
+  mail: REG.mailRound,
+  company: REG.companyTallThin,
+  print: REG.print,
+  check: REG.checkStrong,
+  telegram: REG.telegram,
+  whatsapp: REG.whatsapp,
 } as const;
 
 export type IconName = keyof typeof ICONS;

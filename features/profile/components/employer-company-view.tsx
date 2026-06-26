@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { routes } from "@/config/routes";
+import { ICONS as REG } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
   EMPLOYER_VERIFICATION_STATUS,
@@ -12,24 +13,20 @@ import {
 import type { EmployerProfile } from "@/interfaces/employer-profile.interface";
 import s from "@/features/profile/styles/company.module.css";
 
-/* icons (exact prototype paths) */
-function sIcon(inner: string, sw = 1.5): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='${sw}' stroke-linecap='round' stroke-linejoin='round'>${inner}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
+/* Company icon names → central registry entries (glyph data: @/components/icons) */
 const ICONS = {
-  company: sIcon("<path d='M3 21h18'/><path d='M5 21V6.4c0-1.13 0-1.7.35-2.05C5.7 4 6.27 4 7.4 4h5.2c1.13 0 1.7 0 2.05.35.35.35.35.92.35 2.05V21'/><path d='M15 9h1.6c1.13 0 1.7 0 2.05.35.35.35.35.92.35 2.05V21'/><path d='M8.5 8h3M8.5 11.5h3M8.5 15h3'/>", 1.6),
-  pencil: sIcon("<path d='M4 20h4L18.5 9.5a2 2 0 0 0-3-3L5 17z'/><path d='M13.5 6.5l3 3'/>", 1.6),
-  check: sIcon("<path d='M5 13l4 4L19 7'/>", 2),
-  clock: sIcon("<circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/>", 1.6),
-  alert: sIcon("<path d='M12 3l9 16H3z'/><path d='M12 10v4M12 17h.01'/>", 1.6),
-  mail: sIcon("<rect x='2.5' y='5' width='19' height='14' rx='3'/><path d='M5 8l5.5 4a2.5 2.5 0 0 0 3 0L19 8'/>", 1.5),
-  phone: sIcon("<path d='M5 7c0-1 0-1.5.3-1.9.6-.8 1.7-1.1 2.6-.8.5.2.9.8 1.6 2 .3.5.5.8.5 1.2.1.4 0 .8-.2 1.5l-.5 1.3c-.1.3-.1.4 0 .7a8 8 0 0 0 4 4c.3.1.4.1.7 0l1.3-.5c.7-.2 1.1-.3 1.5-.2.4 0 .7.2 1.2.5 1.2.7 1.8 1.1 2 1.6.3.9 0 2-.8 2.6-.4.3-.9.3-1.9.3A14 14 0 0 1 5 7z'/>", 1.6),
-  globe: sIcon("<circle cx='12' cy='12' r='9'/><path d='M3 12h18'/><path d='M12 3c2.4 2.5 2.4 15 0 18M12 3c-2.4 2.5-2.4 15 0 18'/>", 1.5),
-  briefcase: sIcon("<rect x='2.5' y='7' width='19' height='13' rx='2.5'/><path d='M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7'/><path d='M2.5 12.5h19'/>", 1.6),
-  users: sIcon("<circle cx='9' cy='8' r='3.4'/><path d='M3.5 19c.6-3 3-4.7 5.5-4.7s4.9 1.7 5.5 4.7'/><path d='M16 5.2a3.4 3.4 0 0 1 0 6.6M21 19c-.4-2-1.6-3.4-3.2-4'/>", 1.5),
-  pin: sIcon("<path d='M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z'/><circle cx='12' cy='10' r='2.5'/>", 1.6),
-  open: sIcon("<path d='M14 4h6v6'/><path d='M20 4l-9 9'/><path d='M18 14v3.5c0 1.4-1.1 2.5-2.5 2.5H6.5C5.1 20 4 18.9 4 17.5V8.5C4 7.1 5.1 6 6.5 6H10'/>", 1.7),
+  company: REG.companyTall,
+  pencil: REG.pencil,
+  check: REG.check,
+  clock: REG.clock,
+  alert: REG.alert,
+  mail: REG.mailRound,
+  phone: REG.phoneClassic,
+  globe: REG.globe,
+  briefcase: REG.briefcaseAlt,
+  users: REG.usersRound,
+  pin: REG.pin,
+  open: REG.externalLink,
 } as const;
 function CIc({ name, className }: { name: keyof typeof ICONS; className?: string }) {
   return <span className={cn(s.ic, className)} style={{ "--i": ICONS[name] } as CSSProperties} aria-hidden="true" />;
