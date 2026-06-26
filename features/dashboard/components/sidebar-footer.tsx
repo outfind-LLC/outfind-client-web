@@ -12,7 +12,6 @@ import { LOCALE_LABELS, LOCALES } from "@/lib/i18n/config";
 import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
-import { PLAN_TYPE } from "@/interfaces/enums";
 import { Ic, LangCaret, LangGlobe, LangTick } from "./app-icons";
 import {
   AccountModal,
@@ -22,13 +21,6 @@ import {
 } from "@/features/dashboard/components/account-menu-modals";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
-
-// Hide the "Upgrade" affordances only for plans already at the top tier (nothing
-// to upgrade to); everyone else — free and mid-tier — sees them, like the prototype.
-const TOP_TIER_PLANS: string[] = [
-  PLAN_TYPE.PREMIUM,
-  PLAN_TYPE.EMPLOYER_ENTERPRISE,
-];
 
 function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "U";
@@ -47,7 +39,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const { locale, setLocale, t } = useI18n();
 
   const planLabel = plan?.name ?? t("common.freePlan");
-  const canUpgrade = !plan || !TOP_TIER_PLANS.includes(plan.planType);
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -149,16 +140,14 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           </div>
         </Link>
         <div className={s["pm-sep"]} />
-        {canUpgrade ? (
-          <button
-            type="button"
-            className={cn(s["pm-item"], s["pm-upgrade"])}
-            onClick={() => openModal("upgrade")}
-          >
-            <Ic name="zap" />
-            <span>{t("accountMenu.upgradePlan")}</span>
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className={cn(s["pm-item"], s["pm-upgrade"])}
+          onClick={() => openModal("upgrade")}
+        >
+          <Ic name="zap" />
+          <span>{t("accountMenu.upgradePlan")}</span>
+        </button>
         <button
           type="button"
           className={s["pm-item"]}
@@ -210,9 +199,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <span className={s.pname}>{user.name}</span>
           <span className={s.pmail}>{planLabel}</span>
         </span>
-        {canUpgrade ? (
-          <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
-        ) : null}
+        <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
       </button>
 
       {modal === "upgrade" ? (
