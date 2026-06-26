@@ -8,6 +8,7 @@ import type {
  *  NEW backend field (header DOB / contact) — shown as a toast for now. The rest
  *  map to existing CRUD (see docs/api/profile.md). */
 export type EditTarget =
+  | { type: "identity" }
   | { type: "education"; item: WorkerEducation | null }
   | { type: "language"; item: WorkerLanguage | null }
   | { type: "experience"; item: WorkerExperience | null }

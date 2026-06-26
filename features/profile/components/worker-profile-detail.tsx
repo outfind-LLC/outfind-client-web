@@ -15,6 +15,7 @@ import {
   type ContactTile,
 } from "@/features/profile/lib/profile-data";
 import { Ic, type IconName } from "@/features/profile/components/profile-icons";
+import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
 import type { EditTarget } from "@/features/profile/types/edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
@@ -48,6 +49,9 @@ export function WorkerProfileDetail({
   onEdit: (target: EditTarget) => void;
 }) {
   const { t, locale } = useI18n();
+  const { identity } = useProfileIdentity();
+  const displayName =
+    [identity.firstName, identity.surname].filter(Boolean).join(" ").trim() || user.name;
 
   const { filled, empty } = contactTiles(user);
   const { live, search } = searchSettings(profile, t);
@@ -63,13 +67,14 @@ export function WorkerProfileDetail({
       <div className={cn(s["pd-card"], s["pd-head"])}>
         <div className={s["pd-head-row"]}>
           <div className={s["pd-head-main"]}>
-            <h2 className={s["pd-name"]}>{user.name}</h2>
+            <h2 className={s["pd-name"]}>{displayName}</h2>
+            {identity.birthdate ? <div className={s["pd-bd"]}>{identity.birthdate}</div> : null}
           </div>
           <button
             type="button"
             className={s["pd-edit-link"]}
             aria-label={t("profile.ariaEditProfile")}
-            onClick={() => onEdit({ type: "soon" })}
+            onClick={() => onEdit({ type: "identity" })}
           >
             <Ic name="pen" />
             <span className={s["pd-edit-t"]}>{t("profile.edit")}</span>

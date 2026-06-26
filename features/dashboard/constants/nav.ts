@@ -18,7 +18,7 @@ export interface NavItem {
  * Career & migration. */
 const WORKER_NAV: NavItem[] = [
   { labelKey: "nav.newJob", href: routes.jobs, icon: "plus", newChat: true },
-  { labelKey: "nav.savedApplied", href: routes.applications, icon: "bookmark" },
+  { labelKey: "nav.savedApplied", href: routes.applications, icon: "docCheck" },
   { labelKey: "nav.profile", href: routes.profile, icon: "user" },
   { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },
 ];

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { useI18n } from "@/providers/i18n-provider";
+import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import {
@@ -60,6 +61,14 @@ const WORK_FORMAT_KEY: Record<string, MessageKey> = {
   HYBRID: "profile.workHybrid",
 };
 
+/** Citizenship / work-permit options — verbatim from the prototype's COUNTRIES list. */
+const COUNTRIES = [
+  "Uzbekistan", "Kazakhstan", "Kyrgyzstan", "Tajikistan", "Turkmenistan", "Russia",
+  "Azerbaijan", "Armenia", "Georgia", "Turkey", "United Arab Emirates", "Saudi Arabia",
+  "Qatar", "South Korea", "United Kingdom", "Germany", "Poland", "Czechia", "Lithuania",
+  "Latvia", "Estonia", "United States", "Canada", "Other",
+] as const;
+
 /** Renders the editor for the requested section (existing-CRUD sections only). */
 export function ProfileEditModal({
   target,
@@ -71,6 +80,8 @@ export function ProfileEditModal({
   onClose: () => void;
 }) {
   switch (target.type) {
+    case "identity":
+      return <IdentityEditor onClose={onClose} />;
     case "education":
       return <EducationEditor item={target.item} onClose={onClose} />;
     case "language":
@@ -94,11 +105,13 @@ function Modal({
   onClose,
   children,
   footer,
+  wide = false,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   footer: ReactNode;
+  wide?: boolean;
 }) {
   const { t } = useI18n();
   useEffect(() => {
@@ -121,7 +134,12 @@ function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={s["pf-modal"]} role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className={cn(s["pf-modal"], wide && s["pf-modal-wide"])}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <div className={s["pf-modal-head"]}>
           <div className={s["pf-modal-title"]}>{title}</div>
           <button type="button" className={s["pf-modal-x"]} aria-label={t("profile.ariaClose")} onClick={onClose}>
@@ -227,51 +245,117 @@ function TextAreaField({
   );
 }
 
-function CheckRow({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className={s["pf-check-wrap"]}>
-      <input
-        type="checkbox"
-        className={s["pf-check"]}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className={s["pf-check-box"]}>
-        <Ic name="check" />
-      </span>
-      <span className={s["pf-check-l"]}>{label}</span>
-    </label>
-  );
-}
-
+/** The prototype's single full-width Save action (the header X is the cancel). */
 function Foot({
-  onClose,
   onSave,
   saving,
   t,
+  label,
 }: {
-  onClose: () => void;
   onSave: () => void;
   saving: boolean;
   t: TranslateFn;
+  label?: string;
 }) {
   return (
-    <>
-      <button type="button" className={cn(s["pf-btn"], s["pf-btn-ghost"])} onClick={onClose}>
-        {t("profile.cancel")}
-      </button>
-      <button type="button" className={cn(s["pf-btn"], s["pf-btn-primary"])} onClick={onSave} disabled={saving}>
-        {t("profile.save")}
-      </button>
-    </>
+    <button
+      type="button"
+      className={cn(s["pf-btn"], s["pf-btn-primary"])}
+      onClick={onSave}
+      disabled={saving}
+    >
+      {label ?? t("profile.save")}
+    </button>
+  );
+}
+
+const MONTH_VALUES = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+
+/**
+ * The prototype's date control: a Month dropdown + a Year text input, far easier
+ * than the native month picker. Month labels follow the active locale. When a
+ * `present` toggle is supplied (end date) and checked, the inputs disable.
+ */
+function DateRow({
+  label,
+  month,
+  year,
+  onMonth,
+  onYear,
+  present,
+  onPresent,
+  presentLabel,
+}: {
+  label: string;
+  month: string;
+  year: string;
+  onMonth: (v: string) => void;
+  onYear: (v: string) => void;
+  present?: boolean;
+  onPresent?: (v: boolean) => void;
+  presentLabel?: string;
+}) {
+  const { t, locale } = useI18n();
+  const months = useMemo(
+    () =>
+      MONTH_VALUES.map((v, i) => ({
+        value: v,
+        label: new Date(2000, i, 1).toLocaleDateString(locale, { month: "short" }),
+      })),
+    [locale],
+  );
+  const disabled = present === true;
+
+  return (
+    <div className={cn(s["pf-field"], s["pf-daterow"])}>
+      <div className={s["pf-daterow-head"]}>
+        <span className={s["pf-field-l"]}>{label}</span>
+        {onPresent ? (
+          <label className={s["pf-check-wrap"]}>
+            <span className={s["pf-check-l"]}>{presentLabel}</span>
+            <input
+              type="checkbox"
+              className={s["pf-check"]}
+              checked={present}
+              onChange={(e) => onPresent(e.target.checked)}
+            />
+            <span className={s["pf-check-box"]}>
+              <Ic name="check" />
+            </span>
+          </label>
+        ) : null}
+      </div>
+      <div className={cn(s["pf-daterow-grid"], disabled && s["is-disabled"])}>
+        <span className={s["pf-selectwrap"]}>
+          <select
+            className={cn(s["pf-control"], s["pf-select"])}
+            value={month}
+            disabled={disabled}
+            onChange={(e) => onMonth(e.target.value)}
+          >
+            <option value="" disabled hidden>
+              {t("profile.wpMonth")}
+            </option>
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+          <Ic name="chev" />
+        </span>
+        <input
+          className={cn(s["pf-control"], s["pf-input"])}
+          type="text"
+          inputMode="numeric"
+          maxLength={4}
+          value={year}
+          disabled={disabled}
+          placeholder={t("profile.wpYear")}
+          onChange={(e) => onYear(e.target.value.replace(/\D/g, ""))}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -285,6 +369,72 @@ function RemoveButton({ label, onRemove }: { label: string; onRemove: () => void
 }
 
 /* ---------------- editors ---------------- */
+/**
+ * The "Details" identity modal (Surname / Name / Gender / Date of birth /
+ * Citizenship / Work permit), opened from the profile-header edit button. These
+ * fields are not on the backend `WorkerProfile` yet, so they persist via a local
+ * seam (useProfileIdentity) and are documented in docs/api/profile.md.
+ */
+function IdentityEditor({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  const { identity, update } = useProfileIdentity();
+
+  const [surname, setSurname] = useState(identity.surname);
+  const [firstName, setFirstName] = useState(identity.firstName);
+  const [gender, setGender] = useState(identity.gender);
+  const [birthdate, setBirthdate] = useState(identity.birthdate);
+  const [citizenship, setCitizenship] = useState(identity.citizenship);
+  const [workPermit, setWorkPermit] = useState(identity.workPermit);
+
+  const countryOptions = COUNTRIES.map((c) => ({ value: c, label: c }));
+  const genderOptions: { value: "male" | "female"; label: string }[] = [
+    { value: "male", label: t("profile.idMale") },
+    { value: "female", label: t("profile.idFemale") },
+  ];
+
+  const save = () => {
+    update({
+      surname: surname.trim(),
+      firstName: firstName.trim(),
+      gender,
+      birthdate: birthdate.trim(),
+      citizenship,
+      workPermit,
+    });
+    toast(t("profile.idSaved"));
+    onClose();
+  };
+
+  return (
+    <Modal
+      title={t("profile.idTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={false} t={t} />}
+    >
+      <TextField label={t("profile.idSurname")} value={surname} onChange={setSurname} placeholder={t("profile.idSurname")} />
+      <TextField label={t("profile.idName")} value={firstName} onChange={setFirstName} placeholder={t("profile.idName")} />
+      <Field label={t("profile.idGender")}>
+        <span className={s["pf-seg"]} role="radiogroup">
+          {genderOptions.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={cn(s["pf-seg-btn"], gender === o.value && s.on)}
+              aria-pressed={gender === o.value}
+              onClick={() => setGender(o.value)}
+            >
+              {o.label}
+            </button>
+          ))}
+        </span>
+      </Field>
+      <TextField label={t("profile.idDob")} value={birthdate} onChange={setBirthdate} placeholder={t("profile.idDobPh")} />
+      <SelectField label={t("profile.idCitizenship")} value={citizenship} onChange={setCitizenship} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
+      <SelectField label={t("profile.idWorkPermit")} value={workPermit} onChange={setWorkPermit} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
+    </Modal>
+  );
+}
+
 function EducationEditor({
   item,
   onClose,
@@ -340,7 +490,7 @@ function EducationEditor({
     <Modal
       title={item ? t("profile.eduEditTitle") : t("profile.eduAddTitle")}
       onClose={onClose}
-      footer={<Foot onClose={onClose} onSave={save} saving={saving} t={t} />}
+      footer={<Foot onSave={save} saving={saving} t={t} />}
     >
       <TextField label={t("profile.eduOrg")} value={org} onChange={setOrg} placeholder={t("profile.eduOrgPh")} />
       <TextField label={t("profile.eduField")} value={field} onChange={setField} placeholder={t("profile.eduFieldPh")} />
@@ -401,7 +551,7 @@ function LanguageEditor({
     <Modal
       title={item ? t("profile.langEditTitle") : t("profile.langAddTitle")}
       onClose={onClose}
-      footer={<Foot onClose={onClose} onSave={save} saving={saving} t={t} />}
+      footer={<Foot onSave={save} saving={saving} t={t} />}
     >
       <TextField label={t("profile.langName")} value={language} onChange={setLanguage} placeholder={t("profile.langNamePh")} />
       <SelectField label={t("profile.langLevel")} value={proficiency} onChange={setProficiency} options={levelOptions} placeholder={t("profile.langLevelPh")} />
@@ -422,14 +572,18 @@ function WorkplaceEditor({
   const update = useUpdateExperience();
   const del = useDeleteExperience();
 
+  const initStart = splitYearMonth(item?.startDate ?? null);
+  const initEnd = splitYearMonth(item?.endDate ?? null);
   const [company, setCompany] = useState(item?.companyName ?? "");
   const [role, setRole] = useState(item?.position ?? "");
   const [employment, setEmployment] = useState(item?.employmentType ?? "");
   const [workFormat, setWorkFormat] = useState(item?.workFormat ?? "");
   const [domain, setDomain] = useState(item?.domain ?? "");
-  const [start, setStart] = useState(item ? item.startDate.slice(0, 7) : "");
+  const [startMonth, setStartMonth] = useState(initStart.month);
+  const [startYear, setStartYear] = useState(initStart.year);
   const [present, setPresent] = useState(item ? item.endDate === null : false);
-  const [end, setEnd] = useState(item?.endDate ? item.endDate.slice(0, 7) : "");
+  const [endMonth, setEndMonth] = useState(initEnd.month);
+  const [endYear, setEndYear] = useState(initEnd.year);
   const [bullets, setBullets] = useState(item?.description ?? "");
 
   const saving = create.isPending || update.isPending || del.isPending;
@@ -442,7 +596,9 @@ function WorkplaceEditor({
     label: t(WORK_FORMAT_KEY[v] ?? "profile.workOnsite"),
   }));
   const domainOptions = Object.values(DOMAIN).map((v) => ({ value: v, label: titleCase(v) }));
-  const canSave = Boolean(company.trim() && role.trim() && employment && workFormat && domain && start);
+  const startSet = Boolean(startMonth && startYear.length === 4);
+  const endSet = Boolean(endMonth && endYear.length === 4);
+  const canSave = Boolean(company.trim() && role.trim() && employment && workFormat && domain && startSet);
 
   const save = async () => {
     if (!canSave || saving) return;
@@ -452,8 +608,8 @@ function WorkplaceEditor({
       domain,
       employmentType: employment,
       workFormat,
-      startDate: `${start}-01`,
-      endDate: present ? null : end ? `${end}-01` : null,
+      startDate: `${startYear}-${startMonth}-01`,
+      endDate: present || !endSet ? null : `${endYear}-${endMonth}-01`,
       description: bullets.trim() || null,
     };
     try {
@@ -480,24 +636,45 @@ function WorkplaceEditor({
     <Modal
       title={item ? t("profile.wpEditTitle") : t("profile.wpAddTitle")}
       onClose={onClose}
-      footer={<Foot onClose={onClose} onSave={save} saving={saving} t={t} />}
+      wide
+      footer={<Foot onSave={save} saving={saving || !canSave} t={t} label={item ? t("profile.save") : t("profile.add")} />}
     >
-      <TextField label={t("profile.wpCompany")} value={company} onChange={setCompany} />
-      <TextField label={t("profile.wpRole")} value={role} onChange={setRole} />
+      <div className={s["pf-row"]}>
+        <TextField label={t("profile.wpCompany")} value={company} onChange={setCompany} />
+        <TextField label={t("profile.wpRole")} value={role} onChange={setRole} />
+      </div>
       <div className={s["pf-row"]}>
         <SelectField label={t("profile.wpEmployment")} value={employment} onChange={setEmployment} options={empOptions} placeholder={t("profile.selectPlaceholder")} />
         <SelectField label={t("profile.wpWorkFormat")} value={workFormat} onChange={setWorkFormat} options={workOptions} placeholder={t("profile.selectPlaceholder")} />
       </div>
       <SelectField label={t("profile.wpDomain")} value={domain} onChange={setDomain} options={domainOptions} placeholder={t("profile.selectPlaceholder")} />
-      <div className={s["pf-row"]}>
-        <TextField label={t("profile.wpStart")} value={start} onChange={setStart} type="month" />
-        {!present ? <TextField label={t("profile.wpEnd")} value={end} onChange={setEnd} type="month" /> : null}
-      </div>
-      <CheckRow label={t("profile.wpPresent")} checked={present} onChange={setPresent} />
+      <DateRow
+        label={t("profile.wpStart")}
+        month={startMonth}
+        year={startYear}
+        onMonth={setStartMonth}
+        onYear={setStartYear}
+      />
+      <DateRow
+        label={t("profile.wpEnd")}
+        month={endMonth}
+        year={endYear}
+        onMonth={setEndMonth}
+        onYear={setEndYear}
+        present={present}
+        onPresent={setPresent}
+        presentLabel={t("profile.wpPresent")}
+      />
       <TextAreaField label={t("profile.wpBullets")} value={bullets} onChange={setBullets} placeholder={t("profile.wpBulletsPh")} />
       {item ? <RemoveButton label={t("profile.wpRemove")} onRemove={remove} /> : null}
     </Modal>
   );
+}
+
+/** Split an ISO date ("YYYY-MM-DD") into the prototype's month/year parts. */
+function splitYearMonth(iso: string | null): { month: string; year: string } {
+  if (!iso) return { month: "", year: "" };
+  return { year: iso.slice(0, 4), month: iso.slice(5, 7) };
 }
 
 function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; onClose: () => void }) {
@@ -518,7 +695,7 @@ function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; on
   };
 
   return (
-    <Modal title={t("profile.fldLocTitle")} onClose={onClose} footer={<Foot onClose={onClose} onSave={save} saving={update.isPending} t={t} />}>
+    <Modal title={t("profile.fldLocTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
       <TextField label={t("profile.fldCity")} value={city} onChange={setCity} placeholder={t("profile.fldCityPh")} />
       <TextField label={t("profile.fldCountry")} value={country} onChange={setCountry} placeholder={t("profile.fldCountryPh")} />
     </Modal>
@@ -543,7 +720,7 @@ function SearchAreaEditor({ profile, onClose }: { profile: WorkerProfile; onClos
   };
 
   return (
-    <Modal title={t("profile.fldAreaTitle")} onClose={onClose} footer={<Foot onClose={onClose} onSave={save} saving={update.isPending} t={t} />}>
+    <Modal title={t("profile.fldAreaTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
       <TextField label={t("profile.fldAreaTitle")} value={cities} onChange={setCities} placeholder={t("profile.fldAreaPh")} />
     </Modal>
   );
@@ -569,7 +746,7 @@ function DrivingEditor({ profile, onClose }: { profile: WorkerProfile; onClose: 
   };
 
   return (
-    <Modal title={t("profile.drvTitle")} onClose={onClose} footer={<Foot onClose={onClose} onSave={save} saving={update.isPending} t={t} />}>
+    <Modal title={t("profile.drvTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
       <Field label={t("profile.drvCats")}>
         <span className={s["pf-seg"]}>
           {Object.values(DRIVING_LICENSE_CATEGORY).map((cat) => (

@@ -271,6 +271,7 @@
 .pd-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
 .pd-name { margin: 0; font-family: var(--font-sans); font-weight: 700; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -0.02em; line-height: 1.08; }
 .pd-bd { font-size: 15px; color: var(--text-secondary); margin-top: 12px; }
+.pd-bd { font-size: 15px; color: var(--text-secondary); margin-top: 12px; }
 .pd-edit-link {
   flex: 0 0 auto;
   width: 36px;
@@ -548,6 +549,10 @@
 .pf-select { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; }
 .pf-selectwrap .ic { position: absolute; right: 12px; top: 50%; transform: translateY(-50%) rotate(90deg); width: 16px; height: 16px; pointer-events: none; background: var(--icon-secondary); }
 .pf-textarea { min-height: 104px; resize: vertical; line-height: 1.45; }
+.pf-daterow-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; }
+.pf-daterow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-daterow-grid.is-disabled .pf-control { background: var(--bg-secondary); border-color: transparent; color: var(--text-tertiary); cursor: not-allowed; }
+.pf-daterow-grid.is-disabled .pf-selectwrap .ic { opacity: 0.5; }
 .pf-row { display: flex; gap: 14px; }
 .pf-row > .pf-field { flex: 1 1 0; min-width: 0; }
 .pf-check-wrap { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }

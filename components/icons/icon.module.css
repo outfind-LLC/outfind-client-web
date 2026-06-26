@@ -1,0 +1,12 @@
+/* Shared mask-icon base. Colour follows `currentColor`; size defaults to the
+   surrounding font-size and is overridable via a `className` or a parent `.ic`
+   sizing rule. Matches the prototype's `.ic { background: currentColor; mask } `. */
+.ic {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: 1.25em;
+  background: currentColor;
+  -webkit-mask: var(--i) center / contain no-repeat;
+  mask: var(--i) center / contain no-repeat;
+}
