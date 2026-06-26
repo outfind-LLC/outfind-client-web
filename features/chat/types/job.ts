@@ -29,6 +29,9 @@ export interface JobCardData {
   jobType: string | null;
   /** Posting detail, used to power the per-job AI tools. */
   description: string | null;
+  /** "What you'll do" — the role's day-to-day duties. */
+  responsibilities: string[];
+  /** "What you'll need" — the role's requirements. */
   requirements: string[];
   contact: JobContact;
 }
@@ -44,6 +47,7 @@ interface InternalVacancyOutput {
   salary: string | null;
   skills: string[];
   description?: string | null;
+  responsibilities?: string[];
   requirements?: string[];
   contact: Partial<JobContact> | null;
   postedAt: string | null;
@@ -59,6 +63,7 @@ interface ExternalJobOutput {
   jobType?: string;
   isRemote?: boolean;
   description?: string | null;
+  responsibilities?: string[];
   requirements?: string[];
   contact: Partial<JobContact> | null;
 }
@@ -100,6 +105,7 @@ function normaliseInternal(item: InternalVacancyOutput): JobCardData {
     isRemote: item.isRemote,
     jobType: item.type,
     description: item.description ?? null,
+    responsibilities: item.responsibilities ?? [],
     requirements: item.requirements ?? [],
     contact: normaliseContact(item.contact),
   };
@@ -116,6 +122,7 @@ function normaliseExternal(item: ExternalJobOutput): JobCardData {
     isRemote: item.isRemote ?? /remote/i.test(item.location ?? ""),
     jobType: item.jobType ?? null,
     description: item.description ?? null,
+    responsibilities: item.responsibilities ?? [],
     requirements: item.requirements ?? [],
     contact: normaliseContact(item.contact),
   };

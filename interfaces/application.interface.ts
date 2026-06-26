@@ -13,6 +13,7 @@ export interface ApplicationVacancyPreview {
   status: VacancyStatus;
   employerId: string | null;
   companyName: string | null;
+  companyLogoUrl: string | null;
 }
 
 /** Worker's view of their own application. */
@@ -28,6 +29,14 @@ export interface Application {
   createdAt: string;
   updatedAt: string;
   vacancy: ApplicationVacancyPreview;
+  /** Hiring employer is identity-verified — drives the verified badge. */
+  employerVerified: boolean;
+  /** Inbox enrichment from `GET /worker/applications` (see backend list view). */
+  unreadCount: number;
+  lastMessagePreview: string | null;
+  lastMessageSenderRole: ApplicationMessageSender | null;
+  /** When the latest message is the worker's own, has the employer read it. */
+  lastMessageReadByCounterparty: boolean;
 }
 
 /** Worker preview shown to the employer when listing applicants. */

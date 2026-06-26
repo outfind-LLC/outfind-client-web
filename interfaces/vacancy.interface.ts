@@ -69,6 +69,8 @@ export interface ListVacanciesQuery {
 /** Full vacancy detail as seen by a worker (`GET /vacancies/:id`). */
 export interface PublicVacancy extends Vacancy {
   companyName: string | null;
+  /** AI-written role summary shown as the "About this role" blurb. */
+  description: string | null;
 }
 
 /** A vacancy recommended to a worker (`GET /worker/recommendations`). */

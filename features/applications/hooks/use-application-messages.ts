@@ -60,6 +60,10 @@ export function useMarkApplicationRead(
       queryClient.invalidateQueries({
         queryKey: qk.applicationMessages(applicationId),
       });
+      // The inbox unread badge + "Only unread" filter read from the list views,
+      // so refresh them too once the thread is marked read.
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applicants"] });
     },
   });
 }

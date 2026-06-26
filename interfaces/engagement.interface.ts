@@ -3,20 +3,31 @@
  * Mirror of the backend engagement module's views. Dates are ISO strings over
  * the wire (backend `Date` → JSON string).
  */
-import type { ReactionType } from "./enums";
+import type { ReactionType, VacancyType } from "./enums";
+
+/** Vacancy fields shown on a saved-job card (title, company, salary, tags). */
+export interface BookmarkVacancyPreview {
+  id: string;
+  title: string;
+  country: string;
+  city: string | null;
+  employerId: string | null;
+  companyName: string | null;
+  companyLogoUrl: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  currency: string | null;
+  salaryRaw: string | null;
+  type: VacancyType | null;
+  isRemote: boolean;
+}
 
 export interface Bookmark {
   id: string;
   vacancyId: string;
   note: string | null;
   createdAt: string;
-  vacancy: {
-    id: string;
-    title: string;
-    country: string;
-    city: string | null;
-    employerId: string | null;
-  };
+  vacancy: BookmarkVacancyPreview;
 }
 
 export interface ListBookmarksQuery {

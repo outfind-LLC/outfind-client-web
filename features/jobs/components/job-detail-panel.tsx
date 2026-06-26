@@ -372,6 +372,20 @@ function Sheet({
               </div>
             ) : null}
 
+            {job.responsibilities.length > 0 ? (
+              <div className={s["jd-sec"]}>
+                <h3>What you&apos;ll do</h3>
+                <ul className={s["jd-list"]}>
+                  {job.responsibilities.map((item) => (
+                    <li key={item}>
+                      <Ic name="checkBold" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             {job.requirements.length > 0 ? (
               <div className={s["jd-sec"]}>
                 <h3>What you&apos;ll need</h3>

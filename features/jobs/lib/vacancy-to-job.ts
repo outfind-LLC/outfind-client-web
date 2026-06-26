@@ -23,7 +23,11 @@ function formatSalary(vacancy: PublicVacancy): string | null {
   return `${prefix}${value.toLocaleString()}`;
 }
 
-/** Compose a readable "about" block from a vacancy's structured sections. */
+/**
+ * Fallback "about" blurb when the vacancy has no AI summary. Responsibilities and
+ * requirements now have their own dedicated sheet sections, so this composes only
+ * the leftover structured detail (benefits, nice-to-have).
+ */
 function buildDescription(vacancy: PublicVacancy): string | null {
   const block = (title: string, items: string[] | null): string | null =>
     items && items.length > 0
@@ -31,7 +35,6 @@ function buildDescription(vacancy: PublicVacancy): string | null {
       : null;
 
   const parts = [
-    block("Responsibilities", vacancy.responsibilities),
     block("Benefits", vacancy.benefits),
     block("Nice to have", vacancy.niceToHave),
   ].filter((part): part is string => part !== null);
@@ -51,6 +54,7 @@ export function thinJobFromRecommendation(rec: RecommendedVacancy): JobCardData 
     isRemote: false,
     jobType: null,
     description: null,
+    responsibilities: [],
     requirements: [],
     contact: {
       email: null,
@@ -81,7 +85,11 @@ export function enrichJobWithVacancy(
     skills: job.skills.length > 0 ? job.skills : full.skillsRequired,
     isRemote: job.isRemote || full.isRemote,
     jobType: job.jobType ?? full.type,
-    description: job.description ?? buildDescription(full),
+    description: job.description ?? full.description ?? buildDescription(full),
+    responsibilities:
+      job.responsibilities.length > 0
+        ? job.responsibilities
+        : (full.responsibilities ?? []),
     requirements:
       job.requirements.length > 0 ? job.requirements : (full.requirements ?? []),
     contact:

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 import {
   useApplications,
+  useApplyToVacancy,
   useEmployerApplications,
 } from "@/features/applications/hooks/use-applications";
 import {
@@ -19,21 +21,32 @@ import {
   useMarkApplicationRead,
   useSendApplicationMessage,
 } from "@/features/applications/hooks/use-application-messages";
-import { APPLICATION_STATUS_META } from "@/features/applications/constants/status";
-import { useBookmarks } from "@/features/bookmarks/hooks/use-bookmarks";
+import { useBookmarks, useRemoveBookmark } from "@/features/bookmarks/hooks/use-bookmarks";
+import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
-import { formatRelativeTime } from "@/lib/format";
+import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
-import { APPLICATION_STATUS, type ApplicationStatus } from "@/interfaces/enums";
+import {
+  APPLICATION_STATUS,
+  VACANCY_TYPE,
+  type VacancyType,
+} from "@/interfaces/enums";
 import type {
   Application,
+  ApplicationMessageSender,
   ConversationScope,
   EmployerApplication,
 } from "@/interfaces/application.interface";
-import type { Bookmark } from "@/interfaces/engagement.interface";
+import type {
+  Bookmark,
+  BookmarkVacancyPreview,
+} from "@/interfaces/engagement.interface";
+import type { JobCardData } from "@/features/chat/types/job";
+import type { MessageKey } from "@/lib/i18n/translate";
+import type { TranslateFn } from "@/providers/i18n-provider";
 import s from "@/features/applications/styles/messenger.module.css";
 
-/* ---------------- icons (exact prototype paths) ---------------- */
+/* ---------------- icons (exact prototype paths, 1.5px solar set) ------------ */
 function mIcon(inner: string, sw = 1.5, fill = false): string {
   const svg = fill
     ? `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'>${inner}</svg>`
@@ -54,14 +67,23 @@ const MICONS = {
   chat: mIcon("<path d='M4 8c0-1.9 0-2.83.6-3.41C5.17 4 6.1 4 8 4h8c1.9 0 2.83 0 3.41.59C20 5.17 20 6.1 20 8v5c0 1.9 0 2.83-.59 3.41C18.83 17 17.9 17 16 17H9l-3.4 3c-.6.5-1.6.1-1.6-.7z'/>", 1.5),
   eye: mIcon("<path d='M3 12c0-1.2.32-1.6 1-2.4C5.7 7.6 8.6 5 12 5s6.3 2.6 8 4.6c.68.8 1 1.2 1 2.4s-.32 1.6-1 2.4C18.3 16.4 15.4 19 12 19s-6.3-2.6-8-4.6C2.32 13.6 2 13.2 2 12z'/><circle cx='12' cy='12' r='3'/>", 1.5),
   dots: mIcon("<circle cx='12' cy='5' r='1.6'/><circle cx='12' cy='12' r='1.6'/><circle cx='12' cy='19' r='1.6'/>", 1.5),
+  verified: mIcon(
+    "<path d='M12 2.2l2.3 1.7 2.85-.2 .9 2.72 2.35 1.63-.85 2.73.85 2.73-2.35 1.63-.9 2.72-2.85-.2L12 21.8l-2.3-1.7-2.85.2-.9-2.72-2.35-1.63.85-2.73-.85-2.73 2.35-1.63.9-2.72 2.85.2z'/><path d='M8.6 12.2l2.2 2.2 4.6-4.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/>",
+    1.5,
+    true,
+  ),
 } as const;
 function MIc({ name, className }: { name: keyof typeof MICONS; className?: string }) {
   return (
-    <span className={cn(s.ic, className)} style={{ "--i": MICONS[name] } as CSSProperties} aria-hidden="true" />
+    <span
+      className={cn(s.ic, className)}
+      style={{ "--i": MICONS[name] } as CSSProperties}
+      aria-hidden="true"
+    />
   );
 }
 
-/* ---------------- helpers ---------------- */
+/* ---------------- avatar + formatting helpers ------------------------------- */
 const AV_COLORS = ["#3158f6", "#22a06b", "#ff6b00", "#7a5af5", "#0f9bb3", "#e0532e", "#9b51e0"];
 function avatarColor(seed: string): string {
   let hash = 0;
@@ -71,32 +93,132 @@ function avatarColor(seed: string): string {
 function initials(name: string): string {
   return name.split(/\s+/).map((w) => w[0] ?? "").slice(0, 2).join("").toUpperCase() || "?";
 }
-function clockTime(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
-function dayLabel(iso: string): string {
+/** Chat-list timestamp: today → time, this week → weekday, older → dd.mm. */
+function inboxDate(iso: string | null, locale: string): string {
+  if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const now = new Date();
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (sameDay(d, now)) return "Today";
-  if (sameDay(d, yesterday)) return "Yesterday";
-  return d.toLocaleDateString([], { day: "numeric", month: "long" });
+  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000);
+  if (diffDays <= 0) return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  if (diffDays < 7) return d.toLocaleDateString(locale, { weekday: "short" });
+  return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+function clockTime(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
+function dayLabel(iso: string, locale: string, t: TranslateFn): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000);
+  if (diffDays <= 0) return t("applications.dayToday");
+  if (diffDays === 1) return t("applications.dayYesterday");
+  return d.toLocaleDateString(locale, { day: "numeric", month: "long" });
 }
 
-const STATUS_CLS: Record<ApplicationStatus, string> = {
-  [APPLICATION_STATUS.SENT]: "applied",
-  [APPLICATION_STATUS.VIEWED]: "viewed",
-  [APPLICATION_STATUS.ACCEPTED]: "interview",
-  [APPLICATION_STATUS.REJECTED]: "rejected",
-  [APPLICATION_STATUS.SAVED]: "done",
+/* ---------------- status mapping (backend enum → design status) ------------- */
+type DisplayStatus = "interview" | "reply" | "applied" | "viewed" | "done" | "rejected";
+const STATUS_LABEL_KEY: Record<DisplayStatus, MessageKey> = {
+  interview: "applications.statusInterview",
+  reply: "applications.statusReply",
+  applied: "applications.statusApplied",
+  viewed: "applications.statusViewed",
+  done: "applications.statusInReview",
+  rejected: "applications.statusRejected",
 };
+/** Worker view: dynamic status — an unread employer message reads as "New reply". */
+function workerStatus(a: Application): DisplayStatus {
+  if (a.status === APPLICATION_STATUS.REJECTED) return "rejected";
+  if (a.status === APPLICATION_STATUS.ACCEPTED) return "interview";
+  if (a.unreadCount > 0 && a.lastMessageSenderRole === "EMPLOYER") return "reply";
+  if (a.status === APPLICATION_STATUS.VIEWED) return "viewed";
+  if (a.lastMessageAt) return "done";
+  return "applied";
+}
+function employerStatus(e: EmployerApplication): DisplayStatus {
+  if (e.status === APPLICATION_STATUS.REJECTED) return "rejected";
+  if (e.status === APPLICATION_STATUS.ACCEPTED) return "interview";
+  if (e.status === APPLICATION_STATUS.VIEWED) return "viewed";
+  if (e.lastMessageAt) return "done";
+  return "applied";
+}
 
+/* ---------------- saved-card formatting ------------------------------------- */
+const TYPE_LABEL_KEY: Record<VacancyType, MessageKey> = {
+  [VACANCY_TYPE.FULL_TIME]: "applications.typeFullTime",
+  [VACANCY_TYPE.PART_TIME]: "applications.typePartTime",
+  [VACANCY_TYPE.CONTRACT]: "applications.typeContract",
+  [VACANCY_TYPE.SEASONAL]: "applications.typeSeasonal",
+  [VACANCY_TYPE.INTERNSHIP]: "applications.typeInternship",
+};
+function formatBookmarkSalary(
+  v: BookmarkVacancyPreview,
+  t: TranslateFn,
+  locale: string,
+): string | null {
+  if (v.salaryRaw) return v.salaryRaw;
+  const cur = v.currency ? ` ${v.currency}` : "";
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(n);
+  if (v.salaryMin != null && v.salaryMax != null) return `${fmt(v.salaryMin)}–${fmt(v.salaryMax)}${cur}`;
+  if (v.salaryMin != null) return t("applications.salaryFrom", { amount: `${fmt(v.salaryMin)}${cur}` });
+  if (v.salaryMax != null) return `${fmt(v.salaryMax)}${cur}`;
+  return null;
+}
+function savedTags(v: BookmarkVacancyPreview, t: TranslateFn): string[] {
+  const tags: string[] = [];
+  if (v.type) tags.push(t(TYPE_LABEL_KEY[v.type]));
+  tags.push(v.isRemote ? t("applications.workRemote") : t("applications.workOnSite"));
+  return tags;
+}
+
+/* ---------------- JobCardData builders (for the shared job-detail sheet) ----- */
+const EMPTY_CONTACT = {
+  email: null,
+  phone: null,
+  whatsapp: null,
+  telegram: null,
+  website: null,
+  contactForm: null,
+};
+function jobFromBookmark(v: BookmarkVacancyPreview, salary: string | null): JobCardData {
+  return {
+    id: v.id,
+    title: v.title,
+    company: v.companyName,
+    location: [v.city, v.country].filter(Boolean).join(", ") || null,
+    salary,
+    skills: [],
+    isRemote: v.isRemote,
+    jobType: null,
+    description: null,
+    requirements: [],
+    responsibilities: [],
+    contact: { ...EMPTY_CONTACT },
+  };
+}
+function jobFromThread(thread: Thread): JobCardData {
+  return {
+    id: thread.vacancyId,
+    title: thread.vacancyTitle || thread.mainLine,
+    company: thread.company,
+    location: [thread.city, thread.country].filter(Boolean).join(", ") || null,
+    salary: null,
+    skills: [],
+    isRemote: false,
+    jobType: null,
+    description: null,
+    requirements: [],
+    responsibilities: [],
+    contact: { ...EMPTY_CONTACT },
+  };
+}
+
+/* ---------------- thread model ---------------------------------------------- */
 interface Thread {
   id: string;
   name: string;
@@ -104,59 +226,93 @@ interface Thread {
   color: string;
   mainLine: string;
   subLine: string;
-  statusCls: string;
-  statusLabel: string;
+  statusCls: DisplayStatus;
+  statusLabelKey: MessageKey;
   date: string;
+  unreadCount: number;
+  lastMessageMine: boolean;
+  lastMessageRead: boolean;
+  employerVerified: boolean;
+  vacancyId: string | null;
   vacancyTitle: string;
+  company: string | null;
+  city: string | null;
+  country: string | null;
+  sentAt: string | null;
+  isWorker: boolean;
 }
 
-function workerThread(a: Application): Thread {
-  const company = a.vacancy.companyName ?? "Employer";
+function workerThread(a: Application, locale: string): Thread {
+  const company = a.vacancy.companyName ?? a.vacancy.title;
+  const st = workerStatus(a);
   return {
     id: a.id,
     name: company,
-    avatarUrl: null,
+    avatarUrl: a.vacancy.companyLogoUrl,
     color: avatarColor(company),
     mainLine: a.vacancy.title,
     subLine: a.vacancy.companyName ?? a.vacancy.city ?? "",
-    statusCls: STATUS_CLS[a.status] ?? "applied",
-    statusLabel: APPLICATION_STATUS_META[a.status]?.label ?? "Applied",
-    date: formatRelativeTime(a.lastMessageAt ?? a.sentAt ?? a.createdAt),
+    statusCls: st,
+    statusLabelKey: STATUS_LABEL_KEY[st],
+    date: inboxDate(a.lastMessageAt ?? a.sentAt ?? a.createdAt, locale),
+    unreadCount: a.unreadCount,
+    lastMessageMine: a.lastMessageSenderRole === "WORKER",
+    lastMessageRead: a.lastMessageReadByCounterparty,
+    employerVerified: a.employerVerified,
+    vacancyId: a.vacancyId,
     vacancyTitle: a.vacancy.title,
+    company: a.vacancy.companyName,
+    city: a.vacancy.city,
+    country: a.vacancy.country,
+    sentAt: a.sentAt,
+    isWorker: true,
   };
 }
-function employerThread(e: EmployerApplication): Thread {
+function employerThread(e: EmployerApplication, locale: string): Thread {
   const name = e.applicant.name;
+  const st = employerStatus(e);
   return {
     id: e.id,
     name,
     avatarUrl: e.applicant.avatarUrl,
     color: avatarColor(name),
     mainLine: name,
-    subLine: e.applicant.profession ?? "Candidate",
-    statusCls: STATUS_CLS[e.status] ?? "applied",
-    statusLabel: APPLICATION_STATUS_META[e.status]?.label ?? "Applied",
-    date: formatRelativeTime(e.lastMessageAt ?? e.sentAt ?? e.createdAt),
+    subLine: e.applicant.profession ?? "",
+    statusCls: st,
+    statusLabelKey: STATUS_LABEL_KEY[st],
+    date: inboxDate(e.lastMessageAt ?? e.sentAt ?? e.createdAt, locale),
+    unreadCount: 0,
+    lastMessageMine: false,
+    lastMessageRead: false,
+    employerVerified: false,
+    vacancyId: null,
     vacancyTitle: e.applicant.profession ?? "",
+    company: null,
+    city: null,
+    country: null,
+    sentAt: e.sentAt,
+    isWorker: false,
   };
 }
 
-const QUICK = [
-  "Thank you!",
-  "I'm available this week",
-  "What's the location?",
-  "What are the next steps?",
+const QUICK_KEYS: MessageKey[] = [
+  "applications.quickThanks",
+  "applications.quickAvailable",
+  "applications.quickLocation",
+  "applications.quickRemote",
+  "applications.quickNext",
 ];
 
 /**
  * The Saved & applied (worker) / Candidates (employer) messenger — the prototype
- * inbox + conversation thread. Inbox + threads are real (applications + messages);
- * the employer flat inbox uses a proposed endpoint and degrades to empty. Online
- * presence / read-receipt flourishes from the prototype are omitted (no backend
- * signal) — see api-need.md.
+ * inbox + conversation thread + saved-jobs tab. Worker data is real (applications
+ * + messages + bookmarks). Online presence and formal employer letters from the
+ * prototype are omitted (no backend signal yet) — see docs/api-need.md. The
+ * employer side reuses this shell and is fleshed out in a later feature.
  */
 export function MessengerScreen({ scope }: { scope: ConversationScope }) {
   const employer = scope === "employer";
+  const { t, locale } = useI18n();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
   const workerApps = useApplications();
@@ -168,21 +324,27 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
   const [unreadOnly, setUnreadOnly] = useState(false);
 
   const threads = useMemo<Thread[]>(() => {
-    if (employer) return (employerApps.data ?? []).map(employerThread);
-    return (workerApps.data ?? []).map(workerThread);
-  }, [employer, employerApps.data, workerApps.data]);
+    if (employer) return (employerApps.data ?? []).map((e) => employerThread(e, locale));
+    return (workerApps.data ?? []).map((a) => workerThread(a, locale));
+  }, [employer, employerApps.data, workerApps.data, locale]);
 
-  const open = openId ? threads.find((t) => t.id === openId) ?? null : null;
+  const totalUnread = useMemo(
+    () => threads.reduce((n, th) => n + th.unreadCount, 0),
+    [threads],
+  );
+
+  const open = openId ? (threads.find((th) => th.id === openId) ?? null) : null;
   const loading = employer ? employerApps.isLoading : workerApps.isLoading;
+
+  const openThread = (id: string) => {
+    setTab("applied");
+    setOpenId(id);
+  };
 
   if (open) {
     return (
       <div className={s.screen}>
-        <ThreadView
-          scope={scope}
-          thread={open}
-          onBack={() => setOpenId(null)}
-        />
+        <ThreadView scope={scope} thread={open} onBack={() => setOpenId(null)} />
       </div>
     );
   }
@@ -193,12 +355,14 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
         <button
           type="button"
           className={cn(s["sv-iconbtn"], s["sv-menu"])}
-          aria-label="Open menu"
+          aria-label={t("applications.ariaOpenMenu")}
           onClick={() => setMobileOpen(true)}
         >
           <MIc name="menu" />
         </button>
-        <div className={s["sv-title"]}>{employer ? "Candidates" : "Saved & applied"}</div>
+        <div className={s["sv-title"]}>
+          {employer ? "Candidates" : t("applications.title")}
+        </div>
       </header>
 
       <div className={s["sv-tabs"]}>
@@ -207,14 +371,15 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           className={cn(s["sv-tab"], tab === "applied" && s.on)}
           onClick={() => setTab("applied")}
         >
-          {employer ? "Applicants" : "Applied"}
+          {employer ? "Applicants" : t("applications.tabApplied")}
+          {totalUnread > 0 ? <span className={s["sv-tabbadge"]}>{totalUnread}</span> : null}
         </button>
         <button
           type="button"
           className={cn(s["sv-tab"], tab === "saved" && s.on)}
           onClick={() => setTab("saved")}
         >
-          {employer ? "Shortlist" : "Saved"}
+          {employer ? "Shortlist" : t("applications.tabSaved")}
         </button>
       </div>
 
@@ -229,7 +394,11 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
             employer={employer}
           />
         ) : (
-          <SavedTab employer={employer} bookmarks={bookmarks.data ?? []} />
+          <SavedTab
+            employer={employer}
+            bookmarks={bookmarks.data ?? []}
+            onOpenThread={openThread}
+          />
         )}
       </div>
     </div>
@@ -251,6 +420,8 @@ function AppliedTab({
   onOpen: (id: string) => void;
   employer: boolean;
 }) {
+  const { t } = useI18n();
+
   if (loading) {
     return (
       <div className={s["sv-list"]}>
@@ -273,15 +444,17 @@ function AppliedTab({
     return (
       <Empty
         icon="chat"
-        title={employer ? "No applicants yet" : "No applications yet"}
+        title={employer ? "No applicants yet" : t("applications.emptyNoApps")}
         desc={
           employer
             ? "When someone applies to one of your roles, your chat with them shows up here."
-            : "When you apply to a job, your chat with the employer shows up here."
+            : t("applications.emptyNoAppsDesc")
         }
       />
     );
   }
+
+  const list = threads.filter((th) => !unreadOnly || th.unreadCount > 0);
 
   return (
     <>
@@ -295,41 +468,82 @@ function AppliedTab({
         <span className={s["sv-check-box"]}>
           <MIc name="check" />
         </span>
-        <span className={s["sv-check-l"]}>Only unread</span>
+        <span className={s["sv-check-l"]}>{t("applications.onlyUnread")}</span>
       </label>
-      <div className={s["sv-list"]}>
-        {threads.map((t) => (
-          <button key={t.id} type="button" className={s["sv-item"]} onClick={() => onOpen(t.id)}>
-            <span className={s["sv-avwrap"]}>
-              <span className={s["sv-av"]} style={{ background: t.color }}>
-                {t.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={t.avatarUrl} alt="" />
-                ) : (
-                  initials(t.name)
-                )}
-              </span>
-            </span>
-            <span className={s["sv-item-main"]}>
-              <span className={s["sv-item-row"]}>
-                <span className={s["sv-role"]}>{t.mainLine}</span>
-                <span className={s["sv-meta"]}>
-                  <span className={s["sv-meta-date"]}>{t.date}</span>
+
+      {list.length === 0 ? (
+        <Empty
+          icon="chat"
+          title={t("applications.emptyNoUnread")}
+          desc={t("applications.emptyNoUnreadDesc")}
+        />
+      ) : (
+        <div className={s["sv-list"]}>
+          {list.map((th) => (
+            <button
+              key={th.id}
+              type="button"
+              className={cn(s["sv-item"], th.unreadCount > 0 && s["is-unread"])}
+              onClick={() => onOpen(th.id)}
+            >
+              <span className={s["sv-avwrap"]}>
+                <span className={s["sv-av"]} style={{ background: th.color }}>
+                  {th.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={th.avatarUrl} alt="" />
+                  ) : (
+                    initials(th.name)
+                  )}
                 </span>
               </span>
-              {t.subLine ? <span className={s["sv-co"]}>{t.subLine}</span> : null}
-              <span className={cn(s["sv-status"], s[`sv-status--${t.statusCls}`])}>
-                {t.statusLabel}
+              <span className={s["sv-item-main"]}>
+                <span className={s["sv-item-row"]}>
+                  <span className={s["sv-role"]}>{th.mainLine}</span>
+                  <span className={s["sv-meta"]}>
+                    {th.unreadCount > 0 ? (
+                      <>
+                        <span className={s["sv-meta-date"]}>{th.date}</span>
+                        <span className={s["sv-unread"]}>{th.unreadCount}</span>
+                      </>
+                    ) : (
+                      <span className={s["sv-meta-date"]}>
+                        {th.lastMessageMine ? (
+                          <span className={cn(s["sv-tick"], th.lastMessageRead && s["sv-tick--read"])}>
+                            <MIc name={th.lastMessageRead ? "checks" : "check"} />
+                          </span>
+                        ) : null}
+                        {th.date}
+                      </span>
+                    )}
+                  </span>
+                </span>
+                {th.subLine ? <span className={s["sv-co"]}>{th.subLine}</span> : null}
+                <span className={cn(s["sv-status"], s[`sv-status--${th.statusCls}`])}>
+                  {t(th.statusLabelKey)}
+                </span>
               </span>
-            </span>
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }
 
-function SavedTab({ employer, bookmarks }: { employer: boolean; bookmarks: Bookmark[] }) {
+function SavedTab({
+  employer,
+  bookmarks,
+  onOpenThread,
+}: {
+  employer: boolean;
+  bookmarks: Bookmark[];
+  onOpenThread: (applicationId: string) => void;
+}) {
+  const { t, locale } = useI18n();
+  const apply = useApplyToVacancy();
+  const removeBookmark = useRemoveBookmark();
+  const openDetail = useJobDetailPanelStore((st) => st.openDetail);
+
   if (employer) {
     return (
       <Empty
@@ -343,28 +557,101 @@ function SavedTab({ employer, bookmarks }: { employer: boolean; bookmarks: Bookm
     return (
       <Empty
         icon="bookmark"
-        title="Nothing saved"
-        desc="Tap the bookmark on any job to keep it here for later."
+        title={t("applications.emptyNoSaved")}
+        desc={t("applications.emptyNoSavedDesc")}
       />
     );
   }
+
+  const onView = (b: Bookmark) => {
+    const salary = formatBookmarkSalary(b.vacancy, t, locale);
+    openDetail(jobFromBookmark(b.vacancy, salary), b.vacancyId);
+  };
+  const onUnsave = (b: Bookmark) => {
+    removeBookmark.mutate(b.vacancyId);
+    toast(t("applications.toastRemoved"));
+  };
+  const onApply = (b: Bookmark) => {
+    if (apply.isPending) return;
+    apply.mutate(
+      { vacancyId: b.vacancyId },
+      {
+        onSuccess: (created) => {
+          removeBookmark.mutate(b.vacancyId);
+          toast.success(t("applications.toastAppSent"));
+          onOpenThread(created.id);
+        },
+        onError: () => toast.error(t("applications.errorApply")),
+      },
+    );
+  };
+
   return (
     <div className={s["sv-saved"]}>
-      {bookmarks.map((b) => (
-        <div key={b.id} className={s["sv-job"]}>
-          <div className={s["sv-job-top"]}>
-            <span className={s["sv-av"]} style={{ background: avatarColor(b.vacancy.title) }}>
-              {initials(b.vacancy.title)}
-            </span>
-            <div className={s["sv-job-head"]}>
-              <div className={s["sv-job-role"]}>{b.vacancy.title}</div>
-              <div className={s["sv-co"]}>
-                {[b.vacancy.city, b.vacancy.country].filter(Boolean).join(" · ")}
+      {bookmarks.map((b) => {
+        const v = b.vacancy;
+        const label = v.companyName ?? v.title;
+        const salary = formatBookmarkSalary(v, t, locale);
+        const tags = savedTags(v, t);
+        return (
+          <div key={b.id} className={s["sv-job"]}>
+            <div className={s["sv-job-top"]}>
+              <span className={s["sv-av"]} style={{ background: avatarColor(label) }}>
+                {v.companyLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={v.companyLogoUrl} alt="" />
+                ) : (
+                  initials(label)
+                )}
+              </span>
+              <div className={s["sv-job-head"]}>
+                <div className={s["sv-job-role"]}>{v.title}</div>
+                <div className={s["sv-co"]}>
+                  {[v.companyName, v.city].filter(Boolean).join(" · ")}
+                </div>
               </div>
+              <button
+                type="button"
+                className={s["sv-job-save"]}
+                aria-label={t("applications.removeSaved")}
+                onClick={() => onUnsave(b)}
+              >
+                <MIc name="bookmark" />
+              </button>
+            </div>
+            <div className={s["sv-job-meta"]}>
+              {salary ? (
+                <span className={s["sv-job-pay"]}>
+                  <MIc name="wallet" />
+                  {salary}
+                </span>
+              ) : null}
+              {tags.map((tag) => (
+                <span key={tag} className={s["sv-chip"]}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <div className={s["sv-job-actions"]}>
+              <button
+                type="button"
+                className={cn(s["sv-btn"], s["sv-btn-ghost"])}
+                onClick={() => onView(b)}
+              >
+                {t("applications.viewJob")}
+              </button>
+              <button
+                type="button"
+                className={cn(s["sv-btn"], s["sv-btn-primary"])}
+                onClick={() => onApply(b)}
+                disabled={apply.isPending}
+              >
+                {t("applications.applyMessage")}
+              </button>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -398,12 +685,14 @@ function ThreadView({
   thread: Thread;
   onBack: () => void;
 }) {
+  const { t, locale } = useI18n();
   const { data: messages, isLoading } = useApplicationMessages(scope, thread.id, true);
   const send = useSendApplicationMessage(scope, thread.id);
   const markRead = useMarkApplicationRead(scope, thread.id);
+  const openDetail = useJobDetailPanelStore((st) => st.openDetail);
   const [draft, setDraft] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
-  const me = scope === "worker" ? "WORKER" : "EMPLOYER";
+  const me: ApplicationMessageSender = scope === "worker" ? "WORKER" : "EMPLOYER";
 
   // Mark the thread read once on open.
   const marked = useRef(false);
@@ -423,17 +712,23 @@ function ThreadView({
     event.preventDefault();
     const text = draft.trim();
     if (!text || send.isPending) return;
-    send.mutate(text, { onError: () => toast.error("Couldn't send the message") });
+    send.mutate(text, { onError: () => toast.error(t("applications.errorSend")) });
     setDraft("");
   };
 
   const list = messages ?? [];
+  const showApplied = thread.isWorker && Boolean(thread.sentAt);
   let lastDay: string | null = null;
 
   return (
     <>
       <header className={cn(s["sv-topbar"], s["sv-thead"])}>
-        <button type="button" className={cn(s["sv-iconbtn"], s["sv-back"])} onClick={onBack} aria-label="Back">
+        <button
+          type="button"
+          className={cn(s["sv-iconbtn"], s["sv-back"])}
+          onClick={onBack}
+          aria-label={t("applications.ariaBack")}
+        >
           <MIc name="back" />
         </button>
         <span className={s["sv-avwrap"]}>
@@ -447,39 +742,80 @@ function ThreadView({
           </span>
         </span>
         <div className={s["sv-thead-main"]}>
-          <div className={s["sv-thead-name"]}>{thread.name}</div>
-          <div className={s["sv-thead-sub"]}>{thread.statusLabel}</div>
+          <div className={s["sv-thead-name"]}>
+            {thread.name}
+            {thread.employerVerified ? (
+              <span className={s["sv-verified"]}>
+                <MIc name="verified" />
+              </span>
+            ) : null}
+          </div>
+          <div className={s["sv-thead-sub"]}>{t(thread.statusLabelKey)}</div>
         </div>
-        <button type="button" className={s["sv-iconbtn"]} aria-label="More" onClick={() => toast("Conversation options coming soon")}>
+        {thread.isWorker ? (
+          <button
+            type="button"
+            className={s["sv-iconbtn"]}
+            aria-label={t("applications.ariaCall")}
+            onClick={() => toast(t("applications.toastCalling"))}
+          >
+            <MIc name="phone" />
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className={s["sv-iconbtn"]}
+          aria-label={t("applications.ariaMore")}
+          onClick={() => toast(t("applications.toastConvOptions"))}
+        >
           <MIc name="dots" />
         </button>
       </header>
 
       <div className={s["sv-pin"]}>
         <div className={s["sv-pin-main"]}>
-          <span className={s["sv-pin-l"]}>{scope === "employer" ? "Applied for" : "Applied to vacancy"}</span>
+          <span className={s["sv-pin-l"]}>{t("applications.pinApplied")}</span>
           <span className={s["sv-pin-role"]}>{thread.vacancyTitle || thread.mainLine}</span>
         </div>
+        {thread.isWorker && thread.vacancyId ? (
+          <button
+            type="button"
+            className={s["sv-pin-go"]}
+            onClick={() => openDetail(jobFromThread(thread), thread.vacancyId)}
+          >
+            {t("applications.viewJob")}
+            <MIc name="open" />
+          </button>
+        ) : null}
       </div>
 
       <div className={s["sv-msgs"]} ref={msgsRef}>
         <div className={s["sv-msgs-inner"]}>
-          {isLoading ? (
-            <div className={s["sv-sys"]}>Loading conversation…</div>
-          ) : list.length === 0 ? (
+          {showApplied ? (
             <div className={s["sv-sys"]}>
               <MIc name="eye" />
-              No messages yet — say hello.
+              {t("applications.appliedOn", {
+                date: dayLabel(thread.sentAt as string, locale, t),
+              })}
+            </div>
+          ) : null}
+
+          {isLoading ? (
+            <div className={s["sv-sys"]}>{t("applications.loadingConversation")}</div>
+          ) : list.length === 0 && !showApplied ? (
+            <div className={s["sv-sys"]}>
+              <MIc name="eye" />
+              {t("applications.noMessages")}
             </div>
           ) : (
             list.map((m) => {
               const isMe = m.senderRole === me;
-              const day = dayLabel(m.createdAt);
-              const showDay = day && day !== lastDay;
+              const day = dayLabel(m.createdAt, locale, t);
+              const showDay = Boolean(day) && day !== lastDay;
               if (showDay) lastDay = day;
               const read = scope === "worker" ? m.readByEmployer : m.readByWorker;
               return (
-                <div key={m.id}>
+                <Fragment key={m.id}>
                   {showDay ? (
                     <div className={s["sv-daysep"]}>
                       <span>{day}</span>
@@ -489,7 +825,7 @@ function ThreadView({
                     <div className={cn(s["sv-bubble"], isMe && s.me)}>
                       {m.content}
                       <span className={s["sv-btime"]}>
-                        {clockTime(m.createdAt)}
+                        {clockTime(m.createdAt, locale)}
                         {isMe ? (
                           <span className={cn(s["sv-bt-tick"], read && s.read)}>
                             <MIc name={read ? "checks" : "check"} />
@@ -498,10 +834,11 @@ function ThreadView({
                       </span>
                     </div>
                   </div>
-                </div>
+                </Fragment>
               );
             })
           )}
+
           {send.isPending ? (
             <div className={s["sv-typing"]}>
               <div className={s["sv-bubble"]}>
@@ -515,33 +852,46 @@ function ThreadView({
       </div>
 
       <div className={s["sv-quick"]}>
-        {QUICK.map((q) => (
-          <button
-            key={q}
-            type="button"
-            className={s["sv-qchip"]}
-            onClick={() => {
-              if (send.isPending) return;
-              send.mutate(q, { onError: () => toast.error("Couldn't send the message") });
-            }}
-          >
-            {q}
-          </button>
-        ))}
+        {QUICK_KEYS.map((key) => {
+          const label = t(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              className={s["sv-qchip"]}
+              onClick={() => {
+                if (send.isPending) return;
+                send.mutate(label, { onError: () => toast.error(t("applications.errorSend")) });
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <form className={s["sv-composer"]} autoComplete="off" onSubmit={submit}>
-        <button type="button" className={s["sv-attach"]} aria-label="Attach" onClick={() => toast("Attachments are coming soon")}>
+        <button
+          type="button"
+          className={s["sv-attach"]}
+          aria-label={t("applications.ariaAttach")}
+          onClick={() => toast(t("applications.toastAttach"))}
+        >
           <MIc name="plus" />
         </button>
         <input
           className={s["sv-input"]}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Message…"
-          aria-label="Message"
+          placeholder={t("applications.composerPlaceholder")}
+          aria-label={t("applications.composerPlaceholder")}
         />
-        <button type="submit" className={s["sv-send"]} aria-label="Send" disabled={!draft.trim() || send.isPending}>
+        <button
+          type="submit"
+          className={s["sv-send"]}
+          aria-label={t("applications.ariaSend")}
+          disabled={!draft.trim() || send.isPending}
+        >
           <MIc name="send" />
         </button>
       </form>
