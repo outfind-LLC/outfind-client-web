@@ -21,6 +21,7 @@ import { jobKey } from "@/features/jobs/lib/job-context";
 import { useGenerateCoverLetter } from "@/features/ai-tools/hooks/use-worker-ai";
 import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
 import type { JobCardData } from "@/features/chat/types/job";
+import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/button";
@@ -107,15 +108,13 @@ function InternalSheet({
   show: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
   const actions = useJobActions(vacancyId);
 
   const applySection = (
     <div className={s["jd-sec"]}>
-      <h3>How to apply</h3>
-      <p>
-        This role was posted on Peoplor, so you can apply in one tap — we&apos;ll
-        send your CV tailored to this job.
-      </p>
+      <h3>{t("chat.jdHowApply")}</h3>
+      <p>{t("chat.jdPlatformApply")}</p>
     </div>
   );
 
@@ -125,7 +124,7 @@ function InternalSheet({
       className={cn(s.btn, s["btn-primary"], s["btn-md"])}
       onClick={onClose}
     >
-      Done
+      {t("chat.done")}
     </button>
   ) : (
     <>
@@ -135,7 +134,7 @@ function InternalSheet({
         onClick={actions.toggleSave}
         disabled={actions.savePending}
       >
-        {actions.saved ? "Saved" : "Save"}
+        {actions.saved ? t("chat.saved") : t("chat.save")}
       </button>
       <button
         type="button"
@@ -143,7 +142,7 @@ function InternalSheet({
         onClick={actions.applyToJob}
         disabled={actions.applyPending}
       >
-        Apply with my CV
+        {t("chat.applyCv")}
       </button>
     </>
   );
@@ -177,15 +176,16 @@ function ExternalSheet({
   show: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
   const { email, phone } = job.contact;
   const fallbackHref = primaryContactHref(job.contact);
 
   const applySection = (
     <div className={s["jd-sec"]}>
-      <h3>How to apply</h3>
+      <h3>{t("chat.jdHowApply")}</h3>
       <p>
-        Peoplor found this role online, so you apply with the employer directly.
-        {hasAnyContact(job.contact) ? " Here are their contact details:" : ""}
+        {t("chat.jdOnlineApply")}
+        {hasAnyContact(job.contact) ? t("chat.jdOnlineContacts") : ""}
       </p>
       {hasAnyContact(job.contact) ? (
         <div className={s["jd-contact"]} style={{ marginTop: 13 }}>
@@ -209,11 +209,7 @@ function ExternalSheet({
           ) : null}
         </div>
       ) : null}
-      <p className={s["jd-note"]}>
-        Peoplor can&apos;t apply on your behalf for roles found online. Always
-        verify the employer and never pay for a job or share documents before
-        you&apos;re sure.
-      </p>
+      <p className={s["jd-note"]}>{t("chat.jdOnlineNote")}</p>
     </div>
   );
 
@@ -224,7 +220,7 @@ function ExternalSheet({
           className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
           href={`mailto:${email}`}
         >
-          Email
+          {t("chat.email")}
         </a>
       ) : null}
       {phone ? (
@@ -232,7 +228,7 @@ function ExternalSheet({
           className={cn(s.btn, s["btn-primary"], s["btn-md"])}
           href={`tel:${phone}`}
         >
-          Call employer
+          {t("chat.callEmployer")}
         </a>
       ) : fallbackHref ? (
         <a
@@ -241,11 +237,11 @@ function ExternalSheet({
           target="_blank"
           rel="noreferrer"
         >
-          Apply
+          {t("chat.applyExternal")}
         </a>
       ) : (
         <span className={s["jd-note"]} style={{ margin: 0 }}>
-          No application channel was provided for this role.
+          {t("chat.jdNoChannel")}
         </span>
       )}
     </>
@@ -281,6 +277,7 @@ function Sheet({
   footer: ReactNode;
   children?: ReactNode;
 }) {
+  const t = useT();
   const facts: ReactNode[] = [];
   if (job.location)
     facts.push(
@@ -300,7 +297,7 @@ function Sheet({
     facts.push(
       <span key="remote" className={s.f}>
         <Ic name="globe" />
-        Remote
+        {t("chat.remote")}
       </span>,
     );
 
@@ -322,7 +319,7 @@ function Sheet({
             type="button"
             className={s["jd-close"]}
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("chat.close")}
           >
             <Ic name="close" />
           </button>
@@ -332,12 +329,12 @@ function Sheet({
               {isPlatform ? (
                 <>
                   <ChatMark />
-                  Posted on Peoplor
+                  {t("chat.postedOn")}
                 </>
               ) : (
                 <>
                   <Ic name="globe" />
-                  Found online by Peoplor AI
+                  {t("chat.jdFoundOnline")}
                 </>
               )}
             </span>
@@ -345,7 +342,7 @@ function Sheet({
             <div className={s["jd-title"]}>
               <span>{job.title}</span>
               {isPlatform ? (
-                <Ic name="verified" title="Verified employer" />
+                <Ic name="verified" title={t("chat.verifiedEmployer")} />
               ) : null}
             </div>
 
@@ -367,14 +364,14 @@ function Sheet({
 
             {job.description ? (
               <div className={s["jd-sec"]}>
-                <h3>About this role</h3>
+                <h3>{t("chat.jdAbout")}</h3>
                 <p>{job.description}</p>
               </div>
             ) : null}
 
             {job.responsibilities.length > 0 ? (
               <div className={s["jd-sec"]}>
-                <h3>What you&apos;ll do</h3>
+                <h3>{t("chat.jdDuties")}</h3>
                 <ul className={s["jd-list"]}>
                   {job.responsibilities.map((item) => (
                     <li key={item}>
@@ -388,7 +385,7 @@ function Sheet({
 
             {job.requirements.length > 0 ? (
               <div className={s["jd-sec"]}>
-                <h3>What you&apos;ll need</h3>
+                <h3>{t("chat.jdReqs")}</h3>
                 <ul className={s["jd-list"]}>
                   {job.requirements.map((item) => (
                     <li key={item}>
@@ -402,7 +399,7 @@ function Sheet({
 
             {job.skills.length > 0 ? (
               <div className={s["jd-sec"]}>
-                <h3>Skills</h3>
+                <h3>{t("chat.jdSkills")}</h3>
                 <div className={s["jd-skills"]}>
                   {job.skills.map((skill) => (
                     <span key={skill} className={s.tag}>
@@ -438,6 +435,7 @@ function ApplyPanel({
   submitting: boolean;
   onSubmit: (coverLetter: string, shareContact: boolean) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState("");
   const [shareContact, setShareContact] = useState(false);
   const generate = useGenerateCoverLetter();
@@ -466,9 +464,7 @@ function ApplyPanel({
         onSuccess: (result) => setDraft(result.coverLetter),
         onError: (error) =>
           toast.error(
-            isApiClientError(error)
-              ? error.message
-              : "Couldn't generate a cover letter",
+            isApiClientError(error) ? error.message : t("chat.coverGenError"),
           ),
       },
     );
@@ -477,24 +473,24 @@ function ApplyPanel({
   return (
     <aside
       role="dialog"
-      aria-label={`Apply to ${job.title}`}
+      aria-label={t("chat.applyTo", { title: job.title })}
       className="bg-card animate-in slide-in-from-right fixed inset-y-0 right-0 z-[120] flex w-full flex-col border-l shadow-xl duration-200 sm:max-w-[460px] lg:max-w-[520px]"
     >
       <header className="flex items-start gap-3 border-b p-4 sm:p-5">
         <div className="min-w-0 flex-1 space-y-0.5">
           <h2 className="text-lg leading-tight font-semibold break-words">
-            Apply to {job.title}
+            {t("chat.applyTo", { title: job.title })}
           </h2>
           <p className="text-muted-foreground truncate text-xs">
             {job.company
-              ? `Add a cover letter for ${job.company} — or generate one with AI.`
-              : "Add a cover letter — or generate one with AI."}
+              ? t("chat.coverFor", { company: job.company })
+              : t("chat.coverGeneric")}
           </p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t("chat.close")}
           className="text-muted-foreground hover:text-foreground hover:bg-muted -mr-1 shrink-0 rounded-md p-1.5 transition-colors"
         >
           <X className="size-4" />
@@ -504,8 +500,10 @@ function ApplyPanel({
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="cover-letter" className="text-sm font-medium">
-            Cover letter{" "}
-            <span className="text-muted-foreground font-normal">(optional)</span>
+            {t("chat.coverLetter")}{" "}
+            <span className="text-muted-foreground font-normal">
+              {t("chat.optional")}
+            </span>
           </label>
           <Button
             type="button"
@@ -519,7 +517,7 @@ function ApplyPanel({
             ) : (
               <Sparkles className="size-4" />
             )}
-            {generate.isPending ? "Generating…" : "Generate with AI"}
+            {generate.isPending ? t("chat.generating") : t("chat.generateAi")}
           </Button>
         </div>
 
@@ -527,16 +525,13 @@ function ApplyPanel({
           id="cover-letter"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Introduce yourself and explain why you're a great fit for this role…"
+          placeholder={t("chat.coverPlaceholder")}
           rows={10}
           maxLength={6000}
           disabled={generate.isPending}
         />
         {!canGenerate ? (
-          <p className="text-muted-foreground text-xs">
-            AI generation isn&apos;t available for this role — it has no
-            description. You can still write your own.
-          </p>
+          <p className="text-muted-foreground text-xs">{t("chat.noDescHint")}</p>
         ) : null}
 
         <label
@@ -544,12 +539,9 @@ function ApplyPanel({
           className="bg-muted/40 flex cursor-pointer items-start gap-3 rounded-xl border p-3"
         >
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">
-              Let the employer contact you directly
-            </p>
+            <p className="text-sm font-medium">{t("chat.shareContactTitle")}</p>
             <p className="text-muted-foreground text-xs">
-              Shares your email and phone with this employer so they can reach you
-              outside the platform. You can leave this off and chat here instead.
+              {t("chat.shareContactDesc")}
             </p>
           </div>
           <Switch
@@ -570,7 +562,7 @@ function ApplyPanel({
           disabled={submitting}
           className="w-full sm:w-auto"
         >
-          Cancel
+          {t("chat.cancel")}
         </Button>
         <Button
           type="button"
@@ -580,7 +572,7 @@ function ApplyPanel({
           className="w-full sm:w-auto"
         >
           {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
-          Send application
+          {t("chat.sendApplication")}
         </Button>
       </div>
     </aside>

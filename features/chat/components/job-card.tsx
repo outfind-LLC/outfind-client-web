@@ -3,6 +3,7 @@
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import type { JobCardData } from "@/features/chat/types/job";
 import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
+import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
@@ -13,13 +14,14 @@ import s from "@/features/dashboard/styles/peoplor-app.module.css";
  * online carry neither — matching the prototype exactly.
  */
 export function JobCard({ job }: { job: JobCardData }) {
+  const t = useT();
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
   const isPlatform = job.id !== null;
 
   // The card surfaces a couple of short tags; the full skill list lives in the sheet.
   const tags: string[] = [];
   if (job.jobType) tags.push(job.jobType);
-  if (job.isRemote) tags.push("Remote");
+  if (job.isRemote) tags.push(t("chat.remote"));
   for (const skill of job.skills) {
     if (tags.length >= 3) break;
     tags.push(skill);
@@ -29,7 +31,7 @@ export function JobCard({ job }: { job: JobCardData }) {
     <button type="button" onClick={() => openDetail(job, job.id)} className={s.jcard}>
       <div className={s["jc-top"]}>
         {isPlatform ? (
-          <div className={cn(s["jc-logo"], s["jc-logo-platform"])} title="Posted on Peoplor">
+          <div className={cn(s["jc-logo"], s["jc-logo-platform"])} title={t("chat.postedOn")}>
             <ChatMark />
           </div>
         ) : null}
@@ -37,7 +39,7 @@ export function JobCard({ job }: { job: JobCardData }) {
           <div className={s["jc-role"]}>
             <span>{job.title}</span>
             {isPlatform ? (
-              <Ic name="verified" className={s["jc-verified"]} title="Verified employer" />
+              <Ic name="verified" className={s["jc-verified"]} title={t("chat.verifiedEmployer")} />
             ) : null}
           </div>
           {job.company || job.location ? (

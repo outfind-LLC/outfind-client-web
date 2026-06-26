@@ -13,6 +13,7 @@ import { getDefaultSpecialist } from "@/features/chat/constants/specialists";
 import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { Ic } from "@/features/dashboard/components/app-icons";
+import { useT, type TranslateFn } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { AccountType } from "@/interfaces/enums";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
@@ -32,19 +33,19 @@ interface ChatComposerProps {
 const MAX_TEXTAREA_HEIGHT = 160;
 
 /** Friendly message for a Web Speech API error code. */
-function dictationError(code: string): string {
+function dictationError(code: string, t: TranslateFn): string {
   switch (code) {
     case "not-allowed":
     case "service-not-allowed":
-      return "Microphone blocked. Allow mic access in your browser settings.";
+      return t("chat.micBlocked");
     case "no-speech":
-      return "Didn't catch that — try speaking again.";
+      return t("chat.micNoSpeech");
     case "audio-capture":
-      return "No microphone found.";
+      return t("chat.micNoDevice");
     case "network":
-      return "Voice service is unavailable right now.";
+      return t("chat.micNetwork");
     default:
-      return "Couldn't start voice input.";
+      return t("chat.micGeneric");
   }
 }
 
@@ -56,13 +57,15 @@ export function ChatComposer({
   onSend,
   onStop,
   autoFocus,
-  placeholder = "Search jobs…",
+  placeholder,
   showFoot = true,
 }: ChatComposerProps) {
+  const t = useT();
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Text already in the field when dictation starts; new speech is appended to it.
   const dictationBaseRef = useRef("");
+  const resolvedPlaceholder = placeholder ?? t("chat.composerPlaceholder");
 
   const storeSpecialist = useComposerStore((st) => st.specialist);
   const setSpecialist = useComposerStore((st) => st.setSpecialist);
@@ -70,7 +73,7 @@ export function ChatComposer({
   const speech = useSpeechRecognition({
     onTranscript: (transcript) =>
       setInput(`${dictationBaseRef.current}${transcript}`),
-    onError: (code) => toast.error(dictationError(code)),
+    onError: (code) => toast.error(dictationError(code, t)),
   });
 
   // Seed the store's specialist once for this audience if unset.
@@ -128,15 +131,15 @@ export function ChatComposer({
           onKeyDown={onKeyDown}
           autoFocus={autoFocus}
           rows={1}
-          placeholder={speech.listening ? "Listening…" : placeholder}
-          aria-label={placeholder}
+          placeholder={speech.listening ? t("chat.composerListening") : resolvedPlaceholder}
+          aria-label={resolvedPlaceholder}
         />
 
         {speech.supported ? (
           <button
             type="button"
             className={cn(s.mic, speech.listening && s.listening)}
-            aria-label="Use voice"
+            aria-label={t("chat.ariaUseVoice")}
             aria-pressed={speech.listening}
             onClick={toggleDictation}
           >
@@ -148,7 +151,7 @@ export function ChatComposer({
           <button
             type="button"
             className={s.send}
-            aria-label="Stop"
+            aria-label={t("chat.ariaStop")}
             onClick={onStop}
           >
             <Ic name="stop" />
@@ -157,7 +160,7 @@ export function ChatComposer({
           <button
             type="submit"
             className={s.send}
-            aria-label="Send"
+            aria-label={t("chat.ariaSend")}
             disabled={!input.trim()}
           >
             <Ic name="arrowUp" />
@@ -166,10 +169,7 @@ export function ChatComposer({
       </form>
 
       {showFoot ? (
-        <div className={s["composer-foot"]}>
-          Peoplor helps you find jobs and apply. It can make mistakes — always
-          check job details before applying.
-        </div>
+        <div className={s["composer-foot"]}>{t("chat.composerFoot")}</div>
       ) : null}
     </div>
   );

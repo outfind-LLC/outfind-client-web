@@ -7,17 +7,19 @@ import { useSession } from "@/features/auth/hooks/use-session";
 import { ChatComposer } from "@/features/chat/components/chat-composer";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
 import { ChatMark } from "@/features/dashboard/components/app-icons";
+import { useT } from "@/providers/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 /** Common starting points so workers can search in one tap. */
-const QUICK_PROFESSIONS = [
-  "Truck driver",
-  "Warehouse work",
-  "Delivery courier",
-  "Cleaner",
-  "Welder",
-  "Care assistant",
+const QUICK_PROFESSION_KEYS: MessageKey[] = [
+  "chat.chipTruckDriver",
+  "chat.chipWarehouse",
+  "chat.chipCourier",
+  "chat.chipCleaner",
+  "chat.chipWelder",
+  "chat.chipCareAssistant",
 ];
 
 /**
@@ -31,6 +33,7 @@ const QUICK_PROFESSIONS = [
  * which confirms the city before the search starts and the thread opens.
  */
 export function JobSearchLanding() {
+  const t = useT();
   const { user, isWorker } = useSession();
   const profileQuery = useWorkerProfile(Boolean(isWorker));
 
@@ -47,9 +50,7 @@ export function JobSearchLanding() {
       <div className={s.hero}>
         <div className={s["hero-head"]}>
           <ChatMark className={s["hero-mark"]} />
-          <h1 className={s["hero-title"]}>
-            What kind of role are you looking for?
-          </h1>
+          <h1 className={s["hero-title"]}>{t("chat.heroTitle")}</h1>
         </div>
       </div>
 
@@ -58,20 +59,19 @@ export function JobSearchLanding() {
         busy={false}
         onSend={(text) => openSearch(text)}
         autoFocus
-        placeholder="Search jobs…"
+        placeholder={t("chat.composerPlaceholder")}
         showFoot={false}
       />
 
       <div className={s["hero-chips"]}>
-        {QUICK_PROFESSIONS.map((profession) => (
-          <button
-            key={profession}
-            type="button"
-            onClick={() => openSearch(profession)}
-          >
-            {profession}
-          </button>
-        ))}
+        {QUICK_PROFESSION_KEYS.map((key) => {
+          const label = t(key);
+          return (
+            <button key={key} type="button" onClick={() => openSearch(label)}>
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <JobSearchModal

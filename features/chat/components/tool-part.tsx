@@ -5,6 +5,7 @@ import {
   isCandidateSearchTool,
 } from "@/features/chat/types/candidate";
 import { extractJobs, isJobSearchTool } from "@/features/chat/types/job";
+import { useT } from "@/providers/i18n-provider";
 import { CandidateCard } from "./candidate-card";
 import { JobCard } from "./job-card";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
@@ -16,6 +17,7 @@ import s from "@/features/dashboard/styles/peoplor-app.module.css";
  * states render nothing — the animated mark signals "working".
  */
 export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
+  const t = useT();
   const toolType =
     part.type === "dynamic-tool" ? `tool-${part.toolName}` : part.type;
 
@@ -27,10 +29,11 @@ export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
       <div className={s.jobs}>
         <div className={s["jobs-head"]}>
           <span className={s.ttl}>
-            {candidates.length}{" "}
-            {candidates.length === 1 ? "candidate" : "candidates"}
+            {candidates.length === 1
+              ? t("chat.candidateCountOne")
+              : t("chat.candidateCount", { n: candidates.length })}
           </span>
-          <span className={s.sub}>ranked by fit</span>
+          <span className={s.sub}>{t("chat.rankedByFit")}</span>
         </div>
         {candidates.map((candidate) => (
           <CandidateCard key={candidate.id} candidate={candidate} />
@@ -45,7 +48,7 @@ export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
     // Never surface raw tool/provider error text (it can leak internal details).
     return (
       <p className={s["composer-foot"]} style={{ margin: "8px 0 0", textAlign: "left" }}>
-        Job search is temporarily unavailable. Please try again in a moment.
+        {t("chat.jobSearchUnavailable")}
       </p>
     );
   }
@@ -59,9 +62,11 @@ export function ToolPart({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
     <div className={s.jobs}>
       <div className={s["jobs-head"]}>
         <span className={s.ttl}>
-          {jobs.length} {jobs.length === 1 ? "match" : "matches"}
+          {jobs.length === 1
+            ? t("chat.matchCountOne")
+            : t("chat.matchCount", { n: jobs.length })}
         </span>
-        <span className={s.sub}>ranked by fit</span>
+        <span className={s.sub}>{t("chat.rankedByFit")}</span>
       </div>
       {jobs.map((job, index) => (
         <JobCard key={job.id ?? `${job.title}-${index}`} job={job} />

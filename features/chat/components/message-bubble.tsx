@@ -9,6 +9,7 @@ import {
 } from "@/features/chat/types/candidate";
 import { extractJobs, isJobSearchTool } from "@/features/chat/types/job";
 import { ChatMark } from "@/features/dashboard/components/app-icons";
+import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { ToolPart } from "./tool-part";
@@ -87,8 +88,9 @@ function ResponseMark({ done }: { done: boolean }) {
 
 /** Three-dot typing indicator shown while the assistant is working. */
 function Typing() {
+  const t = useT();
   return (
-    <span className={s.typing} role="status" aria-label="Working">
+    <span className={s.typing} role="status" aria-label={t("chat.working")}>
       <span />
       <span />
       <span />

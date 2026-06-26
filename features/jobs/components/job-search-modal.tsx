@@ -12,6 +12,7 @@ import {
   useStartJobSearch,
   type JobSearchParams,
 } from "@/features/jobs/hooks/use-start-job-search";
+import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { Button } from "@/ui/button";
 import {
@@ -45,6 +46,7 @@ export function JobSearchModal({
   defaultProfession = "",
   defaultCity = "",
 }: JobSearchModalProps) {
+  const t = useT();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -53,12 +55,9 @@ export function JobSearchModal({
             <span className="bg-brand/10 text-brand flex size-8 items-center justify-center rounded-lg">
               <Search className="size-4" />
             </span>
-            Find your next job
+            {t("chat.searchTitle")}
           </DialogTitle>
-          <DialogDescription>
-            Tell us what you&apos;re looking for. We search jobs from across the
-            web and rank the best matches for you.
-          </DialogDescription>
+          <DialogDescription>{t("chat.searchDesc")}</DialogDescription>
         </DialogHeader>
 
         {open ? (
@@ -82,6 +81,7 @@ function JobSearchForm({
   defaultCity: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const storeModel = useComposerStore((s) => s.model);
   const [profession, setProfession] = useState(defaultProfession);
   const [city, setCity] = useState(defaultCity);
@@ -98,7 +98,7 @@ function JobSearchForm({
     const params: JobSearchParams = { profession, city, model };
     startSearch(params, (error) =>
       toast.error(
-        isApiClientError(error) ? error.message : "Couldn't start the search",
+        isApiClientError(error) ? error.message : t("chat.searchError"),
       ),
     );
   };
@@ -106,14 +106,14 @@ function JobSearchForm({
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="job-profession">Profession</Label>
+        <Label htmlFor="job-profession">{t("chat.professionLabel")}</Label>
         <div className="relative">
           <BriefcaseBusiness className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
             id="job-profession"
             value={profession}
             onChange={(event) => setProfession(event.target.value)}
-            placeholder="e.g. Welder, Nurse, Driver"
+            placeholder={t("chat.professionPlaceholder")}
             autoFocus
             autoComplete="off"
             maxLength={100}
@@ -123,14 +123,14 @@ function JobSearchForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="job-city">City</Label>
+        <Label htmlFor="job-city">{t("chat.cityLabel")}</Label>
         <div className="relative">
           <MapPin className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
             id="job-city"
             value={city}
             onChange={(event) => setCity(event.target.value)}
-            placeholder="e.g. Warsaw, Berlin, Remote"
+            placeholder={t("chat.cityPlaceholder")}
             autoComplete="off"
             maxLength={100}
             className="pl-9"
@@ -140,18 +140,18 @@ function JobSearchForm({
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t("chat.cancel")}
         </Button>
         <Button type="submit" variant="brand" disabled={!canSubmit}>
           {isPending ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Starting…
+              {t("chat.starting")}
             </>
           ) : (
             <>
               <Search className="size-4" />
-              Search jobs
+              {t("chat.searchJobs")}
             </>
           )}
         </Button>

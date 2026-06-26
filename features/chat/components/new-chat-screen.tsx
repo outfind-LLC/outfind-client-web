@@ -7,10 +7,25 @@ import { useStartConversation } from "@/features/chat/hooks/use-conversations";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ChatMark } from "@/features/dashboard/components/app-icons";
+import { useT } from "@/providers/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 import { isApiClientError } from "@/lib/api/error";
 import { ACCOUNT_TYPE, type AiSpecialist } from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
+
+const EMPLOYER_CHIP_KEYS: MessageKey[] = [
+  "chat.chipTruckDrivers",
+  "chat.chipWarehouseStaff",
+  "chat.chipDeliveryCouriers",
+  "chat.chipCleaners",
+];
+const ASSISTANT_CHIP_KEYS: MessageKey[] = [
+  "chat.chipBuildCv",
+  "chat.chipImproveResume",
+  "chat.chipInterviewPrep",
+  "chat.chipCareerAdvice",
+];
 
 interface NewChatScreenProps {
   /**
@@ -31,6 +46,7 @@ export function NewChatScreen({
   tab = "assistant",
   defaultSpecialist,
 }: NewChatScreenProps = {}) {
+  const t = useT();
   const { user } = useSession();
   const specialist = useComposerStore((st) => st.specialist);
   const threadHref =
@@ -40,15 +56,11 @@ export function NewChatScreen({
   if (!user) return null;
 
   const employer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
-  const title = employer
-    ? "Who are you looking to hire?"
-    : "How can I help with your career?";
+  const title = employer ? t("chat.employerTitle") : t("chat.assistantTitle");
   const placeholder = employer
-    ? "Describe who you need…"
-    : "Ask anything…";
-  const chips = employer
-    ? ["Truck drivers", "Warehouse staff", "Delivery couriers", "Cleaners"]
-    : ["Build my CV", "Improve my resume", "Interview prep", "Career advice"];
+    ? t("chat.employerPlaceholder")
+    : t("chat.assistantPlaceholder");
+  const chipKeys = employer ? EMPLOYER_CHIP_KEYS : ASSISTANT_CHIP_KEYS;
 
   const send = (text: string) => {
     if (startConversation.isPending) return;
@@ -57,9 +69,7 @@ export function NewChatScreen({
       {
         onError: (error) =>
           toast.error(
-            isApiClientError(error)
-              ? error.message
-              : "Couldn't start the conversation",
+            isApiClientError(error) ? error.message : t("chat.startConvError"),
           ),
       },
     );
@@ -84,11 +94,14 @@ export function NewChatScreen({
       />
 
       <div className={s["hero-chips"]}>
-        {chips.map((chip) => (
-          <button key={chip} type="button" onClick={() => send(chip)}>
-            {chip}
-          </button>
-        ))}
+        {chipKeys.map((key) => {
+          const label = t(key);
+          return (
+            <button key={key} type="button" onClick={() => send(label)}>
+              {label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
