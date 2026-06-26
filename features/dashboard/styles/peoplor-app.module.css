@@ -882,6 +882,20 @@
 .modal-confirm { text-align: center; padding: 8px 4px 6px; }
 .modal-confirm-t { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
 .modal-confirm-d { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+
+/* plan cards (Upgrade modal) — ported from the prototype, accent → accent-brand */
+.plan { border: 1px solid var(--border-default); border-radius: var(--radius-2xl); padding: 16px; }
+.plan + .plan { margin-top: 12px; }
+.plan.featured { border-color: var(--accent-brand); box-shadow: 0 0 0 1px var(--accent-brand); }
+.plan-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.plan-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.plan-price { font-size: 16px; font-weight: 800; font-family: var(--font-display); white-space: nowrap; }
+.plan-price .per { font-size: 12px; color: var(--text-secondary); font-weight: 500; font-family: var(--font-sans); }
+.plan-badge { font-size: 11px; font-weight: 700; color: var(--accent-600); background: var(--accent-50); padding: 3px 9px; border-radius: var(--radius-fill); }
+.plan-badge.muted { color: var(--text-secondary); background: var(--bg-secondary); }
+.plan-feats { list-style: none; margin: 13px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.plan-feats li { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; color: var(--text-primary); }
+.plan-feats .ic { width: 17px; height: 17px; color: var(--icon-accent); flex: 0 0 auto; margin-top: 1px; }
 /* account fields */
 .field { margin-bottom: 14px; }
 .field:last-child { margin-bottom: 0; }

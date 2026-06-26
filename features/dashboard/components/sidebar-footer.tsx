@@ -18,11 +18,17 @@ import {
   AccountModal,
   HelpModal,
   LogoutModal,
+  UpgradeModal,
 } from "@/features/dashboard/components/account-menu-modals";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-const FREE_PLANS: string[] = [PLAN_TYPE.FREE, PLAN_TYPE.EMPLOYER_FREE];
+// Hide the "Upgrade" affordances only for plans already at the top tier (nothing
+// to upgrade to); everyone else — free and mid-tier — sees them, like the prototype.
+const TOP_TIER_PLANS: string[] = [
+  PLAN_TYPE.PREMIUM,
+  PLAN_TYPE.EMPLOYER_ENTERPRISE,
+];
 
 function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "U";
@@ -41,11 +47,13 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const { locale, setLocale, t } = useI18n();
 
   const planLabel = plan?.name ?? t("common.freePlan");
-  const isFree = !plan || FREE_PLANS.includes(plan.planType);
+  const canUpgrade = !plan || !TOP_TIER_PLANS.includes(plan.planType);
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modal, setModal] = useState<null | "account" | "help" | "logout">(null);
+  const [modal, setModal] = useState<
+    null | "account" | "help" | "logout" | "upgrade"
+  >(null);
   const footRef = useRef<HTMLDivElement>(null);
 
   // Close both popovers on outside click / Escape.
@@ -84,7 +92,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     setMenuOpen(false);
     setMobileOpen(false);
   };
-  const openModal = (name: "account" | "help" | "logout") => {
+  const openModal = (name: "account" | "help" | "logout" | "upgrade") => {
     setMenuOpen(false);
     setModal(name);
   };
@@ -141,15 +149,15 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           </div>
         </Link>
         <div className={s["pm-sep"]} />
-        {isFree ? (
-          <Link
-            href={routes.upgrade}
+        {canUpgrade ? (
+          <button
+            type="button"
             className={cn(s["pm-item"], s["pm-upgrade"])}
-            onClick={closeMenuThen}
+            onClick={() => openModal("upgrade")}
           >
             <Ic name="zap" />
             <span>{t("accountMenu.upgradePlan")}</span>
-          </Link>
+          </button>
         ) : null}
         <button
           type="button"
@@ -202,11 +210,14 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <span className={s.pname}>{user.name}</span>
           <span className={s.pmail}>{planLabel}</span>
         </span>
-        {isFree ? (
+        {canUpgrade ? (
           <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
         ) : null}
       </button>
 
+      {modal === "upgrade" ? (
+        <UpgradeModal onClose={() => setModal(null)} />
+      ) : null}
       {modal === "account" ? (
         <AccountModal user={user} onClose={() => setModal(null)} />
       ) : null}
