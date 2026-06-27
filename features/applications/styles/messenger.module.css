@@ -30,8 +30,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  min-height: 62px;
+  padding: 12px 20px;
+  min-height: 60px;
   border-bottom: 1px solid var(--border-default);
   flex: 0 0 auto;
   background: var(--bg-primary);

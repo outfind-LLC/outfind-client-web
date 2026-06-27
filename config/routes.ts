@@ -4,8 +4,8 @@
  */
 export const routes = {
   home: "/",
+  /** Deprecated standalone auth page — now a redirect (auth is modal-first). */
   auth: "/auth",
-  signup: "/auth?mode=signup",
   onboarding: "/onboarding",
 
   // Worker

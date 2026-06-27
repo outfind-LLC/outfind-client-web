@@ -57,6 +57,7 @@
 .pf-navleft.is-back { display: inline-flex; }
 .pf-navleft:hover { background: var(--bg-secondary); }
 .pf-navleft .ic { width: 24px; height: 24px; }
+.pf-topbar-t { flex: 1; min-width: 0; font-weight: 700; font-size: 19px; letter-spacing: -0.015em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 860px) {
   .pf-navleft.is-menu { display: inline-flex; }
 }

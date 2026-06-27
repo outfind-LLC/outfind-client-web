@@ -88,6 +88,7 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
             <Ic name="menu" />
           </button>
         )}
+        <div className={s["pf-topbar-t"]}>{t("nav.profile")}</div>
       </header>
 
       {view === "detail" ? (

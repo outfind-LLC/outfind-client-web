@@ -146,6 +146,7 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
             <Ic name="menu" />
           </button>
         )}
+        <div className={s["pf-topbar-t"]}>{t("nav.company")}</div>
       </header>
 
       {view === "overview" ? (

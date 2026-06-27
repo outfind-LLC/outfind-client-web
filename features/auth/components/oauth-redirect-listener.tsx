@@ -51,8 +51,9 @@ export function OAuthRedirectListener() {
     if (result === OAUTH_RESULT.error) {
       const code = searchParams.get(OAUTH_PARAMS.code);
       toast.error(resolveAuthErrorMessage(code));
-      // Strip params; keep the user on the sign-in page to retry.
-      router.replace(routes.auth);
+      // Auth is modal-first: strip params and reopen the sign-in modal on the
+      // landing to retry (the deprecated standalone /auth page is gone).
+      router.replace(`${routes.home}?signin=1`);
     }
   }, [searchParams, pathname, router, queryClient]);
 

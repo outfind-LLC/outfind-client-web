@@ -7,25 +7,48 @@ import { cn } from "@/lib/utils";
 import { Ic } from "./app-icons";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-/** A readable title for the current section (the live conversation title is
- * shown by the chat surface itself; this is the shell-level fallback). */
+/**
+ * Routes whose screen renders its OWN full-bleed topbar (`.screen` with a sticky
+ * header — messenger, profile, company, career, global hiring, CV). On these the
+ * shared topbar must NOT render, or it stacks a second empty bar above the
+ * screen's own — pushing the page title down, away from the sidebar logo. The
+ * screen's topbar then sits at the top, level with the logo (see image spec).
+ */
+const FULL_BLEED = new Set([
+  "/applications",
+  "/candidates",
+  "/profile",
+  "/profile/cv",
+  "/company",
+  "/career",
+  "/global-hiring",
+]);
+
+/** Section title for routes that rely on the shared topbar (chat, vacancies,
+ * settings, …). Full-bleed routes carry their own title and are handled above. */
 function titleForPath(pathname: string): string {
   if (pathname.startsWith("/jobs")) return "Job search";
   if (pathname.startsWith("/assistant")) return "Assistant";
-  if (pathname.startsWith("/applications")) return "Saved & applied";
-  if (pathname.startsWith("/bookmarks")) return "Saved & applied";
   if (pathname.startsWith("/tools")) return "Career tools";
-  if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/bookmarks")) return "Bookmarks";
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/vacancies")) return "Vacancies";
-  if (pathname.startsWith("/applicants")) return "Applicants";
+  if (pathname.startsWith("/candidates")) return "Candidates";
+  if (pathname.startsWith("/history")) return "History";
+  if (pathname.startsWith("/help")) return "Help";
   return "";
 }
 
-/** App top bar: the mobile menu button plus the current section title. */
+/**
+ * Shared app top bar — the single, consistent header aligned with the sidebar
+ * logo. Renders for every screen EXCEPT the full-bleed ones (which own their
+ * header). Holds the mobile menu button + the current section title.
+ */
 export function DashboardTopbar() {
   const pathname = usePathname();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+
+  if (FULL_BLEED.has(pathname)) return null;
 
   return (
     <header className={s.topbar} id="topbar">

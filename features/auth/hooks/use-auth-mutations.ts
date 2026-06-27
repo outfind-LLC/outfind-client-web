@@ -26,7 +26,9 @@ export function useLogout() {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       queryClient.clear();
-      router.replace(routes.auth);
+      // Auth is modal-first: return to the public landing, not the deprecated
+      // standalone /auth page.
+      router.replace(routes.home);
     },
   });
 }
