@@ -23,6 +23,12 @@ import {
 } from "@/features/applications/hooks/use-application-messages";
 import { useBookmarks, useRemoveBookmark } from "@/features/bookmarks/hooks/use-bookmarks";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
+import { useCandidateDetailStore } from "@/features/applications/store/candidate-detail.store";
+import {
+  MOCK_SHORTLIST,
+  mockCandidateCard,
+} from "@/features/applications/data/employer-mocks";
+import type { CandidateCardData } from "@/features/chat/types/candidate";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
 import { ICONS as REG } from "@/components/icons";
@@ -213,6 +219,27 @@ function jobFromThread(thread: Thread): JobCardData {
   };
 }
 
+/** The candidate card for the "View profile" sheet from an employer thread. */
+function candidateFromThread(thread: Thread): CandidateCardData {
+  return (
+    mockCandidateCard(thread.id) ?? {
+      id: thread.id,
+      name: thread.name,
+      title: thread.subLine || null,
+      location: [thread.city, thread.country].filter(Boolean).join(", ") || null,
+      salary: null,
+      skills: [],
+      availability: null,
+      years: null,
+      matchScore: null,
+      verified: false,
+      summary: null,
+      experience: [],
+      contact: { email: null, phone: null, telegram: null, whatsapp: null, website: null },
+    }
+  );
+}
+
 /* ---------------- thread model ---------------------------------------------- */
 interface Thread {
   id: string;
@@ -356,7 +383,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           <MIc name="menu" />
         </button>
         <div className={s["sv-title"]}>
-          {employer ? "Candidates" : t("applications.title")}
+          {employer ? t("candidates.inboxTitle") : t("applications.title")}
         </div>
       </header>
 
@@ -366,7 +393,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           className={cn(s["sv-tab"], tab === "applied" && s.on)}
           onClick={() => setTab("applied")}
         >
-          {employer ? "Applicants" : t("applications.tabApplied")}
+          {employer ? t("candidates.tabApplicants") : t("applications.tabApplied")}
           {totalUnread > 0 ? <span className={s["sv-tabbadge"]}>{totalUnread}</span> : null}
         </button>
         <button
@@ -374,7 +401,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           className={cn(s["sv-tab"], tab === "saved" && s.on)}
           onClick={() => setTab("saved")}
         >
-          {employer ? "Shortlist" : t("applications.tabSaved")}
+          {employer ? t("candidates.tabShortlist") : t("applications.tabSaved")}
         </button>
       </div>
 
@@ -439,12 +466,8 @@ function AppliedTab({
     return (
       <Empty
         icon="chat"
-        title={employer ? "No applicants yet" : t("applications.emptyNoApps")}
-        desc={
-          employer
-            ? "When someone applies to one of your roles, your chat with them shows up here."
-            : t("applications.emptyNoAppsDesc")
-        }
+        title={employer ? t("candidates.emptyNoApplicants") : t("applications.emptyNoApps")}
+        desc={employer ? t("candidates.emptyNoApplicantsDesc") : t("applications.emptyNoAppsDesc")}
       />
     );
   }
@@ -538,14 +561,57 @@ function SavedTab({
   const apply = useApplyToVacancy();
   const removeBookmark = useRemoveBookmark();
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
+  const openCandidate = useCandidateDetailStore((st) => st.openCandidate);
 
   if (employer) {
+    if (MOCK_SHORTLIST.length === 0) {
+      return (
+        <Empty
+          icon="bookmark"
+          title={t("candidates.emptyNoShortlist")}
+          desc={t("candidates.emptyNoShortlistDesc")}
+        />
+      );
+    }
     return (
-      <Empty
-        icon="bookmark"
-        title="No shortlisted candidates"
-        desc="Shortlist a candidate to keep them here for later."
-      />
+      <div className={s["sv-saved"]}>
+        {MOCK_SHORTLIST.map((c) => (
+          <div key={c.id} className={s["sv-job"]}>
+            <div className={s["sv-job-top"]}>
+              <span className={s["sv-av"]} style={{ background: avatarColor(c.name) }}>
+                {initials(c.name)}
+              </span>
+              <div className={s["sv-job-head"]}>
+                <div className={s["sv-job-role"]}>{c.name}</div>
+                <div className={s["sv-co"]}>
+                  {[c.title, c.location].filter(Boolean).join(" · ")}
+                </div>
+              </div>
+            </div>
+            <div className={s["sv-job-meta"]}>
+              {c.matchScore != null ? (
+                <span className={s["sv-chip"]}>
+                  {c.matchScore}% {t("candidates.matchLabel")}
+                </span>
+              ) : null}
+              {c.skills.slice(0, 3).map((sk) => (
+                <span key={sk} className={s["sv-chip"]}>
+                  {sk}
+                </span>
+              ))}
+            </div>
+            <div className={s["sv-job-actions"]}>
+              <button
+                type="button"
+                className={cn(s["sv-btn"], s["sv-btn-primary"])}
+                onClick={() => openCandidate(c)}
+              >
+                {t("candidates.viewProfile")}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
   if (bookmarks.length === 0) {
@@ -685,6 +751,7 @@ function ThreadView({
   const send = useSendApplicationMessage(scope, thread.id);
   const markRead = useMarkApplicationRead(scope, thread.id);
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
+  const openCandidate = useCandidateDetailStore((st) => st.openCandidate);
   const [draft, setDraft] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
   const me: ApplicationMessageSender = scope === "worker" ? "WORKER" : "EMPLOYER";
@@ -756,7 +823,16 @@ function ThreadView({
           >
             <MIc name="phone" />
           </button>
-        ) : null}
+        ) : (
+          <button
+            type="button"
+            className={s["sv-iconbtn"]}
+            aria-label={t("candidates.ariaViewProfile")}
+            onClick={() => openCandidate(candidateFromThread(thread))}
+          >
+            <MIc name="eye" />
+          </button>
+        )}
         <button
           type="button"
           className={s["sv-iconbtn"]}

@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Container } from "@/components/container";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useEmployerProfile } from "@/features/profile/hooks/use-profile";
-import { EmployerCompanyView } from "@/features/profile/components/employer-company-view";
+import { EmployerCompanyScreen } from "@/features/profile/components/employer-company-screen";
 import { EmployerProfileForm } from "@/features/profile/components/employer-profile-form";
-import { Button } from "@/ui/button";
 import { Skeleton } from "@/ui/skeleton";
 
-/** Company profile: the prototype read view when a profile exists, the form when
- * creating or editing. Resolves create-vs-edit from the session + profile. */
+/**
+ * Company route (`/profile/company`): the pixel-perfect company screen
+ * (overview → detail with per-section edits + Post-a-job) when a profile exists;
+ * the create form when it doesn't. The full-bleed screen owns its own topbar +
+ * scroll, so it renders outside the padded `Container`.
+ */
 export function EmployerProfileFormLoader() {
   const { user, isEmployer } = useSession();
   const profileSet = Boolean(user?.isEmployerProfileSet);
   const { data, isLoading, isError } = useEmployerProfile(profileSet);
-  const [editing, setEditing] = useState(false);
 
   if (!user) {
     return (
@@ -58,25 +59,7 @@ export function EmployerProfileFormLoader() {
         </Container>
       );
     }
-    if (!editing) {
-      return (
-        <EmployerCompanyView profile={data} onEdit={() => setEditing(true)} />
-      );
-    }
-    return (
-      <Container className="max-w-3xl py-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-4 -ml-2"
-          onClick={() => setEditing(false)}
-        >
-          <ArrowLeft className="size-4" />
-          Back to profile
-        </Button>
-        <EmployerProfileForm profile={data} />
-      </Container>
-    );
+    return <EmployerCompanyScreen profile={data} />;
   }
 
   return (

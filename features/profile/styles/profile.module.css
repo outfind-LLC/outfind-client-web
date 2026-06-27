@@ -638,3 +638,28 @@
   .pf-modal-foot { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
   .pf-row { flex-direction: column; gap: 16px; }
 }
+
+/* ============================================================
+   Employer company detail (shares the worker pd / rz / pf toolkit;
+   these are the company-only additions). Ported from the prototype
+   profile.scoped.css co- rules.
+   ============================================================ */
+.pd-photo-co { background: var(--accent-50); color: var(--accent-600); }
+.pd-photo-co .ic { width: 30px; height: 30px; }
+.co-badge-row { margin-top: 12px; }
+.co-verified { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--accent-600); background: var(--accent-50); border-radius: var(--radius-fill); padding: 4px 11px 4px 8px; }
+.co-verified.pending { color: var(--warning); background: var(--warning-50, var(--bg-secondary)); }
+.co-verified.rejected { color: var(--error); background: var(--error-50); }
+.co-verified .ic { width: 15px; height: 15px; }
+.co-statcard { padding: 0; }
+.co-stats { display: flex; align-items: stretch; }
+.co-stat { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 20px 12px; text-align: center; }
+.co-stat-n { font-weight: 700; font-size: 26px; letter-spacing: -0.02em; color: var(--text-primary); }
+.co-stat-l { font-size: 13px; color: var(--text-secondary); }
+.co-stat-div { width: 1px; align-self: stretch; background: var(--border-default); margin: 14px 0; }
+.co-about { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.co-about-text { margin: 0; font-size: 15px; line-height: 1.65; color: var(--text-primary); text-wrap: pretty; }
+.co-contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 640px) {
+  .co-contact-grid { grid-template-columns: 1fr; }
+}

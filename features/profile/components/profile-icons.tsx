@@ -9,6 +9,8 @@ export const ICONS = {
   user: REG.userRound,
   chev: REG.chevronRight,
   cal: REG.calendar,
+  globe: REG.globe,
+  briefcase: REG.briefcaseAlt,
   dots: REG.dotsHorizontal,
   menu: REG.menuShort,
   back: REG.backThin,

@@ -92,6 +92,13 @@ import pencil from "./pencil";
 import alert from "./alert";
 import usersRound from "./users-round";
 
+// Career & migration / Global hiring
+import arrowRight from "./arrow-right";
+import sparkle from "./sparkle";
+import docLines from "./doc-lines";
+import docPlain from "./doc-plain";
+import sealCheck from "./seal-check";
+
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
  * default-exported `IconDef`) and registering it here. Names are unique per
@@ -117,6 +124,8 @@ const DEFS = {
   chevronDownRound, closeMed, key, verifiedOutline, logoutAlt, sun, moon, desktop,
   // employer / company
   companyTall, pencil, alert, usersRound,
+  // career & migration / global hiring
+  arrowRight, sparkle, docLines, docPlain, sealCheck,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

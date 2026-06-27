@@ -4,6 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
 import { applicationsService } from "@/features/applications/services/applications.service";
+import {
+  EMPLOYER_MOCKS_ENABLED,
+  mockEmployerApplications,
+} from "@/features/applications/data/employer-mocks";
 import type {
   Application,
   ApplyToVacancyPayload,
@@ -58,6 +62,10 @@ export function useEmployerApplications() {
     queryKey: ["applicants", "all"],
     queryFn: () => applicationsService.listAllApplicants(),
     retry: false,
+    // Mock seam: seed the inbox so it's fully populated today; a live endpoint
+    // result replaces it, and a 404 leaves the seed in place. Flip off in
+    // employer-mocks.ts once the endpoint ships. See docs/api/candidates.md.
+    initialData: EMPLOYER_MOCKS_ENABLED ? mockEmployerApplications() : undefined,
   });
 }
 

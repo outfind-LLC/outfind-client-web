@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { routes } from "@/config/routes";
+import { useI18n } from "@/providers/i18n-provider";
 import { useCandidateDetailStore } from "@/features/applications/store/candidate-detail.store";
 import type { CandidateCardData } from "@/features/chat/types/candidate";
 import { ChatMark, Ic } from "@/features/dashboard/components/app-icons";
@@ -23,6 +26,8 @@ export function CandidateDetailSheet() {
 
 function Sheet({ candidate }: { candidate: CandidateCardData }) {
   const close = useCandidateDetailStore((st) => st.close);
+  const { t } = useI18n();
+  const router = useRouter();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -71,7 +76,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
     facts.push(
       <span key="years" className={s.f}>
         <Ic name="user" />
-        {c.years} {c.years === 1 ? "year" : "years"}
+        {c.years} {c.years === 1 ? t("candidates.year") : t("candidates.years")}
       </span>,
     );
 
@@ -94,7 +99,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
           type="button"
           className={s["jd-close"]}
           onClick={doClose}
-          aria-label="Close"
+          aria-label={t("candidates.close")}
         >
           <Ic name="close" />
         </button>
@@ -104,19 +109,19 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
             {c.verified ? (
               <>
                 <ChatMark />
-                Verified by Peoplor
+                {t("candidates.verifiedSrc")}
               </>
             ) : (
               <>
                 <Ic name="globe" />
-                Found by Peoplor AI
+                {t("candidates.foundSrc")}
               </>
             )}
           </span>
 
           <div className={s["jd-title"]}>
             <span>{c.name}</span>
-            {c.verified ? <Ic name="verified" title="Verified by Peoplor" /> : null}
+            {c.verified ? <Ic name="verified" title={t("candidates.verifiedSrc")} /> : null}
           </div>
 
           {c.title || c.location ? (
@@ -130,7 +135,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
           {c.matchScore != null ? (
             <div className={s["jd-match"]}>
               <Ic name="checkBold" />
-              {c.matchScore}% match with your role
+              {t("candidates.matchWithRole", { n: c.matchScore })}
             </div>
           ) : null}
 
@@ -140,14 +145,14 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
 
           {c.summary ? (
             <div className={s["jd-sec"]}>
-              <h3>About</h3>
+              <h3>{t("candidates.about")}</h3>
               <p>{c.summary}</p>
             </div>
           ) : null}
 
           {c.experience.length > 0 ? (
             <div className={s["jd-sec"]}>
-              <h3>Experience</h3>
+              <h3>{t("candidates.experience")}</h3>
               <ul className={s["jd-list"]}>
                 {c.experience.map((item) => (
                   <li key={item}>
@@ -161,7 +166,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
 
           {c.skills.length > 0 ? (
             <div className={s["jd-sec"]}>
-              <h3>Skills</h3>
+              <h3>{t("candidates.skills")}</h3>
               <ul className={s["jd-list"]}>
                 {c.skills.map((skill) => (
                   <li key={skill}>
@@ -174,7 +179,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
           ) : null}
 
           <div className={s["jd-sec"]}>
-            <h3>How to reach them</h3>
+            <h3>{t("candidates.howReach")}</h3>
             {hasContact ? (
               <div className={s["jd-contact"]}>
                 <div className={s["jd-crow"]}>
@@ -195,7 +200,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
                 ) : null}
               </div>
             ) : (
-              <p>Message {firstName} on Peoplor to start the conversation.</p>
+              <p>{t("candidates.reachMsg", { name: firstName })}</p>
             )}
           </div>
         </div>
@@ -203,20 +208,24 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
         <div className={s["jd-foot"]}>
           {email ? (
             <a className={cn(s.btn, s["btn-ghost"], s["btn-md"])} href={`mailto:${email}`}>
-              Email
+              {t("candidates.email")}
             </a>
           ) : null}
           {phone ? (
             <a className={cn(s.btn, s["btn-primary"], s["btn-md"])} href={`tel:${phone}`}>
-              Call
+              {t("candidates.call")}
             </a>
           ) : (
             <button
               type="button"
               className={cn(s.btn, s["btn-primary"], s["btn-md"])}
-              onClick={() => toast("Messaging candidates is coming soon")}
+              onClick={() => {
+                doClose();
+                router.push(routes.applicants);
+                toast(t("candidates.msgOpened", { name: firstName }));
+              }}
             >
-              Message {firstName}
+              {t("candidates.message", { name: firstName })}
             </button>
           )}
         </div>

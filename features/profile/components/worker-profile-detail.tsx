@@ -6,7 +6,6 @@ import type { WorkerProfile } from "@/interfaces/worker-profile.interface";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import type { MessageKey } from "@/lib/i18n/translate";
 import {
-  contactTiles,
   drivingSummary,
   educationItems,
   groupExperiences,
@@ -16,6 +15,7 @@ import {
 } from "@/features/profile/lib/profile-data";
 import { Ic, type IconName } from "@/features/profile/components/profile-icons";
 import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
+import { useProfileContacts } from "@/features/profile/hooks/use-profile-contacts";
 import type { EditTarget } from "@/features/profile/types/edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
@@ -54,7 +54,19 @@ export function WorkerProfileDetail({
     [identity.firstName, identity.surname].filter(Boolean).join(" ").trim() || user.name;
   const birthdate = formatBirthdate(identity.birthdate, locale);
 
-  const { filled, empty } = contactTiles(user);
+  const { contacts } = useProfileContacts();
+  const allContacts: { key: ContactTile["key"]; value: string; brand?: "telegram" | "whatsapp" }[] = [
+    { key: "phone", value: contacts.phone },
+    { key: "email", value: contacts.email || user.email || "" },
+    {
+      key: "telegram",
+      value: contacts.telegram || (user.telegramUsername ? `@${user.telegramUsername}` : ""),
+      brand: "telegram",
+    },
+    { key: "whatsapp", value: contacts.whatsapp, brand: "whatsapp" },
+  ];
+  const filled = allContacts.filter((c) => c.value);
+  const empty = allContacts.filter((c) => !c.value);
   const { live, search } = searchSettings(profile, t);
   const driving = drivingSummary(profile, t);
   const education = educationItems(profile);
@@ -101,7 +113,7 @@ export function WorkerProfileDetail({
               type="button"
               className={cn(s["pd-cc"], s.wide, s.added, c.brand && s.brand, c.brand && s[c.brand])}
               aria-label={t(CONTACT_LABEL[c.key])}
-              onClick={() => onEdit({ type: "soon" })}
+              onClick={() => onEdit({ type: "contact" })}
             >
               <Ic name={CONTACT_ICON[c.key]} />
               <span className={s["pd-cc-txt"]}>
@@ -113,15 +125,15 @@ export function WorkerProfileDetail({
         </div>
         {empty.length > 0 ? (
           <div className={s["pd-contact-empties"]}>
-            {empty.map((key) => (
+            {empty.map((c) => (
               <button
-                key={key}
+                key={c.key}
                 type="button"
-                className={cn(s["pd-cc"], s.brand, s[key])}
-                aria-label={t(CONTACT_LABEL[key])}
-                onClick={() => onEdit({ type: "soon" })}
+                className={cn(s["pd-cc"], c.brand && s.brand, c.brand && s[c.brand])}
+                aria-label={t(CONTACT_LABEL[c.key])}
+                onClick={() => onEdit({ type: "contact" })}
               >
-                <Ic name={CONTACT_ICON[key]} />
+                <Ic name={CONTACT_ICON[c.key]} />
               </button>
             ))}
           </div>

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/providers/i18n-provider";
 import { DatePickerField } from "@/features/profile/components/date-picker";
 import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
+import { useProfileContacts } from "@/features/profile/hooks/use-profile-contacts";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import {
@@ -83,6 +84,8 @@ export function ProfileEditModal({
   switch (target.type) {
     case "identity":
       return <IdentityEditor onClose={onClose} />;
+    case "contact":
+      return <ContactEditor onClose={onClose} />;
     case "education":
       return <EducationEditor item={target.item} onClose={onClose} />;
     case "language":
@@ -412,6 +415,40 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
       </Field>
       <SelectField label={t("profile.idCitizenship")} value={citizenship} onChange={setCitizenship} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
       <SelectField label={t("profile.idWorkPermit")} value={workPermit} onChange={setWorkPermit} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
+    </Modal>
+  );
+}
+
+/**
+ * Contact details (phone / email / telegram / whatsapp). Persisted via the local
+ * seam (useProfileContacts) until an account-update endpoint ships — the user's
+ * own values, not fabricated. See docs/api/profile.md §5.
+ */
+function ContactEditor({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  const { contacts, update } = useProfileContacts();
+  const [phone, setPhone] = useState(contacts.phone);
+  const [email, setEmail] = useState(contacts.email);
+  const [telegram, setTelegram] = useState(contacts.telegram);
+  const [whatsapp, setWhatsapp] = useState(contacts.whatsapp);
+
+  const save = () => {
+    update({
+      phone: phone.trim(),
+      email: email.trim(),
+      telegram: telegram.trim(),
+      whatsapp: whatsapp.trim(),
+    });
+    toast(t("profile.contactSaved"));
+    onClose();
+  };
+
+  return (
+    <Modal title={t("profile.contactEditTitle")} onClose={onClose} footer={<Foot onSave={save} saving={false} t={t} />}>
+      <TextField label={t("profile.phone")} value={phone} onChange={setPhone} placeholder={t("profile.phonePh")} type="tel" />
+      <TextField label={t("profile.email")} value={email} onChange={setEmail} placeholder={t("profile.emailPh")} type="email" />
+      <TextField label={t("profile.telegram")} value={telegram} onChange={setTelegram} placeholder={t("profile.telegramPh")} />
+      <TextField label={t("profile.whatsapp")} value={whatsapp} onChange={setWhatsapp} placeholder={t("profile.whatsappPh")} />
     </Modal>
   );
 }

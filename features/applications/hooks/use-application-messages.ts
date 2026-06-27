@@ -4,6 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
 import { applicationsService } from "@/features/applications/services/applications.service";
+import {
+  EMPLOYER_MOCKS_ENABLED,
+  appendMockMessage,
+  isMockApplicationId,
+  mockMessages,
+} from "@/features/applications/data/employer-mocks";
 import type {
   ApplicationMessage,
   ConversationScope,
@@ -11,6 +17,11 @@ import type {
 
 /** Poll cadence while a conversation is open — near-real-time without sockets. */
 const POLL_MS = 8000;
+
+/** True for the employer mock conversations (see employer-mocks.ts). */
+function isMock(scope: ConversationScope, applicationId: string): boolean {
+  return EMPLOYER_MOCKS_ENABLED && scope === "employer" && isMockApplicationId(applicationId);
+}
 
 /** Messages for one application. Polls only while `enabled` (dialog open). */
 export function useApplicationMessages(
@@ -21,9 +32,11 @@ export function useApplicationMessages(
   return useQuery<ApplicationMessage[]>({
     queryKey: qk.applicationMessages(applicationId),
     queryFn: () =>
-      applicationsService.listMessages(scope, applicationId, { limit: 100 }),
+      isMock(scope, applicationId)
+        ? Promise.resolve(mockMessages(applicationId))
+        : applicationsService.listMessages(scope, applicationId, { limit: 100 }),
     enabled: Boolean(applicationId) && enabled,
-    refetchInterval: enabled ? POLL_MS : false,
+    refetchInterval: enabled && !isMock(scope, applicationId) ? POLL_MS : false,
   });
 }
 
@@ -36,7 +49,11 @@ export function useSendApplicationMessage(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (content: string) =>
-      applicationsService.sendMessage(scope, applicationId, content),
+      isMock(scope, applicationId)
+        ? Promise.resolve(
+            appendMockMessage(applicationId, content, "EMPLOYER", new Date().toISOString()),
+          )
+        : applicationsService.sendMessage(scope, applicationId, content),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: qk.applicationMessages(applicationId),
@@ -55,7 +72,9 @@ export function useMarkApplicationRead(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      applicationsService.markMessagesRead(scope, applicationId),
+      isMock(scope, applicationId)
+        ? Promise.resolve(null)
+        : applicationsService.markMessagesRead(scope, applicationId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: qk.applicationMessages(applicationId),
