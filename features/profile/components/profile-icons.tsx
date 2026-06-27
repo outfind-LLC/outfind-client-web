@@ -8,6 +8,7 @@ import s from "@/features/profile/styles/profile.module.css";
 export const ICONS = {
   user: REG.userRound,
   chev: REG.chevronRight,
+  cal: REG.calendar,
   dots: REG.dotsHorizontal,
   menu: REG.menuShort,
   back: REG.backThin,

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { useI18n } from "@/providers/i18n-provider";
+import { DatePickerField } from "@/features/profile/components/date-picker";
 import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
@@ -269,43 +270,32 @@ function Foot({
   );
 }
 
-const MONTH_VALUES = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-
 /**
- * The prototype's date control: a Month dropdown + a Year text input, far easier
- * than the native month picker. Month labels follow the active locale. When a
- * `present` toggle is supplied (end date) and checked, the inputs disable.
+ * A labelled date field built on the custom day/month/year {@link DatePickerField}.
+ * When a `present` toggle is supplied (end date) and checked, the picker disables.
  */
-function DateRow({
+function DateField({
   label,
-  month,
-  year,
-  onMonth,
-  onYear,
+  value,
+  onChange,
+  defaultYear,
+  min,
+  max,
   present,
   onPresent,
   presentLabel,
 }: {
   label: string;
-  month: string;
-  year: string;
-  onMonth: (v: string) => void;
-  onYear: (v: string) => void;
+  value: string;
+  onChange: (iso: string) => void;
+  defaultYear: number;
+  min?: string;
+  max?: string;
   present?: boolean;
   onPresent?: (v: boolean) => void;
   presentLabel?: string;
 }) {
-  const { t, locale } = useI18n();
-  const months = useMemo(
-    () =>
-      MONTH_VALUES.map((v, i) => ({
-        value: v,
-        label: new Date(2000, i, 1).toLocaleDateString(locale, { month: "short" }),
-      })),
-    [locale],
-  );
-  const disabled = present === true;
-
+  const { t } = useI18n();
   return (
     <div className={cn(s["pf-field"], s["pf-daterow"])}>
       <div className={s["pf-daterow-head"]}>
@@ -325,36 +315,15 @@ function DateRow({
           </label>
         ) : null}
       </div>
-      <div className={cn(s["pf-daterow-grid"], disabled && s["is-disabled"])}>
-        <span className={s["pf-selectwrap"]}>
-          <select
-            className={cn(s["pf-control"], s["pf-select"])}
-            value={month}
-            disabled={disabled}
-            onChange={(e) => onMonth(e.target.value)}
-          >
-            <option value="" disabled hidden>
-              {t("profile.wpMonth")}
-            </option>
-            {months.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-          <Ic name="chev" />
-        </span>
-        <input
-          className={cn(s["pf-control"], s["pf-input"])}
-          type="text"
-          inputMode="numeric"
-          maxLength={4}
-          value={year}
-          disabled={disabled}
-          placeholder={t("profile.wpYear")}
-          onChange={(e) => onYear(e.target.value.replace(/\D/g, ""))}
-        />
-      </div>
+      <DatePickerField
+        value={value}
+        onChange={onChange}
+        disabled={present === true}
+        placeholder={t("profile.wpPickDate")}
+        defaultYear={defaultYear}
+        min={min}
+        max={max}
+      />
     </div>
   );
 }
@@ -382,10 +351,13 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
   const [surname, setSurname] = useState(identity.surname);
   const [firstName, setFirstName] = useState(identity.firstName);
   const [gender, setGender] = useState(identity.gender);
-  const [birthdate, setBirthdate] = useState(identity.birthdate);
+  const [birthdate, setBirthdate] = useState(toDateInput(identity.birthdate));
   const [citizenship, setCitizenship] = useState(identity.citizenship);
   const [workPermit, setWorkPermit] = useState(identity.workPermit);
 
+  const thisYear = new Date().getFullYear();
+  const dobMin = `${thisYear - 90}-01-01`;
+  const dobMax = toDateInput(new Date().toISOString());
   const countryOptions = COUNTRIES.map((c) => ({ value: c, label: c }));
   const genderOptions: { value: "male" | "female"; label: string }[] = [
     { value: "male", label: t("profile.idMale") },
@@ -397,7 +369,7 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
       surname: surname.trim(),
       firstName: firstName.trim(),
       gender,
-      birthdate: birthdate.trim(),
+      birthdate,
       citizenship,
       workPermit,
     });
@@ -428,7 +400,16 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
           ))}
         </span>
       </Field>
-      <TextField label={t("profile.idDob")} value={birthdate} onChange={setBirthdate} placeholder={t("profile.idDobPh")} />
+      <Field label={t("profile.idDob")}>
+        <DatePickerField
+          value={birthdate}
+          onChange={setBirthdate}
+          placeholder={t("profile.wpPickDate")}
+          defaultYear={2000}
+          min={dobMin}
+          max={dobMax}
+        />
+      </Field>
       <SelectField label={t("profile.idCitizenship")} value={citizenship} onChange={setCitizenship} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
       <SelectField label={t("profile.idWorkPermit")} value={workPermit} onChange={setWorkPermit} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
     </Modal>
@@ -572,20 +553,19 @@ function WorkplaceEditor({
   const update = useUpdateExperience();
   const del = useDeleteExperience();
 
-  const initStart = splitYearMonth(item?.startDate ?? null);
-  const initEnd = splitYearMonth(item?.endDate ?? null);
   const [company, setCompany] = useState(item?.companyName ?? "");
   const [role, setRole] = useState(item?.position ?? "");
   const [employment, setEmployment] = useState(item?.employmentType ?? "");
   const [workFormat, setWorkFormat] = useState(item?.workFormat ?? "");
   const [domain, setDomain] = useState(item?.domain ?? "");
-  const [startMonth, setStartMonth] = useState(initStart.month);
-  const [startYear, setStartYear] = useState(initStart.year);
+  const [startDate, setStartDate] = useState(toDateInput(item?.startDate ?? null));
   const [present, setPresent] = useState(item ? item.endDate === null : false);
-  const [endMonth, setEndMonth] = useState(initEnd.month);
-  const [endYear, setEndYear] = useState(initEnd.year);
+  const [endDate, setEndDate] = useState(toDateInput(item?.endDate ?? null));
   const [bullets, setBullets] = useState(item?.description ?? "");
 
+  const thisYear = new Date().getFullYear();
+  const expMin = `${thisYear - 60}-01-01`;
+  const expMax = `${thisYear + 1}-12-31`;
   const saving = create.isPending || update.isPending || del.isPending;
   const empOptions = Object.values(EMPLOYMENT_TYPE).map((v) => ({
     value: v,
@@ -596,9 +576,7 @@ function WorkplaceEditor({
     label: t(WORK_FORMAT_KEY[v] ?? "profile.workOnsite"),
   }));
   const domainOptions = Object.values(DOMAIN).map((v) => ({ value: v, label: titleCase(v) }));
-  const startSet = Boolean(startMonth && startYear.length === 4);
-  const endSet = Boolean(endMonth && endYear.length === 4);
-  const canSave = Boolean(company.trim() && role.trim() && employment && workFormat && domain && startSet);
+  const canSave = Boolean(company.trim() && role.trim() && employment && workFormat && domain && startDate);
 
   const save = async () => {
     if (!canSave || saving) return;
@@ -608,8 +586,8 @@ function WorkplaceEditor({
       domain,
       employmentType: employment,
       workFormat,
-      startDate: `${startYear}-${startMonth}-01`,
-      endDate: present || !endSet ? null : `${endYear}-${endMonth}-01`,
+      startDate,
+      endDate: present || !endDate ? null : endDate,
       description: bullets.trim() || null,
     };
     try {
@@ -648,19 +626,21 @@ function WorkplaceEditor({
         <SelectField label={t("profile.wpWorkFormat")} value={workFormat} onChange={setWorkFormat} options={workOptions} placeholder={t("profile.selectPlaceholder")} />
       </div>
       <SelectField label={t("profile.wpDomain")} value={domain} onChange={setDomain} options={domainOptions} placeholder={t("profile.selectPlaceholder")} />
-      <DateRow
+      <DateField
         label={t("profile.wpStart")}
-        month={startMonth}
-        year={startYear}
-        onMonth={setStartMonth}
-        onYear={setStartYear}
+        value={startDate}
+        onChange={setStartDate}
+        defaultYear={thisYear}
+        min={expMin}
+        max={expMax}
       />
-      <DateRow
+      <DateField
         label={t("profile.wpEnd")}
-        month={endMonth}
-        year={endYear}
-        onMonth={setEndMonth}
-        onYear={setEndYear}
+        value={endDate}
+        onChange={setEndDate}
+        defaultYear={thisYear}
+        min={expMin}
+        max={expMax}
         present={present}
         onPresent={setPresent}
         presentLabel={t("profile.wpPresent")}
@@ -671,10 +651,11 @@ function WorkplaceEditor({
   );
 }
 
-/** Split an ISO date ("YYYY-MM-DD") into the prototype's month/year parts. */
-function splitYearMonth(iso: string | null): { month: string; year: string } {
-  if (!iso) return { month: "", year: "" };
-  return { year: iso.slice(0, 4), month: iso.slice(5, 7) };
+/** Normalize a backend date (ISO date or datetime) to the picker's "YYYY-MM-DD". */
+function toDateInput(iso: string | null): string {
+  if (!iso) return "";
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(iso);
+  return m ? m[1] : "";
 }
 
 function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; onClose: () => void }) {

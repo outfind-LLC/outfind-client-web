@@ -52,6 +52,7 @@ export function WorkerProfileDetail({
   const { identity } = useProfileIdentity();
   const displayName =
     [identity.firstName, identity.surname].filter(Boolean).join(" ").trim() || user.name;
+  const birthdate = formatBirthdate(identity.birthdate, locale);
 
   const { filled, empty } = contactTiles(user);
   const { live, search } = searchSettings(profile, t);
@@ -68,7 +69,7 @@ export function WorkerProfileDetail({
         <div className={s["pd-head-row"]}>
           <div className={s["pd-head-main"]}>
             <h2 className={s["pd-name"]}>{displayName}</h2>
-            {identity.birthdate ? <div className={s["pd-bd"]}>{identity.birthdate}</div> : null}
+            {birthdate ? <div className={s["pd-bd"]}>{birthdate}</div> : null}
           </div>
           <button
             type="button"
@@ -253,6 +254,17 @@ export function WorkerProfileDetail({
       </div>
     </div>
   );
+}
+
+/** ISO "YYYY-MM-DD" → localized "15 Jun 2000"; legacy free-text passes through. */
+function formatBirthdate(value: string, locale: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return value;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function Kv({
