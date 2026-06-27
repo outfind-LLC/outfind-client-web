@@ -102,7 +102,7 @@ function EmployerProfileNotSet() {
       description="Add your company details to start posting vacancies and hiring."
       action={
         <Button asChild variant="brand" size="sm">
-          <Link href={routes.employerProfile}>Create company profile</Link>
+          <Link href={routes.company}>Create company profile</Link>
         </Button>
       }
     />

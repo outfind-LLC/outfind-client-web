@@ -110,7 +110,7 @@ export function EmployerProfileView({ profile }: { profile: EmployerProfile }) {
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="shrink-0">
-              <Link href={routes.employerProfile}>
+              <Link href={routes.company}>
                 <Pencil className="size-4" />
                 Edit
               </Link>

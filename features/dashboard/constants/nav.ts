@@ -27,9 +27,9 @@ const WORKER_NAV: NavItem[] = [
  * Global hiring (Global hiring shares the Career screen + `route` glyph). */
 const EMPLOYER_NAV: NavItem[] = [
   { labelKey: "nav.newSearch", href: routes.assistant, icon: "search", newChat: true },
-  { labelKey: "nav.candidates", href: routes.applicants, icon: "users" },
-  { labelKey: "nav.company", href: routes.employerProfile, icon: "company" },
-  { labelKey: "nav.globalHiring", href: routes.career, icon: "route" },
+  { labelKey: "nav.candidates", href: routes.candidates, icon: "users" },
+  { labelKey: "nav.company", href: routes.company, icon: "company" },
+  { labelKey: "nav.globalHiring", href: routes.globalHiring, icon: "route" },
 ];
 
 /** Sidebar nav for the given account type (admins see the worker layout). */

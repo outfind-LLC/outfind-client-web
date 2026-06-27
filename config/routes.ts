@@ -22,21 +22,23 @@ export const routes = {
   bookmarks: "/bookmarks",
   profile: "/profile",
   profileCv: "/profile/cv",
-  /** Employer company-profile create/edit form. */
-  employerProfile: "/profile/company",
-  /** Career & migration (worker) / Global hiring (employer) — same screen,
-   * branches on account type. */
+  /** Career & migration — worker only. */
   career: "/career",
 
-  // Employer
+  // Employer (employer-only routes — role-guarded by the (employer) group layout)
+  /** Company profile — create/edit + detail. Replaces the old /profile/company. */
+  company: "/company",
+  /** Global hiring — international talent markets + migration-ready candidates. */
+  globalHiring: "/global-hiring",
   vacancies: "/vacancies",
   vacancyNew: "/vacancies/new",
   vacancy: (id: string) => `/vacancies/${id}`,
   vacancyEdit: (id: string) => `/vacancies/${id}/edit`,
-  applicants: "/applicants",
-  vacancyApplicants: (id: string) => `/applicants/${id}`,
+  /** Candidates inbox (employer). */
+  candidates: "/candidates",
+  vacancyApplicants: (id: string) => `/candidates/${id}`,
   candidateProfile: (vacancyId: string, applicationId: string) =>
-    `/applicants/${vacancyId}/${applicationId}`,
+    `/candidates/${vacancyId}/${applicationId}`,
 
   // Shared
   history: "/history",
@@ -58,8 +60,10 @@ export const PROTECTED_PREFIXES = [
   "/bookmarks",
   "/profile",
   "/career",
+  "/company",
+  "/global-hiring",
   "/vacancies",
-  "/applicants",
+  "/candidates",
   "/history",
   "/settings",
   "/help",

@@ -29,7 +29,7 @@ export default async function VacancyApplicantsPage({
   return (
     <Container className="py-8">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link href={routes.applicants}>
+        <Link href={routes.vacancies}>
           <ArrowLeft className="size-4" />
           All vacancies
         </Link>

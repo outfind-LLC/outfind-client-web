@@ -221,7 +221,7 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
               className={cn(s.btn, s["btn-primary"], s["btn-md"])}
               onClick={() => {
                 doClose();
-                router.push(routes.applicants);
+                router.push(routes.candidates);
                 toast(t("candidates.msgOpened", { name: firstName }));
               }}
             >

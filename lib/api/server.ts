@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
@@ -47,14 +48,20 @@ export async function serverApiFetch<T>(
   return parseEnvelope<T>(res);
 }
 
-/** Resolve the current user server-side, or `null` when unauthenticated. */
-export async function getServerSession(): Promise<SessionUser | null> {
-  try {
-    return await serverApiFetch<SessionUser>("/auth/me");
-  } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
+/**
+ * Resolve the current user server-side, or `null` when unauthenticated.
+ * `cache()`-wrapped so the `(app)` layout and a nested role-guard group layout
+ * share a single `/auth/me` call per request instead of fetching twice.
+ */
+export const getServerSession = cache(
+  async (): Promise<SessionUser | null> => {
+    try {
+      return await serverApiFetch<SessionUser>("/auth/me");
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) {
+        return null;
+      }
       return null;
     }
-    return null;
-  }
-}
+  },
+);

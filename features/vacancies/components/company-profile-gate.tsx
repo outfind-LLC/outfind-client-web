@@ -22,7 +22,7 @@ export function CompanyProfileOnboarding() {
       description="Set up your company profile so candidates know who's hiring. You'll be able to post vacancies and review applicants right after."
       action={
         <Button asChild variant="brand" size="sm">
-          <Link href={routes.employerProfile}>Create company profile</Link>
+          <Link href={routes.company}>Create company profile</Link>
         </Button>
       }
     />
