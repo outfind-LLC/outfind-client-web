@@ -29,7 +29,7 @@ const WORKER_NAV: NavItem[] = [
 const EMPLOYER_NAV: NavItem[] = [
   { labelKey: "nav.aiSearch", href: routes.assistant, icon: "search", newChat: true },
   { labelKey: "nav.chat", href: routes.candidates, icon: "messages" },
-  { labelKey: "nav.vacancies", href: routes.vacancies, icon: "briefcase", exact: false },
+  { labelKey: "nav.vacancies", href: routes.vacancies, icon: "fileText", exact: false },
   { labelKey: "nav.globalHiring", href: routes.globalHiring, icon: "route" },
 ];
 

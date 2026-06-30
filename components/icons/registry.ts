@@ -102,6 +102,7 @@ import sealCheck from "./seal-check";
 // Vacancies
 import inbox from "./inbox";
 import rocket from "./rocket";
+import fileText from "./file-text";
 
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
@@ -131,7 +132,7 @@ const DEFS = {
   // career & migration / global hiring
   arrowRight, sparkle, docLines, docPlain, sealCheck,
   // vacancies
-  inbox, rocket,
+  inbox, rocket, fileText,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

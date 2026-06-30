@@ -18,6 +18,7 @@ export const ICONS = {
   docCheck: REG.docCheck,
   user: REG.user,
   briefcase: REG.briefcase,
+  fileText: REG.fileText,
   users: REG.users,
   messages: REG.messages,
   search: REG.search,
