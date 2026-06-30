@@ -99,6 +99,10 @@ import docLines from "./doc-lines";
 import docPlain from "./doc-plain";
 import sealCheck from "./seal-check";
 
+// Vacancies
+import inbox from "./inbox";
+import rocket from "./rocket";
+
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
  * default-exported `IconDef`) and registering it here. Names are unique per
@@ -126,6 +130,8 @@ const DEFS = {
   companyTall, pencil, alert, usersRound,
   // career & migration / global hiring
   arrowRight, sparkle, docLines, docPlain, sealCheck,
+  // vacancies
+  inbox, rocket,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

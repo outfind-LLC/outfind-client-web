@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
+import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { isApiClientError } from "@/lib/api/error";
@@ -39,6 +40,13 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const { locale, setLocale, t } = useI18n();
 
   const planLabel = plan?.name ?? t("common.freePlan");
+  // The avatar/name header opens the account's own profile surface: the company
+  // page for employers (it left the sidebar in the redesign), the résumé for
+  // workers/admins.
+  const profileHref =
+    user.accountType === ACCOUNT_TYPE.EMPLOYER
+      ? routes.company
+      : routes.profile;
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -129,7 +137,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
       {/* Account menu (opens above the profile row) */}
       <div className={s["profile-menu"]} data-open={menuOpen ? "true" : "false"}>
         <Link
-          href={routes.profile}
+          href={profileHref}
           className={s["pm-head"]}
           onClick={closeMenuThen}
         >

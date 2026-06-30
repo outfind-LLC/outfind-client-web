@@ -23,12 +23,13 @@ const WORKER_NAV: NavItem[] = [
   { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },
 ];
 
-/** Employer sidebar — the same four positions: New search · Candidates · Company ·
- * Global hiring (Global hiring shares the Career screen + `route` glyph). */
+/** Employer sidebar — AI search · Chat (conversations with workers) · Vacancies ·
+ * Global hiring. Company moved off the rail: it's reached via the profile avatar
+ * in the footer (the worker equivalent opens their résumé). */
 const EMPLOYER_NAV: NavItem[] = [
-  { labelKey: "nav.newSearch", href: routes.assistant, icon: "search", newChat: true },
-  { labelKey: "nav.candidates", href: routes.candidates, icon: "users" },
-  { labelKey: "nav.company", href: routes.company, icon: "company" },
+  { labelKey: "nav.aiSearch", href: routes.assistant, icon: "search", newChat: true },
+  { labelKey: "nav.chat", href: routes.candidates, icon: "messages" },
+  { labelKey: "nav.vacancies", href: routes.vacancies, icon: "briefcase", exact: false },
   { labelKey: "nav.globalHiring", href: routes.globalHiring, icon: "route" },
 ];
 

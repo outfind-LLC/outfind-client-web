@@ -22,6 +22,7 @@ const FULL_BLEED = new Set([
   "/company",
   "/career",
   "/global-hiring",
+  "/vacancies",
 ]);
 
 /** Section title for routes that rely on the shared topbar (chat, vacancies,

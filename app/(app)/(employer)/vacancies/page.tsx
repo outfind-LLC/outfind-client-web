@@ -1,20 +1,6 @@
-import { Briefcase } from "lucide-react";
+import { VacanciesScreen } from "@/features/vacancies/components/vacancies-screen";
 
-import { Container } from "@/components/container";
-import { PageHeader } from "@/features/dashboard/components/page-header";
-import { NewVacancyButton } from "@/features/vacancies/components/company-profile-gate";
-import { VacanciesList } from "@/features/vacancies/components/vacancies-list";
-
+/** Employer Vacancies — full-bleed screen (owns its topbar + Post-a-job flow). */
 export default function VacanciesPage() {
-  return (
-    <Container className="py-8">
-      <PageHeader
-        icon={Briefcase}
-        title="Vacancies"
-        description="Manage your open roles."
-        actions={<NewVacancyButton />}
-      />
-      <VacanciesList />
-    </Container>
-  );
+  return <VacanciesScreen />;
 }

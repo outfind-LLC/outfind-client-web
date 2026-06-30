@@ -1,0 +1,576 @@
+/* ==========================================================================
+   Peoplor — Employer verification gate. Ported from the _Peoplor_Design
+   prototype (employer-verify.scoped.css). UI mirrors the Vacancy Wizard:
+   ink-black primary button, neutral focus rings, 48px inputs @10px radius,
+   custom dropdowns, blue kicker eyebrow. Theme-aware via the global `.dark`
+   class (the prototype keyed `html[data-theme="dark"]`). The standalone toast
+   is dropped — the app uses sonner instead.
+   ========================================================================== */
+.ev-scrim {
+  --evc-card: #fff;
+  --evc-card-2: #f8f9fa;
+  --evc-bd: #e6e8eb;
+  --evc-input: #fff;
+  --evc-input-bd: #e6e8eb;
+  --evc-input-bd-h: #ccd4dc;
+  --evc-text: #0f0f10;
+  --evc-dim: #5f636a;
+  --evc-faint: #90969b;
+  --evc-inverse: #fff;
+  --evc-accent: #2a52e0;
+  --evc-red: #ef4444;
+  --evc-ease: cubic-bezier(0.2, 0, 0, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 15, 16, 0.5);
+  opacity: 0;
+  transition: opacity 0.25s var(--evc-ease);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+:global(.dark) .ev-scrim {
+  --evc-card: #161618;
+  --evc-card-2: #1d1d21;
+  --evc-bd: #2c2c32;
+  --evc-input: #161618;
+  --evc-input-bd: #2c2c32;
+  --evc-input-bd-h: #45454d;
+  --evc-text: #f5f5f7;
+  --evc-dim: #9b9ba5;
+  --evc-faint: #5b5b64;
+  --evc-inverse: #0f0f10;
+  --evc-accent: #7aa0ff;
+}
+.ev-scrim.show {
+  opacity: 1;
+}
+.ev-scrim * {
+  box-sizing: border-box;
+}
+.ev-scrim svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ev-modal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--evc-card);
+  border: 1px solid var(--evc-bd);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(15, 15, 16, 0.5);
+  transform: translateY(10px) scale(0.99);
+  opacity: 0;
+  transition:
+    transform 0.25s var(--evc-ease),
+    opacity 0.25s var(--evc-ease);
+}
+.ev-scrim.show .ev-modal {
+  transform: none;
+  opacity: 1;
+}
+.ev-modal-sm {
+  max-width: 420px;
+}
+
+/* header (wizard kicker + h2 + sub) */
+.ev-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 30px 32px 8px;
+}
+.ev-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--evc-accent);
+}
+.ev-h2 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--evc-text);
+}
+.ev-card-sub {
+  margin: 8px 0 24px;
+  color: var(--evc-dim);
+  font-size: 13.5px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* fields */
+.ev-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.ev-sec {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--evc-faint);
+  margin-top: 8px;
+}
+.ev-sec:first-child {
+  margin-top: 0;
+}
+.ev-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ev-field-wide {
+  grid-column: 1 / -1;
+}
+.ev-flabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--evc-text);
+  margin-bottom: 11px;
+}
+.ev-req {
+  color: var(--evc-red);
+  font-weight: 700;
+}
+.ev-opt {
+  color: var(--evc-faint);
+  font-weight: 500;
+}
+
+.ev-inp,
+.ev-ta {
+  width: 100%;
+  background: var(--evc-input);
+  border: 1px solid var(--evc-input-bd);
+  border-radius: 10px;
+  color: var(--evc-text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: 0.15s var(--evc-ease);
+  outline: none;
+}
+.ev-inp {
+  height: 48px;
+  padding: 0 16px;
+}
+.ev-ta {
+  padding: 14px 16px;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 96px;
+}
+.ev-inp::placeholder,
+.ev-ta::placeholder {
+  color: var(--evc-faint);
+}
+.ev-inp:hover,
+.ev-ta:hover {
+  border-color: var(--evc-input-bd-h);
+}
+.ev-inp:focus,
+.ev-ta:focus {
+  border-color: var(--evc-text);
+  box-shadow: 0 0 0 3px rgba(120, 120, 128, 0.18);
+}
+.ev-field.has-err .ev-inp,
+.ev-field.has-err .ev-ta,
+.ev-field.has-err .ev-dd-btn {
+  border-color: var(--evc-red);
+}
+.ev-err {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--evc-red);
+  min-height: 0;
+  margin-top: 6px;
+}
+.ev-err:empty {
+  display: none;
+}
+
+/* custom dropdown (mirrors .dd) */
+.ev-dd {
+  position: relative;
+  width: 100%;
+}
+.ev-dd-btn {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 16px;
+  background: var(--evc-input);
+  border: 1px solid var(--evc-input-bd);
+  border-radius: 10px;
+  color: var(--evc-text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.15s var(--evc-ease);
+  text-align: left;
+}
+.ev-dd-btn:hover {
+  border-color: var(--evc-input-bd-h);
+}
+.ev-dd.open .ev-dd-btn {
+  border-color: var(--evc-text);
+  box-shadow: 0 0 0 3px rgba(15, 15, 16, 0.08);
+}
+.ev-dd-val {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ev-dd-val.ph {
+  color: var(--evc-faint);
+  font-weight: 400;
+}
+.ev-dd-chev {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  color: var(--evc-faint);
+  transition: transform 0.2s var(--evc-ease);
+}
+.ev-dd.open .ev-dd-chev {
+  transform: rotate(180deg);
+}
+.ev-dd-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--evc-card);
+  border: 1px solid var(--evc-bd);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px -8px rgba(15, 15, 16, 0.18);
+  padding: 6px;
+  display: none;
+  max-height: 248px;
+  overflow-y: auto;
+}
+.ev-dd.open .ev-dd-menu {
+  display: block;
+  animation: evddIn 0.14s var(--evc-ease);
+}
+@keyframes evddIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ev-dd-opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--evc-text);
+  text-align: left;
+  transition: background 0.12s var(--evc-ease);
+}
+.ev-dd-opt:hover {
+  background: var(--evc-card-2);
+}
+.ev-dd-tick {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  display: inline-flex;
+  color: var(--evc-text);
+  opacity: 0;
+}
+.ev-dd-opt.sel {
+  font-weight: 600;
+}
+.ev-dd-opt.sel .ev-dd-tick {
+  opacity: 1;
+}
+
+/* footer */
+.ev-foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 32px;
+  border-top: 1px solid var(--evc-bd);
+  background: var(--evc-card);
+}
+.ev-foot-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--evc-dim);
+}
+.ev-foot-note .ev-ic {
+  width: 15px;
+  height: 15px;
+}
+.ev-foot-note span {
+  white-space: nowrap;
+}
+
+/* buttons (wizard .btn / .btn-prim / .btn-ghost) */
+.ev-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: 0.16s var(--evc-ease);
+}
+.ev-btn .ev-ic {
+  width: 17px;
+  height: 17px;
+}
+.ev-btn-prim {
+  background: var(--evc-text);
+  color: var(--evc-inverse);
+  border: none;
+  box-shadow: 0 8px 22px -10px rgba(15, 15, 16, 0.4);
+}
+.ev-btn-prim:hover {
+  opacity: 0.9;
+}
+.ev-btn-prim:active {
+  transform: scale(0.98);
+}
+.ev-btn-prim:disabled {
+  background: var(--evc-card-2);
+  color: var(--evc-faint);
+  box-shadow: none;
+  cursor: default;
+}
+.ev-btn-ghost {
+  background: var(--evc-card);
+  color: var(--evc-text);
+  border: 1px solid var(--evc-bd);
+}
+.ev-btn-ghost:hover {
+  border-color: var(--evc-input-bd-h);
+  background: var(--evc-card-2);
+}
+
+/* status modal */
+.ev-modal-sm {
+  text-align: center;
+  align-items: center;
+  padding: 32px 30px 24px;
+}
+.ev-st-ic {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  margin-bottom: 16px;
+}
+.ev-st-ic .ev-ic {
+  width: 100%;
+  height: 100%;
+}
+.ev-tone-accent {
+  background: rgba(42, 82, 224, 0.1);
+  color: var(--evc-accent);
+}
+.ev-tone-warn {
+  background: var(--evc-card-2);
+  color: var(--evc-text);
+}
+.ev-st-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--evc-text);
+}
+.ev-st-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--evc-dim);
+  margin-top: 8px;
+  text-wrap: pretty;
+}
+.ev-st-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+  width: 100%;
+}
+.ev-st-actions .ev-btn {
+  flex: 1;
+}
+.ev-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--evc-faint);
+}
+.ev-demo .ev-ic {
+  width: 15px;
+  height: 15px;
+}
+.ev-demo:hover {
+  color: var(--evc-accent);
+}
+
+/* shared inline-svg icon box */
+.ev-ic {
+  display: inline-flex;
+}
+.ev-ic svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* dashboard banner — neutral card with ink CTA (app tokens, theme-aware) */
+.ev-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 15, 16, 0.04);
+}
+.ev-banner-ic {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+.ev-banner-ic .ev-ic {
+  width: 100%;
+  height: 100%;
+}
+.ev-banner-main {
+  flex: 1;
+  min-width: 0;
+}
+.ev-banner-t {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.ev-banner-d {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  text-wrap: pretty;
+}
+.ev-banner-demo {
+  flex: 0 0 auto;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  border-radius: 9999px;
+  padding: 9px 16px;
+  box-shadow: 0 8px 22px -10px rgba(15, 15, 16, 0.4);
+  transition: opacity 0.16s ease;
+}
+.ev-banner-demo:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 560px) {
+  .ev-body {
+    grid-template-columns: 1fr;
+  }
+  .ev-field-wide {
+    grid-column: auto;
+  }
+  .ev-scroll {
+    padding: 24px 20px 8px;
+  }
+  .ev-foot {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 16px 20px;
+  }
+  .ev-foot .ev-btn {
+    width: 100%;
+  }
+  .ev-foot-note {
+    justify-content: center;
+  }
+  .ev-banner {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ev-scrim,
+  .ev-modal,
+  .ev-dd-menu {
+    transition: none;
+    animation: none;
+  }
+}

@@ -56,7 +56,9 @@
 .sv-menu { display: none; margin-left: -8px; }
 
 /* ---------- Tabs ---------- */
-.sv-tabs { display: flex; gap: 8px; padding: 14px 18px 8px; flex: 0 0 auto; max-width: 760px; width: 100%; margin: 0 auto; }
+/* Main-screen lists run full-width (the redesign drops the old 760px centering);
+   the message thread keeps a readable column (see .sv-msgs-inner). */
+.sv-tabs { display: flex; gap: 8px; padding: 14px 24px 8px; flex: 0 0 auto; width: 100%; }
 .sv-tab {
   display: inline-flex;
   align-items: center;
@@ -91,16 +93,16 @@
 .sv-tab.on .sv-tabbadge { background: rgba(255, 255, 255, 0.22); }
 
 /* ---------- Scroll region ---------- */
-.sv-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 12px 28px; }
-.sv-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; }
+.sv-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 28px; }
+.sv-list { width: 100%; display: flex; flex-direction: column; }
 
 /* "Only unread" filter */
 .sv-filter {
   display: flex;
   align-items: center;
   gap: 11px;
-  max-width: 760px;
-  margin: 6px auto 8px;
+  width: 100%;
+  margin: 6px 0 8px;
   padding: 11px 14px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -216,7 +218,7 @@
 .sv-status--rejected { color: var(--error); }
 
 /* ---------- Saved jobs ---------- */
-.sv-saved { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+.sv-saved { width: 100%; display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
 .sv-job {
   border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
@@ -467,6 +469,8 @@
 }
 @media (max-width: 560px) {
   .sv-bubble { max-width: 84%; }
+  .sv-scroll { padding: 4px 14px 28px; }
+  .sv-tabs { padding: 14px 14px 8px; }
   .sv-msgs-inner { padding: 18px 16px 8px; }
   .sv-composer { padding: 10px 14px; }
   .sv-quick { padding: 10px 14px 4px; }
