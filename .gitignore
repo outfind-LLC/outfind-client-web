@@ -43,3 +43,10 @@ docs/
 .agents
 skills-lock.json
 _Peoplor_Design
+
+# visual-diff harness — generated screenshots + captured auth session (cookies!)
+/scripts/visual-diff/out/
+/scripts/visual-diff/.auth.json
+/scripts/visual-diff/.auth.tokens.json
+/scripts/visual-diff/.auth.worker.state.json
+/scripts/visual-diff/.auth.employer.state.json

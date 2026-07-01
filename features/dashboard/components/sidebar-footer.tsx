@@ -8,6 +8,7 @@ import { routes } from "@/config/routes";
 import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
+import { useEmployerProfile } from "@/features/profile/hooks/use-profile";
 import { isApiClientError } from "@/lib/api/error";
 import { LOCALE_LABELS, LOCALES } from "@/lib/i18n/config";
 import { useI18n } from "@/providers/i18n-provider";
@@ -15,7 +16,6 @@ import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { Ic, LangCaret, LangGlobe, LangTick } from "./app-icons";
 import {
-  AccountModal,
   HelpModal,
   LogoutModal,
   UpgradeModal,
@@ -40,18 +40,26 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const { locale, setLocale, t } = useI18n();
 
   const planLabel = plan?.name ?? t("common.freePlan");
-  // The avatar/name header opens the account's own profile surface: the company
-  // page for employers (it left the sidebar in the redesign), the résumé for
-  // workers/admins.
-  const profileHref =
-    user.accountType === ACCOUNT_TYPE.EMPLOYER
-      ? routes.company
-      : routes.profile;
+  const isEmployer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
+  // Employers see their COMPANY identity in the footer (name + logo); workers see
+  // their own. The company profile is a cached query, enabled only for employers.
+  const employerProfile = useEmployerProfile(isEmployer);
+  const company = employerProfile.data;
+  const displayName = isEmployer ? (company?.companyName ?? user.name) : user.name;
+  const displayAvatar = isEmployer
+    ? (company?.companyLogoUrl ?? null)
+    : (user.avatarUrl ?? null);
+  // The avatar/name header opens the account's own profile surface in its DETAIL
+  // view: the company "About" page for employers, the résumé editor for workers
+  // (matches the prototype's `__profileShowCompany`, which lands on view=detail).
+  const profileHref = isEmployer
+    ? `${routes.company}?view=detail`
+    : `${routes.profile}?view=detail`;
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [modal, setModal] = useState<
-    null | "account" | "help" | "logout" | "upgrade"
+    null | "help" | "logout" | "upgrade"
   >(null);
   const footRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +99,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     setMenuOpen(false);
     setMobileOpen(false);
   };
-  const openModal = (name: "account" | "help" | "logout" | "upgrade") => {
+  const openModal = (name: "help" | "logout" | "upgrade") => {
     setMenuOpen(false);
     setModal(name);
   };
@@ -141,10 +149,10 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           className={s["pm-head"]}
           onClick={closeMenuThen}
         >
-          <Avatar user={user} />
+          <Avatar name={displayName} avatarUrl={displayAvatar} />
           <div className={s["pm-meta"]}>
-            <div className={s["pm-name"]}>{user.name}</div>
-            <div className={s["pm-mail"]}>{user.email ?? planLabel}</div>
+            <div className={s["pm-name"]}>{displayName}</div>
+            <div className={s["pm-mail"]}>{planLabel}</div>
           </div>
         </Link>
         <div className={s["pm-sep"]} />
@@ -155,14 +163,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
         >
           <Ic name="zap" />
           <span>{t("accountMenu.upgradePlan")}</span>
-        </button>
-        <button
-          type="button"
-          className={s["pm-item"]}
-          onClick={() => openModal("account")}
-        >
-          <Ic name="user" />
-          <span>{t("accountMenu.account")}</span>
         </button>
         <Link
           href={routes.settings}
@@ -202,9 +202,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           setLangOpen(false);
         }}
       >
-        <Avatar user={user} />
+        <Avatar name={displayName} avatarUrl={displayAvatar} />
         <span className={s.pmeta}>
-          <span className={s.pname}>{user.name}</span>
+          <span className={s.pname}>{displayName}</span>
           <span className={s.pmail}>{planLabel}</span>
         </span>
         <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
@@ -212,9 +212,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
 
       {modal === "upgrade" ? (
         <UpgradeModal onClose={() => setModal(null)} />
-      ) : null}
-      {modal === "account" ? (
-        <AccountModal user={user} onClose={() => setModal(null)} />
       ) : null}
       {modal === "help" ? <HelpModal onClose={() => setModal(null)} /> : null}
       {modal === "logout" ? (
@@ -228,14 +225,14 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   );
 }
 
-function Avatar({ user }: { user: SessionUser }) {
+function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   return (
     <span className={s.avatar} aria-hidden="true">
-      {user.avatarUrl ? (
+      {avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={user.avatarUrl} alt="" />
+        <img src={avatarUrl} alt="" />
       ) : (
-        initial(user.name)
+        initial(name)
       )}
     </span>
   );

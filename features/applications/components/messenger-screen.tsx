@@ -22,13 +22,17 @@ import {
   useSendApplicationMessage,
 } from "@/features/applications/hooks/use-application-messages";
 import { useBookmarks, useRemoveBookmark } from "@/features/bookmarks/hooks/use-bookmarks";
+import { useCandidateProfile } from "@/features/applications/hooks/use-candidate-profile";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
+import type {
+  WorkerEducation,
+  WorkerExperience,
+  WorkerLanguage,
+} from "@/interfaces/worker-profile.interface";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useCandidateDetailStore } from "@/features/applications/store/candidate-detail.store";
-import {
-  MOCK_SHORTLIST,
-  mockCandidateCard,
-} from "@/features/applications/data/employer-mocks";
-import type { CandidateCardData } from "@/features/chat/types/candidate";
+import { MOCK_SHORTLIST } from "@/features/applications/data/employer-mocks";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
 import { ICONS as REG } from "@/components/icons";
@@ -69,6 +73,11 @@ const MICONS = {
   eye: REG.eye,
   dots: REG.dotsVertical,
   verified: REG.verifiedSeal,
+  brief: REG.briefcase,
+  pin: REG.pin,
+  clock: REG.clock,
+  doc: REG.fileText,
+  mail: REG.mail,
 } as const;
 function MIc({ name, className }: { name: keyof typeof MICONS; className?: string }) {
   return (
@@ -126,6 +135,15 @@ const STATUS_LABEL_KEY: Record<DisplayStatus, MessageKey> = {
   viewed: "applications.statusViewed",
   done: "applications.statusInReview",
   rejected: "applications.statusRejected",
+};
+/** Employer labels differ from the worker's (prototype `sv.status.*#hire`). */
+const EMPLOYER_STATUS_LABEL_KEY: Record<DisplayStatus, MessageKey> = {
+  interview: "candidates.statusInterview",
+  reply: "candidates.statusReplied",
+  applied: "candidates.statusNewApplicant",
+  viewed: "candidates.statusProfileViewed",
+  done: "candidates.statusHired",
+  rejected: "candidates.statusPassed",
 };
 /** Worker view: dynamic status — an unread employer message reads as "New reply". */
 function workerStatus(a: Application): DisplayStatus {
@@ -219,27 +237,6 @@ function jobFromThread(thread: Thread): JobCardData {
   };
 }
 
-/** The candidate card for the "View profile" sheet from an employer thread. */
-function candidateFromThread(thread: Thread): CandidateCardData {
-  return (
-    mockCandidateCard(thread.id) ?? {
-      id: thread.id,
-      name: thread.name,
-      title: thread.subLine || null,
-      location: [thread.city, thread.country].filter(Boolean).join(", ") || null,
-      salary: null,
-      skills: [],
-      availability: null,
-      years: null,
-      matchScore: null,
-      verified: false,
-      summary: null,
-      experience: [],
-      contact: { email: null, phone: null, telegram: null, whatsapp: null, website: null },
-    }
-  );
-}
-
 /* ---------------- thread model ---------------------------------------------- */
 interface Thread {
   id: string;
@@ -262,6 +259,7 @@ interface Thread {
   country: string | null;
   sentAt: string | null;
   isWorker: boolean;
+  matchScore: number | null;
 }
 
 function workerThread(a: Application, locale: string): Thread {
@@ -288,6 +286,7 @@ function workerThread(a: Application, locale: string): Thread {
     country: a.vacancy.country,
     sentAt: a.sentAt,
     isWorker: true,
+    matchScore: null,
   };
 }
 function employerThread(e: EmployerApplication, locale: string): Thread {
@@ -301,7 +300,7 @@ function employerThread(e: EmployerApplication, locale: string): Thread {
     mainLine: name,
     subLine: e.applicant.profession ?? "",
     statusCls: st,
-    statusLabelKey: STATUS_LABEL_KEY[st],
+    statusLabelKey: EMPLOYER_STATUS_LABEL_KEY[st],
     date: inboxDate(e.lastMessageAt ?? e.sentAt ?? e.createdAt, locale),
     unreadCount: 0,
     lastMessageMine: false,
@@ -314,6 +313,7 @@ function employerThread(e: EmployerApplication, locale: string): Thread {
     country: null,
     sentAt: e.sentAt,
     isWorker: false,
+    matchScore: e.matchScore,
   };
 }
 
@@ -323,6 +323,14 @@ const QUICK_KEYS: MessageKey[] = [
   "applications.quickLocation",
   "applications.quickRemote",
   "applications.quickNext",
+];
+/** Employer quick replies (prototype `sv.quick.*#hire`). */
+const EMPLOYER_QUICK_KEYS: MessageKey[] = [
+  "candidates.quickThanks",
+  "candidates.quickStart",
+  "candidates.quickLocal",
+  "candidates.quickShareCv",
+  "candidates.quickBook",
 ];
 
 /**
@@ -343,6 +351,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
 
   const [tab, setTab] = useState<"applied" | "saved">("applied");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [sub, setSub] = useState<"thread" | "detail" | "cv">("thread");
   const [unreadOnly, setUnreadOnly] = useState(false);
 
   const threads = useMemo<Thread[]>(() => {
@@ -361,12 +370,44 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
   const openThread = (id: string) => {
     setTab("applied");
     setOpenId(id);
+    setSub("thread");
   };
 
   if (open) {
+    if (employer && sub === "detail") {
+      return (
+        <div className={s.screen}>
+          <CandidateDetailView
+            thread={open}
+            onBack={() => setSub("thread")}
+            onOpenCv={() => setSub("cv")}
+          />
+        </div>
+      );
+    }
+    if (sub === "cv") {
+      return (
+        <div className={s.screen}>
+          {employer ? (
+            <CandidateCvView thread={open} onBack={() => setSub("thread")} />
+          ) : (
+            <WorkerCvView thread={open} onBack={() => setSub("thread")} />
+          )}
+        </div>
+      );
+    }
     return (
       <div className={s.screen}>
-        <ThreadView scope={scope} thread={open} onBack={() => setOpenId(null)} />
+        <ThreadView
+          scope={scope}
+          thread={open}
+          onBack={() => {
+            setOpenId(null);
+            setSub("thread");
+          }}
+          onViewProfile={() => setSub("detail")}
+          onViewCv={() => setSub("cv")}
+        />
       </div>
     );
   }
@@ -383,7 +424,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           <MIc name="menu" />
         </button>
         <div className={s["sv-title"]}>
-          {employer ? t("candidates.inboxTitle") : t("applications.title")}
+          {employer ? t("nav.chat") : t("applications.title")}
         </div>
       </header>
 
@@ -393,7 +434,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           className={cn(s["sv-tab"], tab === "applied" && s.on)}
           onClick={() => setTab("applied")}
         >
-          {employer ? t("candidates.tabApplicants") : t("applications.tabApplied")}
+          {employer ? t("candidates.tabConversations") : t("applications.tabApplied")}
           {totalUnread > 0 ? <span className={s["sv-tabbadge"]}>{totalUnread}</span> : null}
         </button>
         <button
@@ -535,7 +576,13 @@ function AppliedTab({
                     )}
                   </span>
                 </span>
-                {th.subLine ? <span className={s["sv-co"]}>{th.subLine}</span> : null}
+                {th.subLine ? (
+                  <span className={s["sv-co"]}>
+                    {employer
+                      ? t("candidates.appliedInbox", { role: th.subLine })
+                      : th.subLine}
+                  </span>
+                ) : null}
                 <span className={cn(s["sv-status"], s[`sv-status--${th.statusCls}`])}>
                   {t(th.statusLabelKey)}
                 </span>
@@ -575,42 +622,64 @@ function SavedTab({
     }
     return (
       <div className={s["sv-saved"]}>
-        {MOCK_SHORTLIST.map((c) => (
-          <div key={c.id} className={s["sv-job"]}>
-            <div className={s["sv-job-top"]}>
-              <span className={s["sv-av"]} style={{ background: avatarColor(c.name) }}>
-                {initials(c.name)}
-              </span>
-              <div className={s["sv-job-head"]}>
-                <div className={s["sv-job-role"]}>{c.name}</div>
-                <div className={s["sv-co"]}>
-                  {[c.title, c.location].filter(Boolean).join(" · ")}
+        {MOCK_SHORTLIST.map((c) => {
+          const tags = [
+            ...c.skills.slice(0, 1),
+            ...(c.years != null ? [t("candidates.yearsShort", { n: c.years })] : []),
+          ];
+          return (
+            <div key={c.id} className={s["sv-job"]}>
+              <div className={s["sv-job-top"]}>
+                <span className={s["sv-av"]} style={{ background: avatarColor(c.name) }}>
+                  {initials(c.name)}
+                </span>
+                <div className={s["sv-job-head"]}>
+                  <div className={s["sv-job-role"]}>{c.name}</div>
+                  <div className={s["sv-co"]}>
+                    {[c.title, c.location].filter(Boolean).join(" · ")}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  className={s["sv-job-save"]}
+                  aria-label={t("applications.removeSaved")}
+                  onClick={() => toast(t("applications.toastRemoved"))}
+                >
+                  <MIc name="bookmark" />
+                </button>
+              </div>
+              <div className={s["sv-job-meta"]}>
+                {c.salary ? (
+                  <span className={s["sv-job-pay"]}>
+                    <MIc name="wallet" />
+                    {c.salary}
+                  </span>
+                ) : null}
+                {tags.map((tag) => (
+                  <span key={tag} className={s["sv-chip"]}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <div className={s["sv-job-actions"]}>
+                <button
+                  type="button"
+                  className={cn(s["sv-btn"], s["sv-btn-ghost"])}
+                  onClick={() => openCandidate(c)}
+                >
+                  {t("candidates.viewProfile")}
+                </button>
+                <button
+                  type="button"
+                  className={cn(s["sv-btn"], s["sv-btn-primary"])}
+                  onClick={() => toast(t("candidates.msgOpened", { name: c.name }))}
+                >
+                  {t("candidates.messageBtn")}
+                </button>
               </div>
             </div>
-            <div className={s["sv-job-meta"]}>
-              {c.matchScore != null ? (
-                <span className={s["sv-chip"]}>
-                  {c.matchScore}% {t("candidates.matchLabel")}
-                </span>
-              ) : null}
-              {c.skills.slice(0, 3).map((sk) => (
-                <span key={sk} className={s["sv-chip"]}>
-                  {sk}
-                </span>
-              ))}
-            </div>
-            <div className={s["sv-job-actions"]}>
-              <button
-                type="button"
-                className={cn(s["sv-btn"], s["sv-btn-primary"])}
-                onClick={() => openCandidate(c)}
-              >
-                {t("candidates.viewProfile")}
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -741,17 +810,21 @@ function ThreadView({
   scope,
   thread,
   onBack,
+  onViewProfile,
+  onViewCv,
 }: {
   scope: ConversationScope;
   thread: Thread;
   onBack: () => void;
+  onViewProfile?: () => void;
+  onViewCv?: () => void;
 }) {
   const { t, locale } = useI18n();
+  const employer = scope === "employer";
   const { data: messages, isLoading } = useApplicationMessages(scope, thread.id, true);
   const send = useSendApplicationMessage(scope, thread.id);
   const markRead = useMarkApplicationRead(scope, thread.id);
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
-  const openCandidate = useCandidateDetailStore((st) => st.openCandidate);
   const [draft, setDraft] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
   const me: ApplicationMessageSender = scope === "worker" ? "WORKER" : "EMPLOYER";
@@ -814,25 +887,14 @@ function ThreadView({
           </div>
           <div className={s["sv-thead-sub"]}>{t(thread.statusLabelKey)}</div>
         </div>
-        {thread.isWorker ? (
-          <button
-            type="button"
-            className={s["sv-iconbtn"]}
-            aria-label={t("applications.ariaCall")}
-            onClick={() => toast(t("applications.toastCalling"))}
-          >
-            <MIc name="phone" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className={s["sv-iconbtn"]}
-            aria-label={t("candidates.ariaViewProfile")}
-            onClick={() => openCandidate(candidateFromThread(thread))}
-          >
-            <MIc name="eye" />
-          </button>
-        )}
+        <button
+          type="button"
+          className={s["sv-iconbtn"]}
+          aria-label={t("applications.ariaCall")}
+          onClick={() => toast(t("applications.toastCalling"))}
+        >
+          <MIc name="phone" />
+        </button>
         <button
           type="button"
           className={s["sv-iconbtn"]}
@@ -845,10 +907,41 @@ function ThreadView({
 
       <div className={s["sv-pin"]}>
         <div className={s["sv-pin-main"]}>
-          <span className={s["sv-pin-l"]}>{t("applications.pinApplied")}</span>
+          {employer ? (
+            <button
+              type="button"
+              className={s["sv-pin-l"]}
+              onClick={onViewCv}
+              aria-label={t("candidates.viewCv")}
+            >
+              {t("candidates.pinApplied")}
+              <span className={s["sv-pin-cv"]}>
+                <MIc name="doc" />
+                {t("candidates.viewCv")}
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={s["sv-pin-l"]}
+              onClick={onViewCv}
+              aria-label={t("applications.myCv")}
+            >
+              {t("applications.pinApplied")}
+              <span className={s["sv-pin-cv"]}>
+                <MIc name="doc" />
+                {t("applications.myCv")}
+              </span>
+            </button>
+          )}
           <span className={s["sv-pin-role"]}>{thread.vacancyTitle || thread.mainLine}</span>
         </div>
-        {thread.isWorker && thread.vacancyId ? (
+        {employer ? (
+          <button type="button" className={s["sv-pin-go"]} onClick={onViewProfile}>
+            {t("candidates.viewProfile")}
+            <MIc name="open" />
+          </button>
+        ) : thread.vacancyId ? (
           <button
             type="button"
             className={s["sv-pin-go"]}
@@ -923,7 +1016,7 @@ function ThreadView({
       </div>
 
       <div className={s["sv-quick"]}>
-        {QUICK_KEYS.map((key) => {
+        {(employer ? EMPLOYER_QUICK_KEYS : QUICK_KEYS).map((key) => {
           const label = t(key);
           return (
             <button
@@ -954,8 +1047,16 @@ function ThreadView({
           className={s["sv-input"]}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder={t("applications.composerPlaceholder")}
-          aria-label={t("applications.composerPlaceholder")}
+          placeholder={
+            employer
+              ? t("candidates.composerPlaceholder")
+              : t("applications.composerPlaceholder")
+          }
+          aria-label={
+            employer
+              ? t("candidates.composerPlaceholder")
+              : t("applications.composerPlaceholder")
+          }
         />
         <button
           type="submit"
@@ -967,5 +1068,420 @@ function ThreadView({
         </button>
       </form>
     </>
+  );
+}
+
+/* ---------------- candidate profile + CV (employer, from the thread pin) ----- */
+function slugName(name: string): string {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function expYear(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : String(d.getFullYear());
+}
+/** Rough total years of experience: earliest start → latest end (or now). */
+function totalYears(exps: WorkerExperience[]): number | null {
+  if (exps.length === 0) return null;
+  let min = Number.POSITIVE_INFINITY;
+  let max = 0;
+  for (const e of exps) {
+    const s = new Date(e.startDate).getTime();
+    const en = e.endDate ? new Date(e.endDate).getTime() : new Date().getTime();
+    if (!Number.isNaN(s)) min = Math.min(min, s);
+    if (!Number.isNaN(en)) max = Math.max(max, en);
+  }
+  if (min === Number.POSITIVE_INFINITY) return null;
+  const years = Math.round((max - min) / (365.25 * 24 * 3600 * 1000));
+  return years > 0 ? years : null;
+}
+function expBullets(description: string | null): string[] {
+  if (!description) return [];
+  return description
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[•\-•]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+/** The Candidate profile detail view — prototype `saved.js` detailHTML (hire). */
+function CandidateDetailView({
+  thread,
+  onBack,
+  onOpenCv,
+}: {
+  thread: Thread;
+  onBack: () => void;
+  onOpenCv: () => void;
+}) {
+  const { t } = useI18n();
+  const { data: profile } = useCandidateProfile(thread.id);
+  const name = profile?.name ?? thread.name;
+  const role = profile?.profession ?? thread.subLine;
+  const city = profile?.currentCity ?? null;
+  const summary = profile?.summary ?? null;
+  const experiences = profile?.experiences ?? [];
+  const skills = profile?.skills ?? [];
+  const years = totalYears(experiences);
+  const matchScore = profile?.matchScore ?? thread.matchScore;
+
+  return (
+    <>
+      <header className={cn(s["sv-topbar"], s["sv-thead"])}>
+        <button
+          type="button"
+          className={cn(s["sv-iconbtn"], s["sv-back"])}
+          onClick={onBack}
+          aria-label={t("applications.ariaBack")}
+        >
+          <MIc name="back" />
+        </button>
+        <div className={s["sv-title"]}>{t("candidates.profileTitle")}</div>
+      </header>
+
+      <div className={cn(s["sv-scroll"], s["sv-d-scroll"])}>
+        <div className={s["sv-d-wrap"]}>
+          <div className={s["sv-d-hero"]}>
+            <span
+              className={cn(s["sv-av"], s["sv-d-av"])}
+              style={{ background: thread.color }}
+            >
+              {thread.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={thread.avatarUrl} alt="" />
+              ) : (
+                initials(name)
+              )}
+            </span>
+            <div className={s["sv-d-name"]}>{name}</div>
+            {role ? <div className={s["sv-d-role"]}>{role}</div> : null}
+            <div className={s["sv-d-facts"]}>
+              {city ? (
+                <span className={s["sv-d-fact"]}>
+                  <MIc name="pin" />
+                  {city}
+                </span>
+              ) : null}
+              <span className={s["sv-d-fact"]}>
+                <MIc name="clock" />
+                {t("candidates.recentlyActive")}
+              </span>
+            </div>
+          </div>
+
+          <div className={s["sv-d-stats"]}>
+            <DStat
+              n={years != null ? t("candidates.yearsShort", { n: years }) : "—"}
+              l={t("candidates.statExperience")}
+            />
+            <DStat
+              n={matchScore != null ? `${matchScore}%` : "—"}
+              l={t("candidates.statMatch")}
+            />
+            <DStat n={t("candidates.identityPending")} l={t("candidates.statIdentity")} />
+          </div>
+
+          {summary ? (
+            <section className={s["sv-sec"]}>
+              <div className={s["sv-sec-h"]}>{t("candidates.about")}</div>
+              <p className={s["sv-d-about"]}>{summary}</p>
+            </section>
+          ) : null}
+
+          {experiences.length > 0 ? (
+            <section className={s["sv-sec"]}>
+              <div className={s["sv-sec-h"]}>{t("candidates.experience")}</div>
+              <div className={s["sv-exp"]}>
+                {experiences.map((e) => {
+                  const bullets = expBullets(e.description);
+                  const period = `${expYear(e.startDate)} — ${
+                    e.endDate ? expYear(e.endDate) : t("candidates.present")
+                  }`;
+                  return (
+                    <div key={e.id} className={s["sv-exp-item"]}>
+                      <span className={s["sv-exp-ic"]}>
+                        <MIc name="brief" />
+                      </span>
+                      <div>
+                        <div className={s["sv-exp-role"]}>{e.position}</div>
+                        <div className={s["sv-exp-co"]}>
+                          {[e.companyName, period].filter(Boolean).join(" · ")}
+                        </div>
+                        {bullets.length > 0 ? (
+                          <ul className={s["sv-exp-list"]}>
+                            {bullets.map((b, i) => (
+                              <li key={i}>{b}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {skills.length > 0 ? (
+            <section className={s["sv-sec"]}>
+              <div className={s["sv-sec-h"]}>{t("candidates.skills")}</div>
+              <div className={s["sv-skills"]}>
+                {skills.map((sk) => (
+                  <span key={sk} className={s["sv-skill"]}>
+                    {sk}
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+
+        <div className={s["sv-d-foot"]}>
+          <button
+            type="button"
+            className={cn(s["sv-btn"], s["sv-btn-ghost"])}
+            onClick={onOpenCv}
+          >
+            <MIc name="doc" />
+            {t("candidates.openFullCv")}
+          </button>
+          <button
+            type="button"
+            className={cn(s["sv-btn"], s["sv-btn-primary"])}
+            onClick={onBack}
+          >
+            {t("candidates.backToChat")}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DStat({ n, l }: { n: string; l: string }) {
+  return (
+    <div className={s["sv-d-stat"]}>
+      <div className={s.n}>{n}</div>
+      <div className={s.l}>{l}</div>
+    </div>
+  );
+}
+
+interface CvViewData {
+  name: string;
+  role: string | null;
+  city: string | null;
+  phone: string | null;
+  email: string | null;
+  color: string;
+  summary: string | null;
+  experiences: WorkerExperience[];
+  skills: string[];
+  education: WorkerEducation[];
+  languages: WorkerLanguage[];
+}
+
+/** Shared CV page (prototype `saved.js` cvHTML) — the sv-cv-* paper. Fed by the
+ * candidate profile (employer views the applicant) or the worker's own profile
+ * (worker views "My CV" for a job). */
+function MessengerCvView({ data, onBack }: { data: CvViewData; onBack: () => void }) {
+  const { t } = useI18n();
+  const {
+    name,
+    role,
+    city,
+    phone,
+    email,
+    color,
+    summary,
+    experiences,
+    skills,
+    education,
+    languages,
+  } = data;
+
+  return (
+    <>
+      <header className={cn(s["sv-topbar"], s["sv-thead"])}>
+        <button
+          type="button"
+          className={cn(s["sv-iconbtn"], s["sv-back"])}
+          onClick={onBack}
+          aria-label={t("applications.ariaBack")}
+        >
+          <MIc name="back" />
+        </button>
+        <div className={s["sv-title"]}>{t("candidates.cvTitle")}</div>
+        <button
+          type="button"
+          className={s["sv-iconbtn"]}
+          aria-label={t("candidates.cvAriaOpen")}
+          onClick={() => toast(t("applications.toastConvOptions"))}
+        >
+          <MIc name="open" />
+        </button>
+      </header>
+
+      <div className={cn(s["sv-scroll"], s["sv-cv-scroll"])}>
+        <div className={s["sv-cv-url"]}>
+          <MIc name="doc" />
+          <span>peoplor.uz/cv/{slugName(name)}</span>
+        </div>
+        <div className={s["sv-cv-paper"]}>
+          <div className={s["sv-cv-head"]}>
+            <div>
+              <div className={s["sv-cv-name"]}>{name}</div>
+              {role ? <div className={s["sv-cv-title"]}>{role}</div> : null}
+            </div>
+            <span className={cn(s["sv-av"], s["sv-cv-av"])} style={{ background: color }}>
+              {initials(name)}
+            </span>
+          </div>
+
+          <div className={s["sv-cv-contact"]}>
+            {city ? (
+              <span>
+                <MIc name="pin" />
+                {city}
+              </span>
+            ) : null}
+            {phone ? (
+              <span>
+                <MIc name="phone" />
+                {phone}
+              </span>
+            ) : null}
+            {email ? (
+              <span>
+                <MIc name="mail" />
+                {email}
+              </span>
+            ) : null}
+          </div>
+
+          {summary ? (
+            <div className={s["sv-cv-sec"]}>
+              <div className={s["sv-cv-h"]}>{t("candidates.cvProfile")}</div>
+              <p className={s["sv-cv-p"]}>{summary}</p>
+            </div>
+          ) : null}
+
+          {experiences.length > 0 ? (
+            <div className={s["sv-cv-sec"]}>
+              <div className={s["sv-cv-h"]}>{t("candidates.experience")}</div>
+              {experiences.map((e) => {
+                const bullets = expBullets(e.description);
+                const period = `${expYear(e.startDate)} — ${
+                  e.endDate ? expYear(e.endDate) : t("candidates.present")
+                }`;
+                return (
+                  <div key={e.id} className={s["sv-cv-exp"]}>
+                    <div className={s["sv-cv-exp-top"]}>
+                      <span className={s["sv-cv-exp-role"]}>{e.position}</span>
+                      <span className={s["sv-cv-exp-per"]}>{period}</span>
+                    </div>
+                    <div className={s["sv-cv-exp-co"]}>{e.companyName}</div>
+                    {bullets.length > 0 ? (
+                      <ul className={s["sv-cv-list"]}>
+                        {bullets.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {skills.length > 0 ? (
+            <div className={s["sv-cv-sec"]}>
+              <div className={s["sv-cv-h"]}>{t("candidates.skills")}</div>
+              <div className={s["sv-skills"]}>
+                {skills.map((sk) => (
+                  <span key={sk} className={s["sv-skill"]}>
+                    {sk}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {education.length > 0 ? (
+            <div className={s["sv-cv-sec"]}>
+              <div className={s["sv-cv-h"]}>{t("candidates.education")}</div>
+              <ul className={s["sv-cv-list"]}>
+                {education.map((ed) => (
+                  <li key={ed.id}>
+                    {[ed.degree, ed.fieldOfStudy, ed.institutionName]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {languages.length > 0 ? (
+            <div className={s["sv-cv-sec"]}>
+              <div className={s["sv-cv-h"]}>{t("candidates.languages")}</div>
+              <div className={s["sv-skills"]}>
+                {languages.map((lg) => (
+                  <span key={lg.id} className={s["sv-skill"]}>
+                    {lg.language} — {lg.proficiency}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Employer views the applicant's CV (candidate-profile endpoint). */
+function CandidateCvView({ thread, onBack }: { thread: Thread; onBack: () => void }) {
+  const { data: profile } = useCandidateProfile(thread.id);
+  return (
+    <MessengerCvView
+      onBack={onBack}
+      data={{
+        name: profile?.name ?? thread.name,
+        role: profile?.profession ?? thread.subLine,
+        city: profile?.currentCity ?? null,
+        phone: profile?.contact?.phone ?? null,
+        email: profile?.contact?.email ?? null,
+        color: thread.color,
+        summary: profile?.summary ?? null,
+        experiences: profile?.experiences ?? [],
+        skills: profile?.skills ?? [],
+        education: profile?.education ?? [],
+        languages: profile?.languages ?? [],
+      }}
+    />
+  );
+}
+
+/** Worker views their OWN CV for the job ("My CV" from the thread pin). */
+function WorkerCvView({ thread, onBack }: { thread: Thread; onBack: () => void }) {
+  const { user } = useSession();
+  const { data: profile } = useWorkerProfile(true);
+  const name = user?.name ?? thread.name;
+  return (
+    <MessengerCvView
+      onBack={onBack}
+      data={{
+        name,
+        role: profile?.profession ?? null,
+        city: profile?.currentCity ?? null,
+        phone: null,
+        email: user?.email ?? null,
+        color: avatarColor(name),
+        summary: profile?.summary ?? null,
+        experiences: profile?.experiences ?? [],
+        skills: profile?.skills ?? [],
+        education: profile?.education ?? [],
+        languages: profile?.languages ?? [],
+      }}
+    />
   );
 }

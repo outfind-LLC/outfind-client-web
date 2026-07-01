@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Briefcase,
   FileText,
@@ -19,9 +21,11 @@ import { toast } from "sonner";
 
 import { UserAvatar } from "@/components/user-avatar";
 import { FormSection } from "@/components/form/form-fields";
+import { useI18n } from "@/providers/i18n-provider";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
 import { useChatPanelStore } from "@/features/applications/store/chat-panel.store";
 import { useCandidateProfile } from "@/features/applications/hooks/use-candidate-profile";
+import { CandidateCvOverlay } from "@/features/applications/components/candidate-cv-overlay";
 import {
   useUpdateApplicationStatus,
   useVacancyApplicants,
@@ -72,6 +76,7 @@ export function CandidateProfileView({
   vacancyId,
   applicationId,
 }: CandidateProfileViewProps) {
+  const { t } = useI18n();
   const { data: applicants, isLoading: baseLoading } =
     useVacancyApplicants(vacancyId);
   const application = applicants?.find((item) => item.id === applicationId);
@@ -83,6 +88,7 @@ export function CandidateProfileView({
 
   const openThread = useChatPanelStore((s) => s.openThread);
   const updateStatus = useUpdateApplicationStatus(vacancyId);
+  const [cvOpen, setCvOpen] = useState(false);
 
   // Loading the base record for the first time (e.g. a deep link).
   if (baseLoading && !application && !profile) {
@@ -93,14 +99,15 @@ export function CandidateProfileView({
     return (
       <EmptyState
         icon={UserX}
-        title="Applicant not found"
-        description="This applicant may have withdrawn, or you don't have access to this application."
+        title={t("candidates.notFoundTitle")}
+        description={t("candidates.notFoundDesc")}
       />
     );
   }
 
   // Merge: prefer the rich profile, fall back to the applicant-list record.
-  const name = profile?.name ?? application?.applicant.name ?? "Candidate";
+  const name =
+    profile?.name ?? application?.applicant.name ?? t("candidates.fallbackName");
   const profession =
     profile?.profession ?? application?.applicant.profession ?? null;
   const photoUrl = profile?.photoUrl ?? application?.applicant.avatarUrl ?? null;
@@ -114,6 +121,15 @@ export function CandidateProfileView({
   const location = [profile?.currentCity, profile?.currentCountry]
     .filter(Boolean)
     .join(", ");
+  // The structured-CV viewer only makes sense once the rich profile has content.
+  const cvContent = Boolean(
+    profile &&
+      (profile.summary ||
+        profile.experiences.length ||
+        profile.education.length ||
+        profile.languages.length ||
+        profile.skills.length),
+  );
 
   const onMessage = () =>
     openThread({
@@ -128,8 +144,8 @@ export function CandidateProfileView({
     updateStatus.mutate(
       { applicationId, payload: { status: next } },
       {
-        onSuccess: () => toast.success("Applicant updated"),
-        onError: () => toast.error("Couldn't update applicant"),
+        onSuccess: () => toast.success(t("candidates.statusUpdated")),
+        onError: () => toast.error(t("candidates.statusError")),
       },
     );
 
@@ -149,7 +165,9 @@ export function CandidateProfileView({
                 {name}
               </h1>
               <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                <span className="break-words">{profession ?? "Candidate"}</span>
+                <span className="break-words">
+                  {profession ?? t("candidates.fallbackName")}
+                </span>
                 {location ? (
                   <span className="flex items-center gap-1.5">
                     <MapPin className="size-3.5 shrink-0" />
@@ -176,7 +194,7 @@ export function CandidateProfileView({
             className="w-full sm:w-auto"
           >
             <MessageSquare className="size-4" />
-            Message
+            {t("candidates.messageBtn")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -185,11 +203,11 @@ export function CandidateProfileView({
                 disabled={updateStatus.isPending}
                 className="w-full sm:w-auto"
               >
-                Set status
+                {t("candidates.setStatus")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuLabel>Move to</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("candidates.moveTo")}</DropdownMenuLabel>
               {TRIAGE_STATUSES.map((value) => (
                 <DropdownMenuItem
                   key={value}
@@ -201,6 +219,18 @@ export function CandidateProfileView({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {cvContent ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCvOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              <FileText className="size-4" />
+              {t("candidates.viewCv")}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -213,7 +243,7 @@ export function CandidateProfileView({
 
       {/* Cover letter — available from the application itself. */}
       {coverLetter ? (
-        <FormSection title="Cover letter">
+        <FormSection title={t("candidates.coverLetter")}>
           <p className="text-foreground/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
             {coverLetter}
           </p>
@@ -221,17 +251,23 @@ export function CandidateProfileView({
       ) : null}
 
       {/* Application history — available from the application itself. */}
-      <FormSection title="Application">
+      <FormSection title={t("candidates.application")}>
         <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
           {status ? (
-            <Field label="Status" value={APPLICATION_STATUS_META[status].label} />
+            <Field
+              label={t("candidates.statusField")}
+              value={APPLICATION_STATUS_META[status].label}
+            />
           ) : null}
           {appliedAt ? (
-            <Field label="Applied" value={formatRelativeTime(appliedAt)} />
+            <Field
+              label={t("candidates.applied")}
+              value={formatRelativeTime(appliedAt)}
+            />
           ) : null}
           {lastMessageAt ? (
             <Field
-              label="Last message"
+              label={t("candidates.lastMessage")}
               value={formatRelativeTime(lastMessageAt)}
             />
           ) : null}
@@ -241,9 +277,15 @@ export function CandidateProfileView({
       {/* Quiet note when the rich profile can't be loaded. */}
       {profileUnavailable ? (
         <p className="text-muted-foreground text-center text-xs">
-          The candidate&apos;s full profile (skills, experience, education) will
-          appear here once available.
+          {t("candidates.profileHint")}
         </p>
+      ) : null}
+
+      {cvOpen && profile ? (
+        <CandidateCvOverlay
+          candidate={profile}
+          onClose={() => setCvOpen(false)}
+        />
       ) : null}
     </div>
   );
@@ -251,13 +293,14 @@ export function CandidateProfileView({
 
 /** Rich sections rendered from the full candidate profile. */
 function RichSections({ profile }: { profile: CandidateProfile }) {
+  const { t } = useI18n();
   const salary = profile.expectedSalaryRange;
   const hasLinks = Boolean(profile.videoIntroUrl || profile.uploadedCvLink);
 
   return (
     <>
       {profile.summary ? (
-        <FormSection title="About">
+        <FormSection title={t("candidates.about")}>
           <p className="text-foreground/90 text-sm leading-relaxed break-words whitespace-pre-wrap">
             {profile.summary}
           </p>
@@ -269,7 +312,7 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {profile.skills.length > 0 ? (
-        <FormSection title="Skills">
+        <FormSection title={t("candidates.skills")}>
           <div className="flex flex-wrap gap-1.5">
             {profile.skills.map((skill) => (
               <Badge key={skill} variant="outline" className="font-normal">
@@ -281,7 +324,7 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {profile.experiences.length > 0 ? (
-        <FormSection title="Experience">
+        <FormSection title={t("candidates.experience")}>
           <ol className="space-y-5">
             {profile.experiences.map((item) => (
               <ExperienceRow key={item.id} item={item} />
@@ -291,7 +334,7 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {profile.education.length > 0 ? (
-        <FormSection title="Education">
+        <FormSection title={t("candidates.education")}>
           <ol className="space-y-5">
             {profile.education.map((item) => (
               <EducationRow key={item.id} item={item} />
@@ -301,7 +344,7 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {profile.languages.length > 0 ? (
-        <FormSection title="Languages">
+        <FormSection title={t("candidates.languages")}>
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {profile.languages.map((language) => (
               <LanguageRow key={language.id} language={language} />
@@ -311,7 +354,7 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {salary ? (
-        <FormSection title="Expected salary">
+        <FormSection title={t("candidates.expectedSalary")}>
           <p className="flex items-center gap-2 text-sm">
             <Wallet className="text-muted-foreground size-4 shrink-0" />
             {salary.currency} {salary.min.toLocaleString()} –{" "}
@@ -321,20 +364,20 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
       ) : null}
 
       {hasLinks ? (
-        <FormSection title="Portfolio & documents">
+        <FormSection title={t("candidates.portfolio")}>
           <div className="flex flex-col gap-2">
             {profile.uploadedCvLink ? (
               <LinkRow
                 href={profile.uploadedCvLink}
                 icon={<FileText className="size-4" />}
-                label="Resume / CV"
+                label={t("candidates.resumeCv")}
               />
             ) : null}
             {profile.videoIntroUrl ? (
               <LinkRow
                 href={profile.videoIntroUrl}
                 icon={<Video className="size-4" />}
-                label="Video introduction"
+                label={t("candidates.videoIntro")}
               />
             ) : null}
           </div>
@@ -343,8 +386,8 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
 
       {profile.contact ? (
         <FormSection
-          title="Contact"
-          description="Shared by the candidate for this application."
+          title={t("candidates.contact")}
+          description={t("candidates.contactDesc")}
         >
           <div className="flex flex-col gap-2 text-sm">
             {profile.contact.email ? (
@@ -376,8 +419,9 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
 }
 
 function MatchBreakdown({ breakdown }: { breakdown: MatchScoreResult }) {
+  const { t } = useI18n();
   return (
-    <FormSection title="AI match analysis">
+    <FormSection title={t("candidates.aiMatch")}>
       {breakdown.summary ? (
         <p className="text-foreground/90 text-sm leading-relaxed">
           {breakdown.summary}
@@ -385,20 +429,20 @@ function MatchBreakdown({ breakdown }: { breakdown: MatchScoreResult }) {
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <SkillCloud
-          title="Matching skills"
+          title={t("candidates.matchingSkills")}
           items={breakdown.matchingSkills}
           variant="success"
         />
         <SkillCloud
-          title="Missing skills"
+          title={t("candidates.missingSkills")}
           items={breakdown.missingSkills}
           variant="warning"
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <BulletList title="Strengths" items={breakdown.strengths} />
+        <BulletList title={t("candidates.strengths")} items={breakdown.strengths} />
         <BulletList
-          title="Areas to probe"
+          title={t("candidates.areasToProbe")}
           items={breakdown.areasForImprovement}
         />
       </div>
@@ -481,13 +525,14 @@ function ExperienceRow({ item }: { item: WorkerExperience }) {
 }
 
 function EducationRow({ item }: { item: WorkerEducation }) {
+  const { t } = useI18n();
   const heading = [item.degree, item.fieldOfStudy].filter(Boolean).join(", ");
   return (
     <li className="flex gap-3">
       <GraduationCap className="text-muted-foreground mt-0.5 size-4 shrink-0" />
       <div className="min-w-0 space-y-1">
         <p className="font-medium break-words">
-          {heading || item.institutionName || "Education"}
+          {heading || item.institutionName || t("candidates.education")}
         </p>
         {item.institutionName && heading ? (
           <p className="text-muted-foreground text-sm break-words">

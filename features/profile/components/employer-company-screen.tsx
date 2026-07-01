@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
@@ -70,7 +71,17 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
   const vacancies = vacanciesQuery.data ?? [];
   const activeCount = vacancies.filter((v) => v.status === VACANCY_STATUS.ACTIVE).length;
 
-  const [view, setView] = useState<"overview" | "detail">("overview");
+  // The sidebar account-menu header deep-links here with `?view=detail` to open
+  // the company "About" detail directly. Synced in render (not an effect).
+  const wantDetail = useSearchParams().get("view") === "detail";
+  const [view, setView] = useState<"overview" | "detail">(
+    wantDetail ? "detail" : "overview",
+  );
+  const [prevWant, setPrevWant] = useState(wantDetail);
+  if (wantDetail !== prevWant) {
+    setPrevWant(wantDetail);
+    if (wantDetail) setView("detail");
+  }
   const [editTarget, setEditTarget] = useState<CompanyEditTarget | null>(null);
 
   const location = [profile.city, profile.country].filter(Boolean).join(", ");
@@ -146,7 +157,9 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
             <Ic name="menu" />
           </button>
         )}
-        <div className={s["pf-topbar-t"]}>{t("nav.company")}</div>
+        <div className={s["pf-topbar-t"]}>
+          {view === "detail" ? t("company.detailTitle") : t("nav.company")}
+        </div>
       </header>
 
       {view === "overview" ? (

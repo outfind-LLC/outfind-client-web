@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type MouseEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
@@ -37,7 +38,18 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
   const resume = useMemo(() => deriveResume(profile, t, locale), [profile, t, locale]);
-  const [view, setView] = useState<"overview" | "detail">("overview");
+  // The sidebar account-menu header deep-links here with `?view=detail` to open
+  // the résumé editor directly. Sync it in render (not an effect) so it also works
+  // when navigating from another page or re-clicking while already here.
+  const wantDetail = useSearchParams().get("view") === "detail";
+  const [view, setView] = useState<"overview" | "detail">(
+    wantDetail ? "detail" : "overview",
+  );
+  const [prevWant, setPrevWant] = useState(wantDetail);
+  if (wantDetail !== prevWant) {
+    setPrevWant(wantDetail);
+    if (wantDetail) setView("detail");
+  }
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [hidden, setHidden] = useState(false);
   const [preview, setPreview] = useState(false);
@@ -88,7 +100,9 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
             <Ic name="menu" />
           </button>
         )}
-        <div className={s["pf-topbar-t"]}>{t("nav.profile")}</div>
+        <div className={s["pf-topbar-t"]}>
+          {view === "detail" ? t("profile.detailTitle") : t("nav.profile")}
+        </div>
       </header>
 
       {view === "detail" ? (
