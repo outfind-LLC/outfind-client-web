@@ -663,6 +663,10 @@
 .co-about { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .co-about-text { margin: 0; font-size: 15px; line-height: 1.65; color: var(--text-primary); text-wrap: pretty; }
 .co-contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/* Company contact cards carry label + value, so override the icon-only 64x64
+   square that `.pd-cc:not(.wide)` applies — they fill their cell like the wide
+   worker contact tiles. (Ported from prototype profile.scoped.css.) */
+.co-contact-grid .pd-cc { width: auto; height: auto; min-height: 64px; padding: 14px 16px; justify-content: flex-start; }
 @media (max-width: 640px) {
   .co-contact-grid { grid-template-columns: 1fr; }
 }

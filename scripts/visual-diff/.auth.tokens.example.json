@@ -1,0 +1,11 @@
+{
+  "_README": "Copy this file to `.auth.tokens.json` (git-ignored) and paste the session cookie values for a TEST worker + TEST employer. Get values from DevTools → Application → Cookies → http://127.0.0.1:8000. TWO modes: (1) `refresh_token` — lives ~7 days, the proxy mints access tokens from it and the harness persists the rotated token between runs; convenient but FRAGILE if the backend rotates+invalidates refresh tokens aggressively (a sweep may eventually flag 'NOT authenticated' → re-paste a fresh one). (2) `access_token` ONLY (leave refresh_token empty) — does NOT rotate, lasts ~15 min; rock-solid for a single sweep run right after grabbing it. Use (2) if (1) keeps dying. These are real session credentials — never commit this file.",
+  "worker": {
+    "refresh_token": "",
+    "access_token": ""
+  },
+  "employer": {
+    "refresh_token": "",
+    "access_token": ""
+  }
+}
