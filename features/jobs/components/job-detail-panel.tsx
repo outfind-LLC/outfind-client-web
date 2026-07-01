@@ -6,7 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Loader2, Sparkles, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
+import { Spinner } from "@/components/spinner";
 import { toast } from "sonner";
 
 import {
@@ -515,7 +516,7 @@ function ApplyPanel({
             disabled={generate.isPending || !canGenerate}
           >
             {generate.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner />
             ) : (
               <Sparkles className="size-4" />
             )}
@@ -573,7 +574,7 @@ function ApplyPanel({
           disabled={submitting || generate.isPending}
           className="w-full sm:w-auto"
         >
-          {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+          {submitting ? <Spinner /> : null}
           {t("chat.sendApplication")}
         </Button>
       </div>

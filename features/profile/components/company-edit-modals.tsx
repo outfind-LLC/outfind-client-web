@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/spinner";
 import { VACANCY_TYPE, type VacancyType } from "@/interfaces/enums";
 import type { EmployerProfile } from "@/interfaces/employer-profile.interface";
 import type { MessageKey } from "@/lib/i18n/translate";
@@ -179,9 +180,29 @@ function SelectField({
     </Field>
   );
 }
-function Foot({ onSave, saving, label }: { onSave: () => void; saving: boolean; label: string }) {
+function Foot({
+  onSave,
+  saving,
+  label,
+  loading,
+}: {
+  onSave: () => void;
+  saving: boolean;
+  label: string;
+  /** Spinner state — defaults to `saving`; pass explicitly when `saving` also
+   * carries a can't-save-yet validation state (so the spinner doesn't show early). */
+  loading?: boolean;
+}) {
+  const busy = loading ?? saving;
   return (
-    <button type="button" className={cn(s["pf-btn"], s["pf-btn-primary"])} onClick={onSave} disabled={saving}>
+    <button
+      type="button"
+      className={cn(s["pf-btn"], s["pf-btn-primary"])}
+      onClick={onSave}
+      disabled={saving}
+      aria-busy={busy || undefined}
+    >
+      {busy ? <Spinner /> : null}
       {label}
     </button>
   );
@@ -367,7 +388,7 @@ function LocationEditor({ index, onClose }: { index: number | null; onClose: () 
     <Modal
       title={editing ? t("company.editLocation") : t("company.addLocation")}
       onClose={onClose}
-      footer={<Foot onSave={save} saving={!city.trim()} label={t("company.save")} />}
+      footer={<Foot onSave={save} saving={!city.trim()} loading={false} label={t("company.save")} />}
     >
       <TextField label={t("company.city")} value={city} onChange={setCity} placeholder={t("company.cityPh")} />
       <TextField label={t("company.address")} value={address} onChange={setAddress} placeholder={t("company.addressPh")} />
@@ -420,7 +441,7 @@ function PostJobEditor({ onClose }: { onClose: () => void }) {
       title={t("company.pjTitle")}
       onClose={onClose}
       wide
-      footer={<Foot onSave={save} saving={create.isPending || !canSave} label={t("company.pjCreate")} />}
+      footer={<Foot onSave={save} saving={create.isPending || !canSave} loading={create.isPending} label={t("company.pjCreate")} />}
     >
       <TextField label={t("company.pjRole")} value={title} onChange={setTitle} placeholder={t("company.pjRolePh")} />
       <div className={s["pf-row"]}>

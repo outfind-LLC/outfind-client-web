@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -295,10 +294,9 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
         <Button
           type="submit"
           variant="brand"
-          disabled={pending}
+          loading={pending}
           className="w-full sm:w-auto"
         >
-          {pending ? <Loader2 className="size-4 animate-spin" /> : null}
           {isEdit ? "Save changes" : "Create profile"}
         </Button>
       </FormActions>

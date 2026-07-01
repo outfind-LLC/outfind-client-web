@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/spinner";
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -40,16 +41,38 @@ function Button({
   variant,
   size,
   asChild = false,
+  loading = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+    /** Show an inline spinner + disable the button while an action runs. */
+    loading?: boolean;
+  }) {
   const Comp = asChild ? Slot : "button";
+  // `asChild` renders a single child (e.g. an <a>) — can't inject a sibling
+  // spinner there, so only decorate real <button>s.
+  const content =
+    loading && !asChild ? (
+      <>
+        <Spinner />
+        {children}
+      </>
+    ) : (
+      children
+    );
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={(loading && !asChild) || disabled}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {content}
+    </Comp>
   );
 }
 

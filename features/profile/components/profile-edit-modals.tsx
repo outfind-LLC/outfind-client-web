@@ -9,6 +9,7 @@ import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identit
 import { useProfileContacts } from "@/features/profile/hooks/use-profile-contacts";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/spinner";
 import {
   DOMAIN,
   DRIVING_LICENSE_CATEGORY,
@@ -249,25 +250,32 @@ function TextAreaField({
   );
 }
 
-/** The prototype's single full-width Save action (the header X is the cancel). */
+/** The prototype's single full-width Save action (the header X is the cancel).
+ * `saving` disables the button; `loading` (defaults to `saving`) shows the spinner
+ * — pass `loading` explicitly when `saving` also carries a validation state. */
 function Foot({
   onSave,
   saving,
   t,
   label,
+  loading,
 }: {
   onSave: () => void;
   saving: boolean;
   t: TranslateFn;
   label?: string;
+  loading?: boolean;
 }) {
+  const busy = loading ?? saving;
   return (
     <button
       type="button"
       className={cn(s["pf-btn"], s["pf-btn-primary"])}
       onClick={onSave}
       disabled={saving}
+      aria-busy={busy || undefined}
     >
+      {busy ? <Spinner /> : null}
       {label ?? t("profile.save")}
     </button>
   );
