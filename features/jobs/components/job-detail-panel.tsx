@@ -1,11 +1,6 @@
-"use client";
+﻿"use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Sparkles, X } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import { toast } from "sonner";
@@ -16,7 +11,7 @@ import {
 } from "@/features/chat/components/contact-actions";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
-import { useVacancyDetail } from "@/features/recommendations/hooks/use-vacancy-detail";
+import { useVacancyDetail } from "@/features/jobs/hooks/use-vacancy-detail";
 import { enrichJobWithVacancy } from "@/features/jobs/lib/vacancy-to-job";
 import { jobKey } from "@/features/jobs/lib/job-context";
 import { useGenerateCoverLetter } from "@/features/ai-tools/hooks/use-worker-ai";
@@ -92,7 +87,12 @@ function JobDetailSheet({
   const job = full ? enrichJobWithVacancy(initialJob, full) : initialJob;
 
   return vacancyId ? (
-    <InternalSheet job={job} vacancyId={vacancyId} show={show} onClose={close} />
+    <InternalSheet
+      job={job}
+      vacancyId={vacancyId}
+      show={show}
+      onClose={close}
+    />
   ) : (
     <ExternalSheet job={job} show={show} onClose={close} />
   );
@@ -515,11 +515,7 @@ function ApplyPanel({
             onClick={onGenerate}
             disabled={generate.isPending || !canGenerate}
           >
-            {generate.isPending ? (
-              <Spinner />
-            ) : (
-              <Sparkles className="size-4" />
-            )}
+            {generate.isPending ? <Spinner /> : <Sparkles className="size-4" />}
             {generate.isPending ? t("chat.generating") : t("chat.generateAi")}
           </Button>
         </div>
@@ -534,7 +530,9 @@ function ApplyPanel({
           disabled={generate.isPending}
         />
         {!canGenerate ? (
-          <p className="text-muted-foreground text-xs">{t("chat.noDescHint")}</p>
+          <p className="text-muted-foreground text-xs">
+            {t("chat.noDescHint")}
+          </p>
         ) : null}
 
         <label

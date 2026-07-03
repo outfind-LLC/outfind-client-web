@@ -100,16 +100,26 @@
   --weight-bold: 700;
   --weight-extrabold: 800;
 
-  --h1-size: 3rem;        --h1-line: 3.5rem;
-  --h2-size: 2.5rem;      --h2-line: 3rem;
-  --h3-size: 2rem;        --h3-line: 2.5rem;
-  --h4-size: 1.75rem;     --h4-line: 2rem;
-  --h5-size: 1.5rem;      --h5-line: 1.75rem;
-  --h6-size: 1.25rem;     --h6-line: 1.5rem;
-  --body-lg-size: 1.25rem; --body-lg-line: 1.5rem;
-  --body-size: 1rem;       --body-line: 1.25rem;
-  --body-sm-size: 0.875rem; --body-sm-line: 1rem;
-  --caption-size: 0.75rem; --caption-line: 1rem;
+  --h1-size: 3rem;
+  --h1-line: 3.5rem;
+  --h2-size: 2.5rem;
+  --h2-line: 3rem;
+  --h3-size: 2rem;
+  --h3-line: 2.5rem;
+  --h4-size: 1.75rem;
+  --h4-line: 2rem;
+  --h5-size: 1.5rem;
+  --h5-line: 1.75rem;
+  --h6-size: 1.25rem;
+  --h6-line: 1.5rem;
+  --body-lg-size: 1.25rem;
+  --body-lg-line: 1.5rem;
+  --body-size: 1rem;
+  --body-line: 1.25rem;
+  --body-sm-size: 0.875rem;
+  --body-sm-line: 1rem;
+  --caption-size: 0.75rem;
+  --caption-line: 1rem;
 
   /* ===== Spacing ===== */
   --space-xs: 0.25rem;
@@ -274,17 +284,6 @@
   --sidebar-ring: var(--accent-brand);
 }
 
-/*
- * Optional accent personalization (Settings → Appearance). `data-accent` on
- * <html> re-points the brand tokens. Default (no attribute) = brand green.
- */
-:root[data-accent="blue"] { --primary: #2563eb; --ring: #2563eb; --brand: #2563eb; --accent-brand: #2563eb; --accent-600: #1d4ed8; }
-:root[data-accent="violet"] { --primary: #7c3aed; --ring: #7c3aed; --brand: #7c3aed; --accent-brand: #7c3aed; --accent-600: #6d28d9; }
-:root[data-accent="indigo"] { --primary: #4a49cf; --ring: #4a49cf; --brand: #4a49cf; --accent-brand: #4a49cf; --accent-600: #3231ba; }
-:root[data-accent="teal"] { --primary: #0d9488; --ring: #0d9488; --brand: #0d9488; --accent-brand: #0d9488; --accent-600: #0f766e; }
-:root[data-accent="rose"] { --primary: #e11d48; --ring: #e11d48; --brand: #e11d48; --accent-brand: #e11d48; --accent-600: #be123c; }
-:root[data-accent="orange"] { --primary: #ea580c; --ring: #ea580c; --brand: #ea580c; --accent-brand: #ea580c; --accent-600: #c2410c; }
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -358,15 +357,14 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  :root[data-font="system"] body { font-family: ui-sans-serif, system-ui, sans-serif; }
-  :root[data-font="serif"] body { font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif; }
-  :root[data-font="mono"] body { font-family: var(--font-mono); }
-
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) transparent;
   }
-  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: var(--color-border);
     border-radius: 9999px;
@@ -389,17 +387,36 @@
     transform-origin: center;
     animation: legoDrop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
-  .pl-mark-animated path:nth-child(1) { animation-delay: 0.18s; }
-  .pl-mark-animated path:nth-child(2) { animation-delay: 0.36s; }
-  .pl-mark-animated path:nth-child(3) { animation-delay: 0.54s; }
+  .pl-mark-animated path:nth-child(1) {
+    animation-delay: 0.18s;
+  }
+  .pl-mark-animated path:nth-child(2) {
+    animation-delay: 0.36s;
+  }
+  .pl-mark-animated path:nth-child(3) {
+    animation-delay: 0.54s;
+  }
 }
 
 @keyframes legoDrop {
-  0% { opacity: 0; transform: translateY(-16px) scale(0.4); }
-  50% { opacity: 1; transform: translateY(0) scale(1.14); }
-  68% { transform: translateY(0) scale(0.92); }
-  84% { transform: scale(1.05); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.14);
+  }
+  68% {
+    transform: translateY(0) scale(0.92);
+  }
+  84% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @utility text-balance {
