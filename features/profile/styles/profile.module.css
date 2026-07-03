@@ -1153,6 +1153,21 @@
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
+/* Primary role headline (the CV job title) + the "also open to" secondary roles. */
+.emp-role {
+  margin-top: 3px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-brand);
+  letter-spacing: -0.01em;
+}
+.emp-roles-alt {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
 .emp-sub {
   font-size: 13.5px;
   color: var(--text-secondary);

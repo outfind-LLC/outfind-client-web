@@ -116,32 +116,6 @@ export function WorkerProfileDetail({
         </div>
       </div>
 
-      {/* Professional roles */}
-      <h3 className={cn(s["pd-h"], s["pd-title"])}>
-        {t("profile.rolesTitle")}
-      </h3>
-      <div className={cn(s["pd-card"], s["pd-kvcard"])}>
-        <Kv
-          label={t("profile.primaryRole")}
-          value={profile.profession}
-          onClick={() => onEdit({ type: "roles" })}
-          t={t}
-        />
-        <Kv
-          label={t("profile.secondaryRoles")}
-          value={profile.additionalProfessions.join(", ") || null}
-          onClick={() => onEdit({ type: "roles" })}
-          t={t}
-        />
-        <button
-          type="button"
-          className={s["pd-card-edit"]}
-          onClick={() => onEdit({ type: "roles" })}
-        >
-          {t("profile.edit")}
-        </button>
-      </div>
-
       {/* Contact info */}
       <h3 className={cn(s["pd-h"], s["pd-title"])}>
         {t("profile.contactInfo")}
@@ -189,6 +163,32 @@ export function WorkerProfileDetail({
             ))}
           </div>
         ) : null}
+      </div>
+
+      {/* Professional roles */}
+      <h3 className={cn(s["pd-h"], s["pd-title"])}>
+        {t("profile.rolesTitle")}
+      </h3>
+      <div className={cn(s["pd-card"], s["pd-kvcard"])}>
+        <Kv
+          label={t("profile.primaryRole")}
+          value={profile.profession}
+          onClick={() => onEdit({ type: "roles" })}
+          t={t}
+        />
+        <Kv
+          label={t("profile.secondaryRoles")}
+          value={profile.additionalProfessions.join(", ") || null}
+          onClick={() => onEdit({ type: "roles" })}
+          t={t}
+        />
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "roles" })}
+        >
+          {t("profile.edit")}
+        </button>
       </div>
 
       {/* Search settings */}

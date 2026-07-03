@@ -246,6 +246,7 @@ export const en = {
     primaryRolePh: "e.g. Welder",
     secondaryRoles: "Secondary roles",
     secondaryRolePh: "Add a role and press Enter",
+    alsoOpenTo: "Also open to",
     skillsTitle: "Skills",
     skillsEditTitle: "Skills",
     skillPh: "Add a skill and press Enter",

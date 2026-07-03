@@ -235,6 +235,7 @@ export const uz: Messages = {
     primaryRolePh: "masalan, Payvandchi",
     secondaryRoles: "Qo‘shimcha rollar",
     secondaryRolePh: "Rol qo‘shing va Enter bosing",
+    alsoOpenTo: "Shuningdek ochiq",
     skillsTitle: "Ko‘nikmalar",
     skillsEditTitle: "Ko‘nikmalar",
     skillPh: "Ko‘nikma qo‘shing va Enter bosing",

@@ -19,7 +19,14 @@ import { Ic } from "@/features/profile/components/profile-icons";
 import s from "@/features/profile/styles/profile.module.css";
 
 function initials(name: string): string {
-  return name.split(/\s+/).map((w) => w[0] ?? "").slice(0, 2).join("").toUpperCase() || "?";
+  return (
+    name
+      .split(/\s+/)
+      .map((w) => w[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
 }
 
 /**
@@ -58,16 +65,27 @@ export function EmployerPreview({
   const companies = groupExperiences(profile, t, locale);
   const education = educationItems(profile);
   const driving = drivingSummary(profile, t);
+  // Primary role leads the CV as a headline under the name, so it's dropped from
+  // the terms block below to avoid repeating it.
   const facts = [
-    { l: t("profile.factSpec"), v: resume.specialization },
     { l: t("profile.factEmployment"), v: resume.employment },
     { l: t("profile.factSalary"), v: resume.salary },
   ].filter((f) => f.v);
 
   return (
-    <div className={s["emp-screen"]} role="dialog" aria-modal="true" aria-label={t("profile.previewTitle")}>
+    <div
+      className={s["emp-screen"]}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("profile.previewTitle")}
+    >
       <header className={s["emp-topbar"]}>
-        <button type="button" className={s["emp-iconbtn"]} aria-label={t("profile.ariaClose")} onClick={onClose}>
+        <button
+          type="button"
+          className={s["emp-iconbtn"]}
+          aria-label={t("profile.ariaClose")}
+          onClick={onClose}
+        >
           <Ic name="back" />
         </button>
         <div className={s["emp-topbar-title"]}>{t("profile.previewTitle")}</div>
@@ -79,7 +97,11 @@ export function EmployerPreview({
         >
           <Ic name="print" />
         </button>
-        <button type="button" className={s["emp-dl"]} onClick={() => toast(t("profile.toastDownload"))}>
+        <button
+          type="button"
+          className={s["emp-dl"]}
+          onClick={() => toast(t("profile.toastDownload"))}
+        >
           <Ic name="download" />
           {t("profile.downloadPdf")}
         </button>
@@ -92,9 +114,22 @@ export function EmployerPreview({
               <div className={s["emp-photo"]}>{initials(user.name)}</div>
               <div className={s["emp-head-main"]}>
                 <div className={s["emp-name"]}>{user.name}</div>
-                {profile.currentCity ? <div className={s["emp-sub"]}>{profile.currentCity}</div> : null}
+                {profile.profession ? (
+                  <div className={s["emp-role"]}>{profile.profession}</div>
+                ) : null}
+                {profile.additionalProfessions.length > 0 ? (
+                  <div className={s["emp-roles-alt"]}>
+                    {t("profile.alsoOpenTo")}:{" "}
+                    {profile.additionalProfessions.join(" · ")}
+                  </div>
+                ) : null}
+                {profile.currentCity ? (
+                  <div className={s["emp-sub"]}>{profile.currentCity}</div>
+                ) : null}
                 <span className={s["emp-updated"]}>
-                  {t("profile.updatedAgo", { when: formatRelativeTime(resume.updatedAt) })}
+                  {t("profile.updatedAgo", {
+                    when: formatRelativeTime(resume.updatedAt),
+                  })}
                 </span>
               </div>
             </div>
@@ -102,7 +137,9 @@ export function EmployerPreview({
             {user.email || user.telegramUsername ? (
               <section className={s["emp-block"]}>
                 <h3 className={s["emp-h"]}>{t("profile.empContacts")}</h3>
-                {user.email ? <div className={s["emp-phone"]}>{user.email}</div> : null}
+                {user.email ? (
+                  <div className={s["emp-phone"]}>{user.email}</div>
+                ) : null}
                 {user.telegramUsername ? (
                   <div className={s["emp-msgrs"]}>
                     <span className={s["emp-msgr"]}>
@@ -122,7 +159,8 @@ export function EmployerPreview({
                 <div className={s["emp-kv"]}>
                   {facts.map((f) => (
                     <div key={f.l} className={s["emp-kv-row"]}>
-                      <span className={s.k}>{f.l}</span> <span className={s.v}>{f.v}</span>
+                      <span className={s.k}>{f.l}</span>{" "}
+                      <span className={s.v}>{f.v}</span>
                     </div>
                   ))}
                 </div>
@@ -148,7 +186,8 @@ export function EmployerPreview({
                 <div className={s["emp-chips"]}>
                   {profile.languages.map((lang) => (
                     <span key={lang.id} className={s["emp-chip"]}>
-                      {lang.language} <em>{languageLevel(lang.proficiency, t)}</em>
+                      {lang.language}{" "}
+                      <em>{languageLevel(lang.proficiency, t)}</em>
                     </span>
                   ))}
                 </div>
@@ -201,7 +240,8 @@ export function EmployerPreview({
                 <div className={s["emp-kv"]}>
                   {driving ? (
                     <div className={s["emp-kv-row"]}>
-                      <span className={s.k}>{t("profile.empDriving")}</span> <span className={s.v}>{driving}</span>
+                      <span className={s.k}>{t("profile.empDriving")}</span>{" "}
+                      <span className={s.v}>{driving}</span>
                     </div>
                   ) : null}
                   {profile.currentCountry ? (

@@ -236,6 +236,7 @@ export const ru: Messages = {
     primaryRolePh: "напр. Сварщик",
     secondaryRoles: "Дополнительные роли",
     secondaryRolePh: "Добавьте роль и нажмите Enter",
+    alsoOpenTo: "Также рассматривает",
     skillsTitle: "Навыки",
     skillsEditTitle: "Навыки",
     skillPh: "Добавьте навык и нажмите Enter",
