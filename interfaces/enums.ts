@@ -236,6 +236,7 @@ export const DRIVING_LICENSE_CATEGORY = {
   C: "C",
   CE: "CE",
   D: "D",
+  DE: "DE",
 } as const;
 export type DrivingLicenseCategory =
   (typeof DRIVING_LICENSE_CATEGORY)[keyof typeof DRIVING_LICENSE_CATEGORY];

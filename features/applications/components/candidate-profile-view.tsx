@@ -31,10 +31,7 @@ import {
   useVacancyApplicants,
 } from "@/features/applications/hooks/use-applications";
 import { APPLICATION_STATUS_META } from "@/features/applications/constants/status";
-import {
-  formatDateRange,
-  formatRelativeTime,
-} from "@/lib/format";
+import { formatDateRange, formatRelativeTime } from "@/lib/format";
 import { APPLICATION_STATUS, type ApplicationStatus } from "@/interfaces/enums";
 import type { CandidateProfile } from "@/interfaces/candidate-profile.interface";
 import type { MatchScoreResult } from "@/interfaces/worker-ai.interface";
@@ -107,28 +104,32 @@ export function CandidateProfileView({
 
   // Merge: prefer the rich profile, fall back to the applicant-list record.
   const name =
-    profile?.name ?? application?.applicant.name ?? t("candidates.fallbackName");
+    profile?.name ??
+    application?.applicant.name ??
+    t("candidates.fallbackName");
   const profession =
     profile?.profession ?? application?.applicant.profession ?? null;
-  const photoUrl = profile?.photoUrl ?? application?.applicant.avatarUrl ?? null;
+  const photoUrl =
+    profile?.photoUrl ?? application?.applicant.avatarUrl ?? null;
   const matchScore = profile?.matchScore ?? application?.matchScore ?? null;
   const coverLetter =
     profile?.coverLetter ?? application?.coverLetterOriginal ?? null;
   const status = profile?.status ?? application?.status ?? null;
   const appliedAt =
     profile?.appliedAt ?? application?.sentAt ?? application?.createdAt ?? null;
-  const lastMessageAt = profile?.lastMessageAt ?? application?.lastMessageAt ?? null;
+  const lastMessageAt =
+    profile?.lastMessageAt ?? application?.lastMessageAt ?? null;
   const location = [profile?.currentCity, profile?.currentCountry]
     .filter(Boolean)
     .join(", ");
   // The structured-CV viewer only makes sense once the rich profile has content.
   const cvContent = Boolean(
     profile &&
-      (profile.summary ||
-        profile.experiences.length ||
-        profile.education.length ||
-        profile.languages.length ||
-        profile.skills.length),
+    (profile.summary ||
+      profile.experiences.length ||
+      profile.education.length ||
+      profile.languages.length ||
+      profile.skills.length),
   );
 
   const onMessage = () =>
@@ -357,8 +358,8 @@ function RichSections({ profile }: { profile: CandidateProfile }) {
         <FormSection title={t("candidates.expectedSalary")}>
           <p className="flex items-center gap-2 text-sm">
             <Wallet className="text-muted-foreground size-4 shrink-0" />
-            {salary.currency} {salary.min.toLocaleString()} –{" "}
-            {salary.max.toLocaleString()}
+            {salary.currency} {salary.min.toLocaleString()}
+            {salary.max != null ? ` – ${salary.max.toLocaleString()}` : "+"}
           </p>
         </FormSection>
       ) : null}
@@ -440,7 +441,10 @@ function MatchBreakdown({ breakdown }: { breakdown: MatchScoreResult }) {
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <BulletList title={t("candidates.strengths")} items={breakdown.strengths} />
+        <BulletList
+          title={t("candidates.strengths")}
+          items={breakdown.strengths}
+        />
         <BulletList
           title={t("candidates.areasToProbe")}
           items={breakdown.areasForImprovement}
@@ -602,14 +606,14 @@ function MatchGauge({ score }: { score: number }) {
           cx="32"
           cy="32"
           r={radius}
-          className="fill-none stroke-muted"
+          className="stroke-muted fill-none"
           strokeWidth="6"
         />
         <circle
           cx="32"
           cy="32"
           r={radius}
-          className="fill-none stroke-brand"
+          className="stroke-brand fill-none"
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={circumference}

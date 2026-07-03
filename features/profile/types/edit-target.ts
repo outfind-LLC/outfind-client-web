@@ -11,6 +11,7 @@ export type EditTarget =
   | { type: "identity" }
   | { type: "roles" }
   | { type: "skills" }
+  | { type: "salary" }
   | { type: "contact" }
   | { type: "education"; item: WorkerEducation | null }
   | { type: "language"; item: WorkerLanguage | null }

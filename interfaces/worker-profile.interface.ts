@@ -13,7 +13,7 @@ import type {
 
 export interface SalaryRange {
   min: number;
-  max: number;
+  max: number | null;
   currency: string;
 }
 

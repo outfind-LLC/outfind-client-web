@@ -29,22 +29,37 @@ const WORK_KEY: Record<WorkFormat, MessageKey> = {
   [WORK_FORMAT.HYBRID]: "profile.workHybrid",
 };
 
-export function employmentLabel(profile: WorkerProfile, t: TranslateFn): string | null {
+export function employmentLabel(
+  profile: WorkerProfile,
+  t: TranslateFn,
+): string | null {
   const e = profile.employmentTypes[0];
   const w = profile.workFormats[0];
   return (
-    [e ? t(EMP_KEY[e]) : null, w ? t(WORK_KEY[w]) : null].filter(Boolean).join(" · ") || null
+    [e ? t(EMP_KEY[e]) : null, w ? t(WORK_KEY[w]) : null]
+      .filter(Boolean)
+      .join(" · ") || null
   );
 }
 
-export function salaryLabel(profile: WorkerProfile, t: TranslateFn, locale: string): string | null {
+export function salaryLabel(
+  profile: WorkerProfile,
+  t: TranslateFn,
+  locale: string,
+): string | null {
   if (!profile.expectedSalaryRange) return null;
-  const { min, currency } = profile.expectedSalaryRange;
-  return t("profile.salaryFromMonth", { amount: `${min.toLocaleString(locale)} ${currency}` });
+  const { min, max, currency } = profile.expectedSalaryRange;
+  const fmt = (n: number) => n.toLocaleString(locale);
+  if (max != null && max > min) return `${fmt(min)}–${fmt(max)} ${currency}`;
+  return t("profile.salaryFromMonth", { amount: `${fmt(min)} ${currency}` });
 }
 
 /** Derives the single résumé the overview shows (mock seam for `/resumes`). */
-export function deriveResume(profile: WorkerProfile, t: TranslateFn, locale: string): Resume | null {
+export function deriveResume(
+  profile: WorkerProfile,
+  t: TranslateFn,
+  locale: string,
+): Resume | null {
   if (!profile.profession && profile.experiences.length === 0) return null;
   return {
     id: profile.id,
@@ -52,8 +67,14 @@ export function deriveResume(profile: WorkerProfile, t: TranslateFn, locale: str
     specialization: profile.profession ?? null,
     salary: salaryLabel(profile, t, locale),
     employment: employmentLabel(profile, t),
-    location: [profile.currentCity, profile.currentCountry].filter(Boolean).join(", ") || null,
-    experience: profile.experienceYears != null ? t("profile.yearsOfExp", { n: profile.experienceYears }) : null,
+    location:
+      [profile.currentCity, profile.currentCountry]
+        .filter(Boolean)
+        .join(", ") || null,
+    experience:
+      profile.experienceYears != null
+        ? t("profile.yearsOfExp", { n: profile.experienceYears })
+        : null,
     isVisibleInSearch: profile.isActive,
     updatedAt: profile.updatedAt,
   };
@@ -67,7 +88,8 @@ function monthYear(iso: string, locale: string): string {
 function yearsOf(start: string, end: string | null): number {
   const s = new Date(start);
   const e = end ? new Date(end) : new Date();
-  const months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+  const months =
+    (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
   return Math.max(1, Math.round(months / 12));
 }
 
@@ -99,7 +121,12 @@ export function groupExperiences(
       id: exp.id,
       role: exp.position,
       dates,
-      bullets: exp.description ? exp.description.split(/\n+/).map((b) => b.trim()).filter(Boolean) : [],
+      bullets: exp.description
+        ? exp.description
+            .split(/\n+/)
+            .map((b) => b.trim())
+            .filter(Boolean)
+        : [],
     };
     const last = groups[groups.length - 1];
     if (last && last.company === exp.companyName) {
@@ -130,7 +157,8 @@ export function educationItems(profile: WorkerProfile): EduItem[] {
     const yearSrc = ed.endDate ?? ed.startDate;
     const year = yearSrc ? new Date(yearSrc).getFullYear() : null;
     const level = ed.educationLevel ? titleCase(ed.educationLevel) : null;
-    const meta = [year ? String(year) : null, level].filter(Boolean).join(" · ") || null;
+    const meta =
+      [year ? String(year) : null, level].filter(Boolean).join(" · ") || null;
     return {
       id: ed.id,
       org: ed.institutionName ?? ed.degree ?? "",
@@ -159,21 +187,35 @@ export interface SearchSettings {
   live: string | null;
   search: string | null;
 }
-export function searchSettings(profile: WorkerProfile, t: TranslateFn): SearchSettings {
-  const live = profile.currentCity ? `${profile.currentCity} · ${t("profile.areaNot")}` : null;
+export function searchSettings(
+  profile: WorkerProfile,
+  t: TranslateFn,
+): SearchSettings {
+  const live = profile.currentCity
+    ? `${profile.currentCity} · ${t("profile.areaNot")}`
+    : null;
   let search: string | null = null;
-  if (profile.targetCities.length > 0) search = profile.targetCities.join(", ");
-  else if (profile.currentCity) search = `${profile.currentCity}, ${t("profile.allAreas")}`;
-  else if (profile.targetCountries.length > 0) search = profile.targetCountries.join(", ");
+  if (profile.targetCountries.length > 0)
+    search = profile.targetCountries.join(", ");
+  else if (profile.targetCities.length > 0)
+    search = profile.targetCities.join(", ");
+  else if (profile.currentCity)
+    search = `${profile.currentCity}, ${t("profile.allAreas")}`;
   return { live, search };
 }
 
 function categoryLabel(cat: string): string {
-  return cat === "CE" ? "C+E" : cat;
+  if (cat === "CE") return "C+E";
+  if (cat === "DE") return "D+E";
+  return cat;
 }
 /** "Categories B, C, C+E" — clean-record + per-category years are a NEW backend field. */
-export function drivingSummary(profile: WorkerProfile, t: TranslateFn): string | null {
-  if (!profile.hasDrivingLicense && profile.drivingCategories.length === 0) return null;
+export function drivingSummary(
+  profile: WorkerProfile,
+  t: TranslateFn,
+): string | null {
+  if (!profile.hasDrivingLicense && profile.drivingCategories.length === 0)
+    return null;
   if (profile.drivingCategories.length === 0) return null;
   return `${t("profile.categoriesLabel")} ${profile.drivingCategories.map(categoryLabel).join(", ")}`;
 }
@@ -186,10 +228,19 @@ export interface ContactTile {
 }
 /** The contact tiles we can fill from the session (phone/WhatsApp are NEW — shown
  *  as the empty "add" tile until `MeUser.phoneNumber` / WhatsApp ship). */
-export function contactTiles(user: SessionUser): { filled: ContactTile[]; empty: ContactTile["key"][] } {
+export function contactTiles(user: SessionUser): {
+  filled: ContactTile[];
+  empty: ContactTile["key"][];
+} {
   const filled: ContactTile[] = [];
-  if (user.email) filled.push({ key: "email", label: "profile.email", value: user.email });
+  if (user.email)
+    filled.push({ key: "email", label: "profile.email", value: user.email });
   if (user.telegramUsername)
-    filled.push({ key: "telegram", label: "profile.telegram", value: `@${user.telegramUsername}`, brand: "telegram" });
+    filled.push({
+      key: "telegram",
+      label: "profile.telegram",
+      value: `@${user.telegramUsername}`,
+      brand: "telegram",
+    });
   return { filled, empty: ["whatsapp"] };
 }

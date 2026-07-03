@@ -10,6 +10,7 @@ import {
   educationItems,
   groupExperiences,
   languageLevel,
+  salaryLabel,
   searchSettings,
   type ContactTile,
 } from "@/features/profile/lib/profile-data";
@@ -186,6 +187,26 @@ export function WorkerProfileDetail({
           type="button"
           className={s["pd-card-edit"]}
           onClick={() => onEdit({ type: "roles" })}
+        >
+          {t("profile.edit")}
+        </button>
+      </div>
+
+      {/* Desired salary */}
+      <h3 className={cn(s["pd-h"], s["pd-title"])}>
+        {t("profile.salaryTitle")}
+      </h3>
+      <div className={cn(s["pd-card"], s["pd-kvcard"])}>
+        <Kv
+          label={t("profile.salaryTitle")}
+          value={salaryLabel(profile, t, locale)}
+          onClick={() => onEdit({ type: "salary" })}
+          t={t}
+        />
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "salary" })}
         >
           {t("profile.edit")}
         </button>

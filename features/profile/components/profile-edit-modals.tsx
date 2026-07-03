@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/spinner";
 import {
   DOMAIN,
-  DRIVING_LICENSE_CATEGORY,
   EDUCATION_LEVEL,
   EMPLOYMENT_TYPE,
   LANGUAGE_PROFICIENCY,
@@ -31,6 +30,11 @@ import {
   useUpsertLanguages,
 } from "@/features/profile/hooks/use-worker-profile-mutations";
 import { Ic } from "@/features/profile/components/profile-icons";
+import {
+  ComboSelect,
+  MultiCombo,
+  type ComboOption,
+} from "@/features/profile/components/combo-select";
 import type { EditTarget } from "@/features/profile/types/edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
@@ -40,9 +44,6 @@ function titleCase(v: string): string {
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
-}
-function categoryLabel(c: string): string {
-  return c === "CE" ? "C+E" : c;
 }
 function errMsg(e: unknown, t: TranslateFn): string {
   return isApiClientError(e) ? e.message : t("profile.saveError");
@@ -97,6 +98,50 @@ const COUNTRIES = [
 /** UI caps (within the backend limits: 20 skills / 10 additional professions). */
 const MAX_SKILLS = 15;
 const MAX_SECONDARY_ROLES = 10;
+/** Backend caps citizenship at 10, work permit at 20, target countries at 10. */
+const MAX_CITIZENSHIP = 10;
+const MAX_WORK_PERMIT = 20;
+const MAX_TARGET_COUNTRIES = 10;
+
+const COUNTRY_OPTIONS: ComboOption[] = COUNTRIES.map((c) => ({
+  value: c,
+  label: c,
+}));
+
+/** Currencies used across the app's regions (worker desired salary). */
+const CURRENCIES = [
+  "USD",
+  "EUR",
+  "RUB",
+  "UZS",
+  "KZT",
+  "KGS",
+  "TRY",
+  "AED",
+  "GBP",
+  "PLN",
+] as const;
+const CURRENCY_OPTIONS: ComboOption[] = CURRENCIES.map((c) => ({
+  value: c,
+  label: c,
+}));
+
+/**
+ * Driving-licence presets → the backend `drivingCategories` array. Codes match
+ * the DRIVING_LICENSE_CATEGORY enum (CE = "C+E", DE = "D+E").
+ */
+const DRIVING_PRESETS: { label: string; cats: string[] }[] = [
+  { label: "A", cats: ["A"] },
+  { label: "B", cats: ["B"] },
+  { label: "B, C", cats: ["B", "C"] },
+  { label: "B, C, C+E", cats: ["B", "C", "CE"] },
+  { label: "C", cats: ["C"] },
+  { label: "C, C+E", cats: ["C", "CE"] },
+  { label: "C+E", cats: ["CE"] },
+  { label: "C+E, D", cats: ["CE", "D"] },
+  { label: "D", cats: ["D"] },
+  { label: "D, D+E", cats: ["D", "DE"] },
+];
 
 /** Renders the editor for the requested section (existing-CRUD sections only). */
 export function ProfileEditModal({
@@ -115,6 +160,8 @@ export function ProfileEditModal({
       return <RolesEditor profile={profile} onClose={onClose} />;
     case "skills":
       return <SkillsEditor profile={profile} onClose={onClose} />;
+    case "salary":
+      return <SalaryEditor profile={profile} onClose={onClose} />;
     case "contact":
       return <ContactEditor profile={profile} onClose={onClose} />;
     case "education":
@@ -230,40 +277,6 @@ function TextField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
-    </Field>
-  );
-}
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-}) {
-  return (
-    <Field label={label}>
-      <span className={s["pf-selectwrap"]}>
-        <select
-          className={cn(s["pf-control"], s["pf-select"])}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">{placeholder}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <Ic name="chev" />
-      </span>
     </Field>
   );
 }
@@ -497,19 +510,19 @@ function IdentityEditor({
         : "",
   );
   const [birthdate, setBirthdate] = useState(toDateInput(profile.dateOfBirth));
-  const [citizenship, setCitizenship] = useState(
-    profile.citizenship?.primaryCountry ??
-      profile.citizenship?.countries?.[0] ??
-      "",
+  const [citizenships, setCitizenships] = useState<string[]>(
+    profile.citizenship?.countries ??
+      (profile.citizenship?.primaryCountry
+        ? [profile.citizenship.primaryCountry]
+        : []),
   );
-  const [workPermit, setWorkPermit] = useState(
-    profile.workPermit?.countries?.[0] ?? "",
+  const [workPermits, setWorkPermits] = useState<string[]>(
+    profile.workPermit?.countries ?? [],
   );
 
   const thisYear = new Date().getFullYear();
   const dobMin = `${thisYear - 90}-01-01`;
   const dobMax = toDateInput(new Date().toISOString());
-  const countryOptions = COUNTRIES.map((c) => ({ value: c, label: c }));
   const genderOptions: { value: "male" | "female"; label: string }[] = [
     { value: "male", label: t("profile.idMale") },
     { value: "female", label: t("profile.idFemale") },
@@ -524,10 +537,10 @@ function IdentityEditor({
         gender:
           gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : null,
         dateOfBirth: birthdate || null,
-        citizenship: citizenship
-          ? { countries: [citizenship], primaryCountry: citizenship }
+        citizenship: citizenships.length
+          ? { countries: citizenships, primaryCountry: citizenships[0] }
           : null,
-        workPermit: workPermit ? { countries: [workPermit] } : null,
+        workPermit: workPermits.length ? { countries: workPermits } : null,
       });
       toast(t("profile.idSaved"));
       onClose();
@@ -579,19 +592,21 @@ function IdentityEditor({
           max={dobMax}
         />
       </Field>
-      <SelectField
+      <MultiCombo
         label={t("profile.idCitizenship")}
-        value={citizenship}
-        onChange={setCitizenship}
-        options={countryOptions}
-        placeholder={t("profile.selectPlaceholder")}
+        values={citizenships}
+        onChange={setCitizenships}
+        options={COUNTRY_OPTIONS}
+        placeholder={t("profile.selectCountries")}
+        max={MAX_CITIZENSHIP}
       />
-      <SelectField
+      <MultiCombo
         label={t("profile.idWorkPermit")}
-        value={workPermit}
-        onChange={setWorkPermit}
-        options={countryOptions}
-        placeholder={t("profile.selectPlaceholder")}
+        values={workPermits}
+        onChange={setWorkPermits}
+        options={COUNTRY_OPTIONS}
+        placeholder={t("profile.selectCountries")}
+        max={MAX_WORK_PERMIT}
       />
     </Modal>
   );
@@ -691,6 +706,88 @@ function SkillsEditor({
         onChange={setSkills}
         max={MAX_SKILLS}
         placeholder={t("profile.skillPh")}
+      />
+    </Modal>
+  );
+}
+
+/**
+ * Desired salary (monthly) — a "from" amount + currency, optional "to". Persisted
+ * via `PATCH /worker/profile` (`expectedSalaryRange`). Clearing the amount removes
+ * the expectation.
+ */
+function SalaryEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const update = useUpdateProfileInfo();
+  const [min, setMin] = useState(
+    profile.expectedSalaryRange?.min != null
+      ? String(profile.expectedSalaryRange.min)
+      : "",
+  );
+  const [max, setMax] = useState(
+    profile.expectedSalaryRange?.max != null
+      ? String(profile.expectedSalaryRange.max)
+      : "",
+  );
+  const [currency, setCurrency] = useState(
+    profile.expectedSalaryRange?.currency ?? "USD",
+  );
+
+  const save = async () => {
+    if (update.isPending) return;
+    const minN = Number.parseInt(min.trim(), 10);
+    const maxN = Number.parseInt(max.trim(), 10);
+    try {
+      await update.mutateAsync({
+        expectedSalaryRange: Number.isFinite(minN)
+          ? {
+              min: Math.max(0, minN),
+              max: Number.isFinite(maxN) ? Math.max(0, maxN) : null,
+              currency,
+            }
+          : null,
+      });
+      toast(t("profile.saved"));
+      onClose();
+    } catch (e) {
+      toast.error(errMsg(e, t));
+    }
+  };
+
+  return (
+    <Modal
+      title={t("profile.salaryEditTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <div className={s["pf-row"]}>
+        <TextField
+          label={t("profile.salaryMinLabel")}
+          value={min}
+          onChange={setMin}
+          placeholder={t("profile.salaryAmountPh")}
+          type="number"
+        />
+        <TextField
+          label={t("profile.salaryMaxLabel")}
+          value={max}
+          onChange={setMax}
+          placeholder={t("profile.salaryAmountPh")}
+          type="number"
+        />
+      </div>
+      <ComboSelect
+        label={t("profile.salaryCurrency")}
+        value={currency}
+        onChange={setCurrency}
+        options={CURRENCY_OPTIONS}
+        placeholder={t("profile.salaryCurrency")}
       />
     </Modal>
   );
@@ -850,7 +947,7 @@ function EducationEditor({
         placeholder={t("profile.eduYearPh")}
         type="number"
       />
-      <SelectField
+      <ComboSelect
         label={t("profile.eduLevel")}
         value={level}
         onChange={setLevel}
@@ -923,7 +1020,7 @@ function LanguageEditor({
         onChange={setLanguage}
         placeholder={t("profile.langNamePh")}
       />
-      <SelectField
+      <ComboSelect
         label={t("profile.langLevel")}
         value={proficiency}
         onChange={setProficiency}
@@ -1045,14 +1142,14 @@ function WorkplaceEditor({
         />
       </div>
       <div className={s["pf-row"]}>
-        <SelectField
+        <ComboSelect
           label={t("profile.wpEmployment")}
           value={employment}
           onChange={setEmployment}
           options={empOptions}
           placeholder={t("profile.selectPlaceholder")}
         />
-        <SelectField
+        <ComboSelect
           label={t("profile.wpWorkFormat")}
           value={workFormat}
           onChange={setWorkFormat}
@@ -1060,7 +1157,7 @@ function WorkplaceEditor({
           placeholder={t("profile.selectPlaceholder")}
         />
       </div>
-      <SelectField
+      <ComboSelect
         label={t("profile.wpDomain")}
         value={domain}
         onChange={setDomain}
@@ -1163,16 +1260,12 @@ function SearchAreaEditor({
 }) {
   const { t } = useI18n();
   const update = useUpdateProfileInfo();
-  const [cities, setCities] = useState(profile.targetCities.join(", "));
+  const [countries, setCountries] = useState<string[]>(profile.targetCountries);
 
   const save = async () => {
     if (update.isPending) return;
-    const list = cities
-      .split(",")
-      .map((c) => c.trim())
-      .filter(Boolean);
     try {
-      await update.mutateAsync({ targetCities: list });
+      await update.mutateAsync({ targetCountries: countries });
       toast(t("profile.saved"));
       onClose();
     } catch (e) {
@@ -1186,11 +1279,13 @@ function SearchAreaEditor({
       onClose={onClose}
       footer={<Foot onSave={save} saving={update.isPending} t={t} />}
     >
-      <TextField
+      <MultiCombo
         label={t("profile.fldAreaTitle")}
-        value={cities}
-        onChange={setCities}
-        placeholder={t("profile.fldAreaPh")}
+        values={countries}
+        onChange={setCountries}
+        options={COUNTRY_OPTIONS}
+        placeholder={t("profile.selectCountries")}
+        max={MAX_TARGET_COUNTRIES}
       />
     </Modal>
   );
@@ -1205,19 +1300,25 @@ function DrivingEditor({
 }) {
   const { t } = useI18n();
   const update = useUpdateProfileInfo();
-  const [selected, setSelected] = useState<string[]>(profile.drivingCategories);
+  // Map the stored categories to a preset (order-insensitive); "" = Not specified.
+  const currentKey = [...profile.drivingCategories].sort().join(",");
+  const initial =
+    DRIVING_PRESETS.find((p) => [...p.cats].sort().join(",") === currentKey)
+      ?.label ?? "";
+  const [preset, setPreset] = useState(initial);
 
-  const toggle = (cat: string) =>
-    setSelected((cur) =>
-      cur.includes(cat) ? cur.filter((c) => c !== cat) : [...cur, cat],
-    );
+  const options: ComboOption[] = [
+    { value: "", label: t("profile.notSpecified") },
+    ...DRIVING_PRESETS.map((p) => ({ value: p.label, label: p.label })),
+  ];
 
   const save = async () => {
     if (update.isPending) return;
+    const cats = DRIVING_PRESETS.find((p) => p.label === preset)?.cats ?? [];
     try {
       await update.mutateAsync({
-        hasDrivingLicense: selected.length > 0,
-        drivingCategories: selected,
+        hasDrivingLicense: cats.length > 0,
+        drivingCategories: cats,
       });
       toast(t("profile.saved"));
       onClose();
@@ -1232,21 +1333,13 @@ function DrivingEditor({
       onClose={onClose}
       footer={<Foot onSave={save} saving={update.isPending} t={t} />}
     >
-      <Field label={t("profile.drvCats")}>
-        <span className={s["pf-seg"]}>
-          {Object.values(DRIVING_LICENSE_CATEGORY).map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={cn(s["pf-seg-btn"], selected.includes(cat) && s.on)}
-              onClick={() => toggle(cat)}
-              aria-pressed={selected.includes(cat)}
-            >
-              {categoryLabel(cat)}
-            </button>
-          ))}
-        </span>
-      </Field>
+      <ComboSelect
+        label={t("profile.drvCats")}
+        value={preset}
+        onChange={setPreset}
+        options={options}
+        placeholder={t("profile.notSpecified")}
+      />
     </Modal>
   );
 }

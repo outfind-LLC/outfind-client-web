@@ -1344,6 +1344,119 @@
   font-size: 12.5px;
   color: var(--text-secondary);
 }
+
+/* ---------- Searchable dropdown (ComboSelect / MultiCombo) ---------- */
+.pf-combo {
+  position: relative;
+}
+.pf-combo-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.pf-combo-val {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pf-combo-ph {
+  color: var(--text-tertiary);
+}
+.pf-combo-btn .ic {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  transform: rotate(90deg);
+  background: var(--icon-secondary);
+  transition: transform var(--dur-base);
+}
+.pf-combo.open .pf-combo-btn .ic {
+  transform: rotate(-90deg);
+}
+.pf-combo-pop {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.14));
+  overflow: hidden;
+  animation: pfDpIn var(--dur-base) ease;
+}
+.pf-combo-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-default);
+}
+.pf-combo-search-inp {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 10px);
+  padding: 9px 12px;
+}
+.pf-combo-search-inp::placeholder {
+  color: var(--text-tertiary);
+}
+.pf-combo-search-inp:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  background: var(--bg-primary);
+}
+.pf-combo-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px;
+}
+.pf-combo-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 10px);
+  transition: background var(--dur-fast);
+}
+.pf-combo-opt:hover {
+  background: var(--bg-secondary-hover);
+}
+.pf-combo-opt.sel {
+  font-weight: 600;
+  color: var(--accent-brand);
+}
+.pf-combo-opt:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.pf-combo-opt .ic {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  background: var(--accent-brand);
+}
+.pf-combo-empty {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
 .emp-edu {
   display: flex;
   flex-direction: column;

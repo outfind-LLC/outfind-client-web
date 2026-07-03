@@ -42,8 +42,15 @@ export type UpdateProfileInfoInput = {
   profession?: string | null;
   additionalProfessions?: string[];
   skills?: string[];
+  // ── Expected salary (monthly) ──
+  expectedSalaryRange?: {
+    min: number;
+    max?: number | null;
+    currency: string;
+  } | null;
   currentCountry?: string | null;
   currentCity?: string | null;
+  targetCountries?: string[];
   targetCities?: string[];
   hasDrivingLicense?: boolean;
   drivingCategories?: string[];
