@@ -116,6 +116,32 @@ export function WorkerProfileDetail({
         </div>
       </div>
 
+      {/* Professional roles */}
+      <h3 className={cn(s["pd-h"], s["pd-title"])}>
+        {t("profile.rolesTitle")}
+      </h3>
+      <div className={cn(s["pd-card"], s["pd-kvcard"])}>
+        <Kv
+          label={t("profile.primaryRole")}
+          value={profile.profession}
+          onClick={() => onEdit({ type: "roles" })}
+          t={t}
+        />
+        <Kv
+          label={t("profile.secondaryRoles")}
+          value={profile.additionalProfessions.join(", ") || null}
+          onClick={() => onEdit({ type: "roles" })}
+          t={t}
+        />
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "roles" })}
+        >
+          {t("profile.edit")}
+        </button>
+      </div>
+
       {/* Contact info */}
       <h3 className={cn(s["pd-h"], s["pd-title"])}>
         {t("profile.contactInfo")}
@@ -186,6 +212,39 @@ export function WorkerProfileDetail({
           type="button"
           className={s["pd-card-edit"]}
           onClick={() => onEdit({ type: "searchLocation" })}
+        >
+          {t("profile.edit")}
+        </button>
+      </div>
+
+      {/* Skills */}
+      <Shead
+        title={t("profile.skillsTitle")}
+        onAdd={() => onEdit({ type: "skills" })}
+        t={t}
+      />
+      <div className={cn(s["pd-card"], s["pd-listcard"])}>
+        {profile.skills.length > 0 ? (
+          <div className={s["pd-chips"]}>
+            {profile.skills.map((skill) => (
+              <span key={skill} className={s["pd-chip"]}>
+                {skill}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className={cn(s["pd-item"], s["pd-emptyrow"])}>
+            <div className={s["pd-item-main"]}>
+              <div className={cn(s["pd-item-t"], s["pd-empty"])}>
+                {t("profile.notSpecified")}
+              </div>
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "skills" })}
         >
           {t("profile.edit")}
         </button>

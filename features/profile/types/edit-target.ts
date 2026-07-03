@@ -9,6 +9,8 @@ import type {
  *  map to existing CRUD (see docs/api/profile.md). */
 export type EditTarget =
   | { type: "identity" }
+  | { type: "roles" }
+  | { type: "skills" }
   | { type: "contact" }
   | { type: "education"; item: WorkerEducation | null }
   | { type: "language"; item: WorkerLanguage | null }

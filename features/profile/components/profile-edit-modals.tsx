@@ -94,6 +94,10 @@ const COUNTRIES = [
   "Other",
 ] as const;
 
+/** UI caps (within the backend limits: 20 skills / 10 additional professions). */
+const MAX_SKILLS = 15;
+const MAX_SECONDARY_ROLES = 10;
+
 /** Renders the editor for the requested section (existing-CRUD sections only). */
 export function ProfileEditModal({
   target,
@@ -107,6 +111,10 @@ export function ProfileEditModal({
   switch (target.type) {
     case "identity":
       return <IdentityEditor profile={profile} onClose={onClose} />;
+    case "roles":
+      return <RolesEditor profile={profile} onClose={onClose} />;
+    case "skills":
+      return <SkillsEditor profile={profile} onClose={onClose} />;
     case "contact":
       return <ContactEditor profile={profile} onClose={onClose} />;
     case "education":
@@ -279,6 +287,79 @@ function TextAreaField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
+    </Field>
+  );
+}
+
+/**
+ * A chip / tag input (skills, secondary roles). Add with Enter or comma, remove
+ * with the chip's × or Backspace on an empty input. Case-insensitive de-dupe;
+ * caps at `max` (input disables once reached). Emits the trimmed string list.
+ */
+function TagField({
+  label,
+  tags,
+  onChange,
+  max,
+  placeholder,
+}: {
+  label: string;
+  tags: string[];
+  onChange: (next: string[]) => void;
+  max: number;
+  placeholder: string;
+}) {
+  const { t } = useI18n();
+  const [draft, setDraft] = useState("");
+  const atMax = tags.length >= max;
+
+  const add = () => {
+    const v = draft.trim();
+    setDraft("");
+    if (!v || atMax) return;
+    if (tags.some((x) => x.toLowerCase() === v.toLowerCase())) return;
+    onChange([...tags, v]);
+  };
+  const removeAt = (i: number) => onChange(tags.filter((_, idx) => idx !== i));
+
+  return (
+    <Field label={label}>
+      {tags.length > 0 ? (
+        <div className={s["pf-tags"]}>
+          {tags.map((tag, i) => (
+            <span key={`${tag}-${i}`} className={s["pf-tag"]}>
+              {tag}
+              <button
+                type="button"
+                className={s["pf-tag-x"]}
+                aria-label={t("profile.tagRemove", { item: tag })}
+                onClick={() => removeAt(i)}
+              >
+                <Ic name="close" />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <input
+        className={s["pf-control"]}
+        value={draft}
+        disabled={atMax}
+        placeholder={atMax ? "" : placeholder}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            add();
+          } else if (e.key === "Backspace" && !draft && tags.length > 0) {
+            removeAt(tags.length - 1);
+          }
+        }}
+        onBlur={add}
+      />
+      <span className={s["pf-hint"]}>
+        {t("profile.tagsCount", { n: tags.length, max })}
+      </span>
     </Field>
   );
 }
@@ -511,6 +592,105 @@ function IdentityEditor({
         onChange={setWorkPermit}
         options={countryOptions}
         placeholder={t("profile.selectPlaceholder")}
+      />
+    </Modal>
+  );
+}
+
+/**
+ * Professional roles — the primary role (`profession`) is the résumé headline;
+ * secondary roles (`additionalProfessions`) are other roles the worker is open
+ * to. Persisted via `PATCH /worker/profile`.
+ */
+function RolesEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const update = useUpdateProfileInfo();
+  const [primary, setPrimary] = useState(profile.profession ?? "");
+  const [secondary, setSecondary] = useState<string[]>(
+    profile.additionalProfessions,
+  );
+
+  const save = async () => {
+    if (update.isPending) return;
+    try {
+      await update.mutateAsync({
+        profession: primary.trim() || null,
+        additionalProfessions: secondary,
+      });
+      toast(t("profile.saved"));
+      onClose();
+    } catch (e) {
+      toast.error(errMsg(e, t));
+    }
+  };
+
+  return (
+    <Modal
+      title={t("profile.rolesEditTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <TextField
+        label={t("profile.primaryRole")}
+        value={primary}
+        onChange={setPrimary}
+        placeholder={t("profile.primaryRolePh")}
+      />
+      <TagField
+        label={t("profile.secondaryRoles")}
+        tags={secondary}
+        onChange={setSecondary}
+        max={MAX_SECONDARY_ROLES}
+        placeholder={t("profile.secondaryRolePh")}
+      />
+    </Modal>
+  );
+}
+
+/**
+ * Skills — a free tag list (max {@link MAX_SKILLS}). Persisted via
+ * `PATCH /worker/profile` (`skills`).
+ */
+function SkillsEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const update = useUpdateProfileInfo();
+  const [skills, setSkills] = useState<string[]>(profile.skills);
+
+  const save = async () => {
+    if (update.isPending) return;
+    try {
+      await update.mutateAsync({ skills });
+      toast(t("profile.saved"));
+      onClose();
+    } catch (e) {
+      toast.error(errMsg(e, t));
+    }
+  };
+
+  return (
+    <Modal
+      title={t("profile.skillsEditTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <TagField
+        label={t("profile.skillsTitle")}
+        tags={skills}
+        onChange={setSkills}
+        max={MAX_SKILLS}
+        placeholder={t("profile.skillPh")}
       />
     </Modal>
   );

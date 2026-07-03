@@ -38,7 +38,10 @@ export type UpdateProfileInfoInput = {
   contactEmail?: string | null;
   contactTelegram?: string | null;
   contactWhatsapp?: string | null;
+  // ── Professional roles + skills ──
+  profession?: string | null;
   additionalProfessions?: string[];
+  skills?: string[];
   currentCountry?: string | null;
   currentCity?: string | null;
   targetCities?: string[];
