@@ -46,7 +46,11 @@ export function ConversationThread({
   coverLetter,
 }: ConversationThreadProps) {
   const { user } = useSession();
-  const { data, isLoading } = useApplicationMessages(scope, applicationId, true);
+  const { data, isLoading } = useApplicationMessages(
+    scope,
+    applicationId,
+    true,
+  );
   const sendMessage = useSendApplicationMessage(scope, applicationId);
   const markRead = useMarkApplicationRead(scope, applicationId);
   const [draft, setDraft] = useState("");
@@ -167,7 +171,9 @@ function CoverLetterBubble({
   mine: boolean;
 }) {
   return (
-    <div className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}>
+    <div
+      className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
+    >
       <span className="text-muted-foreground px-1 text-[10px] font-medium tracking-wide uppercase">
         Cover letter
       </span>

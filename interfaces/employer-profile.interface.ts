@@ -2,7 +2,11 @@
  * Employer profile contracts — mirror of the backend `EmployerProfileView`.
  * Dates are ISO strings over the wire.
  */
-import type { EmployerVerificationStatus } from "./enums";
+import type {
+  EmployerVerificationStatus,
+  HiringStatus,
+  VacancyType,
+} from "./enums";
 
 /** An extra company site (office / branch), separate from the HQ on the profile. */
 export interface CompanyLocationItem {
@@ -30,6 +34,13 @@ export interface EmployerProfile {
   contactName: string | null;
   phone: string | null;
   website: string | null;
+  // ── Hiring settings (Settings → Hiring) ──
+  hiringStatus: HiringStatus;
+  hiringRoles: VacancyType[];
+  defaultJobLocation: string | null;
+  openToRemote: boolean;
+  aiScreening: boolean;
+  autoInviteTopMatches: boolean;
   verificationStatus: EmployerVerificationStatus;
   verifiedAt: string | null;
   verifiedBy: string | null;
@@ -71,8 +82,16 @@ export interface CreateEmployerProfilePayload {
 
 /**
  * Body for `PATCH /employer/profile` — any subset of the create fields except
- * `corporateEmail`, which is fixed once the profile exists.
+ * `corporateEmail` (fixed once the profile exists), plus the hiring settings
+ * (update-only on the backend DTO).
  */
 export type UpdateEmployerProfilePayload = Partial<
   Omit<CreateEmployerProfilePayload, "corporateEmail">
->;
+> & {
+  hiringStatus?: HiringStatus;
+  hiringRoles?: VacancyType[];
+  defaultJobLocation?: string | null;
+  openToRemote?: boolean;
+  aiScreening?: boolean;
+  autoInviteTopMatches?: boolean;
+};

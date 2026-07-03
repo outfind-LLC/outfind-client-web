@@ -57,6 +57,7 @@ export type UpdateProfileInfoInput = {
   domainExperience?: string[];
   employmentTypes?: string[];
   workFormats?: string[];
+  readyToRelocate?: boolean;
   summary?: string | null;
   workerStatus?: "ACTIVE" | "PASSIVE" | "OFFLINE";
   uploadedCvLink?: string | null;

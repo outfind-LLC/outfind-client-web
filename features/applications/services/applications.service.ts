@@ -11,6 +11,7 @@ import type {
   UpdateApplicationStatusPayload,
 } from "@/interfaces/application.interface";
 import type { CandidateProfile } from "@/interfaces/candidate-profile.interface";
+import type { ShortlistCandidate } from "@/interfaces/candidate.interface";
 
 /**
  * Applications API service. Worker routes manage the caller's own applications;
@@ -60,6 +61,19 @@ export const applicationsService = {
     return api.get<EmployerApplication[]>(
       `/employer/applications${buildQuery(query)}`,
     );
+  },
+
+  // ─── Shortlist (saved candidates, keyed by worker profile id) ─────────────
+  async listShortlist(): Promise<ShortlistCandidate[]> {
+    return api.get<ShortlistCandidate[]>("/employer/shortlist");
+  },
+
+  async addToShortlist(candidateId: string): Promise<ShortlistCandidate> {
+    return api.post<ShortlistCandidate>("/employer/shortlist", { candidateId });
+  },
+
+  async removeFromShortlist(candidateId: string): Promise<null> {
+    return api.delete<null>(`/employer/shortlist/${candidateId}`);
   },
 
   async updateStatus(

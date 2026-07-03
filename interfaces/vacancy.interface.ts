@@ -3,7 +3,23 @@
  * Display-only enum-ish fields (domain, source, driving categories) are typed as
  * strings here since the UI only renders them. Dates are ISO strings.
  */
-import type { ExperienceLevel, VacancyStatus, VacancyType } from "./enums";
+import type {
+  EducationLevel,
+  ExperienceLevel,
+  PaymentFrequency,
+  PaymentType,
+  VacancyKind,
+  VacancyStatus,
+  VacancyType,
+  VacancyVisibility,
+  WorkFormat,
+} from "./enums";
+
+/** A required language + level on a vacancy (level is a free label, e.g. "B1"). */
+export interface LanguageRequirement {
+  language: string;
+  level: string;
+}
 
 export interface DomainRequirement {
   domain: string;
@@ -102,6 +118,30 @@ export interface CreateVacancyPayload {
   country: string;
   city?: string | null;
   isRemote?: boolean;
+  // ── Wizard fields (regular + daily) ──
+  kind?: VacancyKind;
+  profession?: string | null;
+  category?: string | null;
+  address?: string | null;
+  /** Free-form format label from the wizard (On-site / Rotational / Shift / Project work). */
+  workFormat?: string | null;
+  /** Office / hybrid / remote control. */
+  workArrangement?: WorkFormat | null;
+  workSchedule?: string | null;
+  teamSize?: number | null;
+  paymentType?: PaymentType | null;
+  paymentFrequency?: PaymentFrequency | null;
+  paymentNote?: string | null;
+  /** Daily jobs: the work date (ISO) + shift hours label. */
+  workDate?: string | null;
+  shiftHours?: string | null;
+  educationRequired?: EducationLevel | null;
+  probationMonths?: number | null;
+  languageRequirements?: LanguageRequirement[] | null;
+  visibility?: VacancyVisibility;
+  acceptResponses?: boolean;
+  /** Employer-authored description (preferred over the AI summary on display). */
+  description?: string | null;
   salaryMin?: number | null;
   salaryMax?: number | null;
   currency?: string | null;

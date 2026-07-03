@@ -404,6 +404,11 @@ const D: Record<string, [string, string, string]> = {
     "Не удалось опубликовать вакансию",
     "Vakansiyani e’lon qilib bo‘lmadi",
   ],
+  "toast.dateRequired": [
+    "Pick the work date first",
+    "Сначала выберите дату работы",
+    "Avval ish sanasini tanlang",
+  ],
   "dd.search": ["Search…", "Поиск…", "Qidirish…"],
   "dd.noResults": ["No matches", "Ничего не найдено", "Hech narsa topilmadi"],
 };

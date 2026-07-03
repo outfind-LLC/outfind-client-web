@@ -46,11 +46,11 @@ decision, W2 domain config.
 |---|---|---|---|---|---|
 | **E1** | Create company account | ✅ | ✅ | ✅ **Built (2026-07-03)** | Create form → `POST /employer/profile` (full field set: taxId, tagline, foundedYear, registeredAddress, contactName). **localStorage seams removed:** verification is now derived purely from `EmployerProfile.verificationStatus` (no `peoplor_employer_verify_v1`, no demo "approve" — approval is admin-side); tagline / founded / **locations** now persist via `PATCH /employer/profile` + `POST/PATCH/DELETE /employer/profile/locations` (company-extras seam `peoplor_company_extras_v1` deleted). Company **voice-parse** wired: "Speak to autofill" → `POST /employer/profile/parse`. |
 | **E2** | Post a job — AI-assisted | ✅ | ✅ | ✅ **Built (2026-07-03)** | Vacancy wizard header has a **"🎙 Speak"** control → `POST /employer/vacancies/parse` → prefills the free-form wizard fields (title, description, salary, currency, skills, city, team). Employer completes the option/enum steps. **DRAFT**: the header "Save draft" now persists a real backend DRAFT (`saveAsDraft:true`, invisible to workers); publish it from the Vacancies list kebab ("Publish"). |
-| **E3** | Post a job — manual | ◑ | ✅ | ◑ **Partial** | Wizard (regular 5-step + daily 3-step) → `POST /employer/vacancies` is real. **BE accepts the full field set; FE only sends a subset** — team size, pay type/frequency, probation, schedule, visibility, address, daily date/hours, HR contacts are collected but not transmitted. Wire the full payload. |
+| **E3** | Post a job — manual | ✅ | ✅ | ✅ **Built (2026-07-03)** | Wizard (regular 5-step + daily 3-step) → `POST /employer/vacancies` now sends the **full field set**: `kind` (REGULAR/DAILY), profession, category, address, workFormat, workArrangement, workSchedule, teamSize, paymentType/Frequency/Note, workDate+shiftHours (daily, with a pre-publish date guard), educationRequired, probationMonths, languageRequirements `[{language,level}]`, visibility, acceptResponses, employer `description`. "Company website" intentionally not sent (lives on the employer profile — no vacancy column). |
 | **E4** | Job detail page | ✅ | ✅ | ✅ **Built** | `GET /employer/vacancies/:id` renders all fields + lifecycle/edit/delete. |
-| **E5** | Applicants list | ◑ | ✅ | ◑ **Partial** | Per-vacancy list is **real** (`GET /employer/vacancies/:id/applications`). Main Candidates **inbox is mock-seeded** (`EMPLOYER_MOCKS_ENABLED = true`) even though `GET /employer/applications` **is built** on the backend. Flip the flag off + wire. |
+| **E5** | Applicants list | ✅ | ✅ | ✅ **Built (2026-07-03)** | Per-vacancy list real (`GET /employer/vacancies/:id/applications`) AND the main Candidates inbox is now real (`GET /employer/applications`). **Mock seam deleted entirely** (`employer-mocks.ts` removed, incl. its localStorage message log). |
 | **E6** | Candidate profile + "Best match" badge | ✅ | ✅ | ◑ **Built (match % empty)** | Profile opens via `GET /employer/applications/:id/candidate` (degrades gracefully). "Best match" badge is correctly **worker-only**; employer shows a numeric **% match gauge** — but the underlying `matchScore` is **always null** (see S1), so the % is not populated yet. |
-| **E7** | Candidate action (shortlist / contact / reject) | ◑ | ✅ | ◑ **Partial** | **Reject/status:** real (`PATCH /employer/applications/:id/status`). **Contact:** real for genuine applications; mock-seam for mock candidates. **Shortlist:** FE is **mock-only** (static `MOCK_SHORTLIST`, no service) although `GET/POST/DELETE /employer/shortlist` **is built** — needs wiring. |
+| **E7** | Candidate action (shortlist / contact / reject) | ◑ | ✅ | ◑ **Mostly built (2026-07-03)** | **Reject/status:** real (`PATCH /employer/applications/:id/status`). **Contact:** real (mock seam gone). **Shortlist:** now wired to `GET /employer/shortlist` (list + remove via `DELETE /employer/shortlist/:id`; hooks in `use-shortlist.ts`, incl. `useAddToShortlist`). Remaining: no "add to shortlist" button surface yet (comes with candidate search, S-row `findCandidates`). |
 | **E8** | Dashboard metrics | ❌ | ✅ | ◑ **BE-only** | No employer dashboard/metrics page on FE (only client-derived vacancy tab counts). `GET /employer/stats` → `{ openRoles, applicants, hiresThisYear }` **is built** — needs a metrics strip/page to consume it. |
 
 **Employer verdict:** the *hardest* backend pieces are done. The employer gaps are
@@ -235,11 +235,12 @@ reserved until their features (S1/S2) ship.
 
 **Frontend wiring of already-built backends (no new backend work)**
 
-6. **E5** inbox → `GET /employer/applications` (flip `EMPLOYER_MOCKS_ENABLED` off).
-7. **E7** shortlist → `GET/POST/DELETE /employer/shortlist`.
+6. ~~**E5** inbox → `GET /employer/applications`~~ ✅ done 2026-07-03 (mock seam deleted).
+7. ~~**E7** shortlist → `GET/POST/DELETE /employer/shortlist`~~ ✅ done 2026-07-03 (list + remove wired; "add" button ships with candidate search).
 8. **E8** metrics strip → `GET /employer/stats`.
-9. **E1** verification → drop `peoplor_employer_verify_v1` + demo-approve; read real `verificationStatus`.
-10. **E3** vacancy wizard → send the **full** field set (BE already accepts it).
+9. ~~**E1** verification → drop `peoplor_employer_verify_v1` + demo-approve; read real `verificationStatus`~~ ✅ done 2026-07-03.
+10. ~~**E3** vacancy wizard → send the **full** field set~~ ✅ done 2026-07-03.
+11. ~~**Settings** → `GET/PATCH /me/settings`~~ ✅ done 2026-07-03: language/theme/sound/notifications/privacy persist server-side (SettingsSync pulls per sign-in); worker Job-search rows → `PATCH /worker/profile` (incl. new `readyToRelocate`); employer Hiring rows → `PATCH /employer/profile`. localStorage seams deleted (`peoplor_settings_v1`, `peoplor-sounds`); `peoplor_lang` + `theme` remain only as first-paint caches, overwritten by the account's DB values on load.
 
 **Decisions needed**
 

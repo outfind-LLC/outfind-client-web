@@ -1,9 +1,8 @@
 import {
   DEFAULT_SOUND_SETTINGS,
-  parseSoundSettings,
-  SOUNDS_STORAGE_KEY,
   type SoundEvent,
   type SoundId,
+  type SoundSettings,
 } from "@/features/settings/constants/sounds";
 
 /**
@@ -85,18 +84,18 @@ export function playSoundId(id: SoundId): void {
   }
 }
 
-function currentSettings() {
-  if (typeof window === "undefined") return DEFAULT_SOUND_SETTINGS;
-  try {
-    return parseSoundSettings(window.localStorage.getItem(SOUNDS_STORAGE_KEY));
-  } catch {
-    return DEFAULT_SOUND_SETTINGS;
-  }
+// The sound preference lives on the backend (`/me/settings.soundEnabled`);
+// SettingsSync feeds it into this in-memory state after the query resolves.
+// Until then the defaults apply. No localStorage involved.
+let soundState: SoundSettings = DEFAULT_SOUND_SETTINGS;
+
+/** Merge the server-driven sound preference into the in-memory state. */
+export function setSoundState(patch: Partial<SoundSettings>): void {
+  soundState = { ...soundState, ...patch };
 }
 
 /** Play the user's chosen sound for an event, respecting the master toggle. */
 export function playEventSound(event: SoundEvent): void {
-  const settings = currentSettings();
-  if (!settings.enabled) return;
-  playSoundId(settings[event]);
+  if (!soundState.enabled) return;
+  playSoundId(soundState[event]);
 }

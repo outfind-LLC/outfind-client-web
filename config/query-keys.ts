@@ -32,9 +32,11 @@ export const qk = {
   recommendations: ["recommendations"] as const,
   applicants: (vacancyId?: string) =>
     ["applicants", vacancyId ?? "all"] as const,
+  shortlist: ["employer", "shortlist"] as const,
 
   workerProfile: ["profile", "worker"] as const,
   employerProfile: ["profile", "employer"] as const,
+  userSettings: ["settings", "me"] as const,
 
   /** Per-job AI tool result, cached so reopening a tool doesn't re-spend quota. */
   jobAiTool: (tool: string, jobKey: string) =>

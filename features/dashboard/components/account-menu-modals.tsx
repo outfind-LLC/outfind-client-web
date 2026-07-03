@@ -8,6 +8,7 @@ import { routes } from "@/config/routes";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import { useUpdateProfileInfo } from "@/features/profile/hooks/use-worker-profile-mutations";
+import { useSetAppLanguage } from "@/features/settings/hooks/use-user-settings";
 import { isApiClientError } from "@/lib/api/error";
 import { LOCALE_LABELS, LOCALES, type Locale } from "@/lib/i18n/config";
 import { useI18n } from "@/providers/i18n-provider";
@@ -22,12 +23,24 @@ function mask(inner: string, sw = 1.6): string {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 const HELP_ICONS = {
-  book: mask("<path d='M5 6a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2z'/><path d='M5 19a2 2 0 0 1 2-2h12'/>"),
-  chat: mask("<path d='M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.1A7.5 7.5 0 1 1 20 11.5z'/>"),
-  mail: mask("<rect x='3' y='5' width='18' height='14' rx='2.5'/><path d='M4 7.5l8 5 8-5'/>"),
+  book: mask(
+    "<path d='M5 6a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2z'/><path d='M5 19a2 2 0 0 1 2-2h12'/>",
+  ),
+  chat: mask(
+    "<path d='M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.1A7.5 7.5 0 1 1 20 11.5z'/>",
+  ),
+  mail: mask(
+    "<rect x='3' y='5' width='18' height='14' rx='2.5'/><path d='M4 7.5l8 5 8-5'/>",
+  ),
 };
 function HelpIc({ name }: { name: keyof typeof HELP_ICONS }) {
-  return <span className={s.ic} style={{ "--i": HELP_ICONS[name] } as CSSProperties} aria-hidden="true" />;
+  return (
+    <span
+      className={s.ic}
+      style={{ "--i": HELP_ICONS[name] } as CSSProperties}
+      aria-hidden="true"
+    />
+  );
 }
 
 /* ---------------- shared shell ---------------- */
@@ -63,10 +76,20 @@ function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={s.modal} role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className={s.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <div className={s["modal-head"]}>
           <div className={s["modal-title"]}>{title}</div>
-          <button type="button" className={s["modal-close"]} aria-label={t("accountMenu.ariaClose")} onClick={onClose}>
+          <button
+            type="button"
+            className={s["modal-close"]}
+            aria-label={t("accountMenu.ariaClose")}
+            onClick={onClose}
+          >
             <Ic name="close" />
           </button>
         </div>
@@ -78,14 +101,23 @@ function Modal({
 }
 
 /* ---------------- Account ---------------- */
-export function AccountModal({ user, onClose }: { user: SessionUser; onClose: () => void }) {
-  const { t, locale, setLocale } = useI18n();
+export function AccountModal({
+  user,
+  onClose,
+}: {
+  user: SessionUser;
+  onClose: () => void;
+}) {
+  const { t, locale } = useI18n();
+  const setAppLanguage = useSetAppLanguage();
   const { isWorker } = useSession();
   const workerProfile = useWorkerProfile(Boolean(isWorker));
   const update = useUpdateProfileInfo();
 
   const profileLocation = workerProfile.data
-    ? [workerProfile.data.currentCity, workerProfile.data.currentCountry].filter(Boolean).join(", ")
+    ? [workerProfile.data.currentCity, workerProfile.data.currentCountry]
+        .filter(Boolean)
+        .join(", ")
     : "";
 
   const [name, setName] = useState(user.name);
@@ -99,7 +131,7 @@ export function AccountModal({ user, onClose }: { user: SessionUser; onClose: ()
   const [lang, setLang] = useState<Locale>(locale);
 
   const save = async () => {
-    if (lang !== locale) setLocale(lang);
+    if (lang !== locale) setAppLanguage(lang);
     // The only profile-backed field today is the worker's location; name/email/phone
     // need an account-update endpoint (see docs/api/profile.md §5).
     if (isWorker && location !== profileLocation) {
@@ -110,7 +142,9 @@ export function AccountModal({ user, onClose }: { user: SessionUser; onClose: ()
           currentCountry: rest.join(", ") || null,
         });
       } catch (e) {
-        toast.error(isApiClientError(e) ? e.message : t("accountMenu.accSaved"));
+        toast.error(
+          isApiClientError(e) ? e.message : t("accountMenu.accSaved"),
+        );
         return;
       }
     }
@@ -124,7 +158,11 @@ export function AccountModal({ user, onClose }: { user: SessionUser; onClose: ()
       onClose={onClose}
       footer={
         <>
-          <button type="button" className={cn(s.btn, s["btn-ghost"], s["btn-md"])} onClick={onClose}>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+            onClick={onClose}
+          >
             {t("accountMenu.accCancel")}
           </button>
           <button
@@ -138,13 +176,34 @@ export function AccountModal({ user, onClose }: { user: SessionUser; onClose: ()
         </>
       }
     >
-      <FieldInput label={t("accountMenu.accName")} value={name} onChange={setName} />
-      <FieldInput label={t("accountMenu.accEmail")} value={email} onChange={setEmail} type="email" />
-      <FieldInput label={t("accountMenu.accPhone")} value={phone} onChange={setPhone} type="tel" />
-      <FieldInput label={t("accountMenu.accLocation")} value={location} onChange={setLocationEdit} />
+      <FieldInput
+        label={t("accountMenu.accName")}
+        value={name}
+        onChange={setName}
+      />
+      <FieldInput
+        label={t("accountMenu.accEmail")}
+        value={email}
+        onChange={setEmail}
+        type="email"
+      />
+      <FieldInput
+        label={t("accountMenu.accPhone")}
+        value={phone}
+        onChange={setPhone}
+        type="tel"
+      />
+      <FieldInput
+        label={t("accountMenu.accLocation")}
+        value={location}
+        onChange={setLocationEdit}
+      />
       <div className={s.field}>
         <label>{t("accountMenu.accPrefLang")}</label>
-        <select value={lang} onChange={(e) => setLang(e.target.value as Locale)}>
+        <select
+          value={lang}
+          onChange={(e) => setLang(e.target.value as Locale)}
+        >
           {LOCALES.map((code) => (
             <option key={code} value={code}>
               {LOCALE_LABELS[code]}
@@ -170,7 +229,11 @@ function FieldInput({
   return (
     <div className={s.field}>
       <label>{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
@@ -183,8 +246,16 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
     <Modal title={t("accountMenu.help")} onClose={onClose}>
       <p className={s["modal-note"]}>{t("accountMenu.helpNote")}</p>
       <div className={s["help-list"]}>
-        <HelpRow icon="book" title={t("accountMenu.helpCenter")} desc={t("accountMenu.helpCenterD")} />
-        <HelpRow icon="chat" title={t("accountMenu.helpContact")} desc={t("accountMenu.helpContactD")} />
+        <HelpRow
+          icon="book"
+          title={t("accountMenu.helpCenter")}
+          desc={t("accountMenu.helpCenterD")}
+        />
+        <HelpRow
+          icon="chat"
+          title={t("accountMenu.helpContact")}
+          desc={t("accountMenu.helpContactD")}
+        />
         <a className={s["help-item"]} href={`mailto:${email}`}>
           <HelpIc name="mail" />
           <span>
@@ -197,7 +268,15 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function HelpRow({ icon, title, desc }: { icon: keyof typeof HELP_ICONS; title: string; desc: string }) {
+function HelpRow({
+  icon,
+  title,
+  desc,
+}: {
+  icon: keyof typeof HELP_ICONS;
+  title: string;
+  desc: string;
+}) {
   return (
     <button type="button" className={s["help-item"]}>
       <HelpIc name={icon} />
@@ -226,7 +305,11 @@ export function LogoutModal({
       onClose={onClose}
       footer={
         <>
-          <button type="button" className={cn(s.btn, s["btn-ghost"], s["btn-md"])} onClick={onClose}>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+            onClick={onClose}
+          >
             {t("accountMenu.accCancel")}
           </button>
           <button
@@ -262,11 +345,25 @@ export function UpgradeModal({ onClose }: { onClose: () => void }) {
   const employer = !isWorker;
 
   const freeFeats = employer
-    ? [t("upgrade.freeF1Hire"), t("upgrade.freeF2Hire"), t("upgrade.freeF3Hire")]
+    ? [
+        t("upgrade.freeF1Hire"),
+        t("upgrade.freeF2Hire"),
+        t("upgrade.freeF3Hire"),
+      ]
     : [t("upgrade.freeF1"), t("upgrade.freeF2"), t("upgrade.freeF3")];
   const proFeats = employer
-    ? [t("upgrade.proF1Hire"), t("upgrade.proF2Hire"), t("upgrade.proF3Hire"), t("upgrade.proF4Hire")]
-    : [t("upgrade.proF1"), t("upgrade.proF2"), t("upgrade.proF3"), t("upgrade.proF4")];
+    ? [
+        t("upgrade.proF1Hire"),
+        t("upgrade.proF2Hire"),
+        t("upgrade.proF3Hire"),
+        t("upgrade.proF4Hire"),
+      ]
+    : [
+        t("upgrade.proF1"),
+        t("upgrade.proF2"),
+        t("upgrade.proF3"),
+        t("upgrade.proF4"),
+      ];
 
   const goPro = () => {
     onClose();
@@ -279,22 +376,34 @@ export function UpgradeModal({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button type="button" className={cn(s.btn, s["btn-ghost"], s["btn-md"])} onClick={onClose}>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+            onClick={onClose}
+          >
             {t("upgrade.maybeLater")}
           </button>
-          <button type="button" className={cn(s.btn, s["btn-primary"], s["btn-md"])} onClick={goPro}>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+            onClick={goPro}
+          >
             {t("upgrade.toPro")}
           </button>
         </>
       }
     >
-      <p className={s["modal-note"]}>{employer ? t("upgrade.noteHire") : t("upgrade.note")}</p>
+      <p className={s["modal-note"]}>
+        {employer ? t("upgrade.noteHire") : t("upgrade.note")}
+      </p>
 
       <div className={s.plan}>
         <div className={s["plan-top"]}>
           <div className={s["plan-name"]}>
             Free
-            <span className={cn(s["plan-badge"], s.muted)}>{t("upgrade.current")}</span>
+            <span className={cn(s["plan-badge"], s.muted)}>
+              {t("upgrade.current")}
+            </span>
           </div>
           <div className={s["plan-price"]}>
             $0<span className={s.per}>{t("upgrade.perMo")}</span>

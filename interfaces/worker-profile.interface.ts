@@ -102,6 +102,8 @@ export interface WorkerProfile {
   workFormats: WorkFormat[];
   summary: string | null;
   abroadExperience: boolean;
+  /** Settings → Job search: willing to relocate for a job. */
+  readyToRelocate: boolean;
   expectedSalaryRange: SalaryRange | null;
   completenessScore: number;
   isActive: boolean;

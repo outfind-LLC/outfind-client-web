@@ -121,7 +121,9 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
 
           <div className={s["jd-title"]}>
             <span>{c.name}</span>
-            {c.verified ? <Ic name="verified" title={t("candidates.verifiedSrc")} /> : null}
+            {c.verified ? (
+              <Ic name="verified" title={t("candidates.verifiedSrc")} />
+            ) : null}
           </div>
 
           {c.title || c.location ? (
@@ -141,7 +143,9 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
 
           {c.salary ? <div className={s["jd-salary"]}>{c.salary}</div> : null}
 
-          {facts.length > 0 ? <div className={s["jd-facts"]}>{facts}</div> : null}
+          {facts.length > 0 ? (
+            <div className={s["jd-facts"]}>{facts}</div>
+          ) : null}
 
           {c.summary ? (
             <div className={s["jd-sec"]}>
@@ -207,12 +211,18 @@ function Sheet({ candidate }: { candidate: CandidateCardData }) {
 
         <div className={s["jd-foot"]}>
           {email ? (
-            <a className={cn(s.btn, s["btn-ghost"], s["btn-md"])} href={`mailto:${email}`}>
+            <a
+              className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+              href={`mailto:${email}`}
+            >
               {t("candidates.email")}
             </a>
           ) : null}
           {phone ? (
-            <a className={cn(s.btn, s["btn-primary"], s["btn-md"])} href={`tel:${phone}`}>
+            <a
+              className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+              href={`tel:${phone}`}
+            >
               {t("candidates.call")}
             </a>
           ) : (

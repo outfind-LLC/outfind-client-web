@@ -143,8 +143,42 @@ export const VACANCY_TYPE = {
   CONTRACT: "CONTRACT",
   SEASONAL: "SEASONAL",
   INTERNSHIP: "INTERNSHIP",
+  SHIFT_WORK: "SHIFT_WORK",
+  FREELANCE: "FREELANCE",
+  TEMPORARY: "TEMPORARY",
 } as const;
 export type VacancyType = (typeof VACANCY_TYPE)[keyof typeof VACANCY_TYPE];
+
+/** Regular (long-lived) vs daily (one work date) vacancy. */
+export const VACANCY_KIND = {
+  REGULAR: "REGULAR",
+  DAILY: "DAILY",
+} as const;
+export type VacancyKind = (typeof VACANCY_KIND)[keyof typeof VACANCY_KIND];
+
+export const PAYMENT_TYPE = {
+  FIXED: "FIXED",
+  HOURLY: "HOURLY",
+  PIECEWORK: "PIECEWORK",
+  OTHER: "OTHER",
+} as const;
+export type PaymentType = (typeof PAYMENT_TYPE)[keyof typeof PAYMENT_TYPE];
+
+export const PAYMENT_FREQUENCY = {
+  MONTHLY: "MONTHLY",
+  TWICE_MONTHLY: "TWICE_MONTHLY",
+  WEEKLY: "WEEKLY",
+  PER_TASK: "PER_TASK",
+} as const;
+export type PaymentFrequency =
+  (typeof PAYMENT_FREQUENCY)[keyof typeof PAYMENT_FREQUENCY];
+
+export const VACANCY_VISIBILITY = {
+  PUBLIC: "PUBLIC",
+  BY_LINK: "BY_LINK",
+} as const;
+export type VacancyVisibility =
+  (typeof VACANCY_VISIBILITY)[keyof typeof VACANCY_VISIBILITY];
 
 export const APPLICATION_STATUS = {
   SAVED: "SAVED",
@@ -212,6 +246,38 @@ export const WORKER_STATUS = {
   BANNED: "BANNED",
 } as const;
 export type WorkerStatus = (typeof WORKER_STATUS)[keyof typeof WORKER_STATUS];
+
+export const APP_THEME = {
+  SYSTEM: "SYSTEM",
+  LIGHT: "LIGHT",
+  DARK: "DARK",
+} as const;
+export type AppTheme = (typeof APP_THEME)[keyof typeof APP_THEME];
+
+export const JOB_ALERT_FREQUENCY = {
+  INSTANT: "INSTANT",
+  DAILY: "DAILY",
+  WEEKLY: "WEEKLY",
+  OFF: "OFF",
+} as const;
+export type JobAlertFrequency =
+  (typeof JOB_ALERT_FREQUENCY)[keyof typeof JOB_ALERT_FREQUENCY];
+
+/** Who can find a worker's résumé in search. */
+export const RESUME_VISIBILITY = {
+  EVERYONE: "EVERYONE",
+  APPLIED_ONLY: "APPLIED_ONLY",
+  HIDDEN: "HIDDEN",
+} as const;
+export type ResumeVisibility =
+  (typeof RESUME_VISIBILITY)[keyof typeof RESUME_VISIBILITY];
+
+export const HIRING_STATUS = {
+  ACTIVELY_HIRING: "ACTIVELY_HIRING",
+  OPEN_TO_APPLICATIONS: "OPEN_TO_APPLICATIONS",
+  PAUSED: "PAUSED",
+} as const;
+export type HiringStatus = (typeof HIRING_STATUS)[keyof typeof HIRING_STATUS];
 
 export const EMPLOYER_VERIFICATION_STATUS = {
   PENDING: "PENDING",

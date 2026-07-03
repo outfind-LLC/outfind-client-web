@@ -21,7 +21,10 @@ import {
   useMarkApplicationRead,
   useSendApplicationMessage,
 } from "@/features/applications/hooks/use-application-messages";
-import { useBookmarks, useRemoveBookmark } from "@/features/bookmarks/hooks/use-bookmarks";
+import {
+  useBookmarks,
+  useRemoveBookmark,
+} from "@/features/bookmarks/hooks/use-bookmarks";
 import { useCandidateProfile } from "@/features/applications/hooks/use-candidate-profile";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
@@ -32,7 +35,10 @@ import type {
 } from "@/interfaces/worker-profile.interface";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useCandidateDetailStore } from "@/features/applications/store/candidate-detail.store";
-import { MOCK_SHORTLIST } from "@/features/applications/data/employer-mocks";
+import {
+  useEmployerShortlist,
+  useRemoveFromShortlist,
+} from "@/features/applications/hooks/use-shortlist";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
 import { ICONS as REG } from "@/components/icons";
@@ -52,6 +58,8 @@ import type {
   Bookmark,
   BookmarkVacancyPreview,
 } from "@/interfaces/engagement.interface";
+import type { ShortlistCandidate } from "@/interfaces/candidate.interface";
+import type { CandidateCardData } from "@/features/chat/types/candidate";
 import type { JobCardData } from "@/features/chat/types/job";
 import type { MessageKey } from "@/lib/i18n/translate";
 import type { TranslateFn } from "@/providers/i18n-provider";
@@ -79,7 +87,13 @@ const MICONS = {
   doc: REG.fileText,
   mail: REG.mail,
 } as const;
-function MIc({ name, className }: { name: keyof typeof MICONS; className?: string }) {
+function MIc({
+  name,
+  className,
+}: {
+  name: keyof typeof MICONS;
+  className?: string;
+}) {
   return (
     <span
       className={cn(s.ic, className)}
@@ -90,14 +104,30 @@ function MIc({ name, className }: { name: keyof typeof MICONS; className?: strin
 }
 
 /* ---------------- avatar + formatting helpers ------------------------------- */
-const AV_COLORS = ["#3158f6", "#22a06b", "#ff6b00", "#7a5af5", "#0f9bb3", "#e0532e", "#9b51e0"];
+const AV_COLORS = [
+  "#3158f6",
+  "#22a06b",
+  "#ff6b00",
+  "#7a5af5",
+  "#0f9bb3",
+  "#e0532e",
+  "#9b51e0",
+];
 function avatarColor(seed: string): string {
   let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < seed.length; i += 1)
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   return AV_COLORS[hash % AV_COLORS.length];
 }
 function initials(name: string): string {
-  return name.split(/\s+/).map((w) => w[0] ?? "").slice(0, 2).join("").toUpperCase() || "?";
+  return (
+    name
+      .split(/\s+/)
+      .map((w) => w[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
 }
 function startOfDay(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -107,8 +137,11 @@ function inboxDate(iso: string | null, locale: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000);
-  if (diffDays <= 0) return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const diffDays = Math.round(
+    (startOfDay(new Date()) - startOfDay(d)) / 86400000,
+  );
+  if (diffDays <= 0)
+    return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
   if (diffDays < 7) return d.toLocaleDateString(locale, { weekday: "short" });
   return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -120,14 +153,22 @@ function clockTime(iso: string, locale: string): string {
 function dayLabel(iso: string, locale: string, t: TranslateFn): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000);
+  const diffDays = Math.round(
+    (startOfDay(new Date()) - startOfDay(d)) / 86400000,
+  );
   if (diffDays <= 0) return t("applications.dayToday");
   if (diffDays === 1) return t("applications.dayYesterday");
   return d.toLocaleDateString(locale, { day: "numeric", month: "long" });
 }
 
 /* ---------------- status mapping (backend enum → design status) ------------- */
-type DisplayStatus = "interview" | "reply" | "applied" | "viewed" | "done" | "rejected";
+type DisplayStatus =
+  | "interview"
+  | "reply"
+  | "applied"
+  | "viewed"
+  | "done"
+  | "rejected";
 const STATUS_LABEL_KEY: Record<DisplayStatus, MessageKey> = {
   interview: "applications.statusInterview",
   reply: "applications.statusReply",
@@ -149,7 +190,8 @@ const EMPLOYER_STATUS_LABEL_KEY: Record<DisplayStatus, MessageKey> = {
 function workerStatus(a: Application): DisplayStatus {
   if (a.status === APPLICATION_STATUS.REJECTED) return "rejected";
   if (a.status === APPLICATION_STATUS.ACCEPTED) return "interview";
-  if (a.unreadCount > 0 && a.lastMessageSenderRole === "EMPLOYER") return "reply";
+  if (a.unreadCount > 0 && a.lastMessageSenderRole === "EMPLOYER")
+    return "reply";
   if (a.status === APPLICATION_STATUS.VIEWED) return "viewed";
   if (a.lastMessageAt) return "done";
   return "applied";
@@ -163,12 +205,51 @@ function employerStatus(e: EmployerApplication): DisplayStatus {
 }
 
 /* ---------------- saved-card formatting ------------------------------------- */
+/** Worker status → human availability label (shared with Settings → Job search). */
+const AVAIL_LABEL_KEY: Partial<Record<string, MessageKey>> = {
+  ACTIVE: "settings.searchActive",
+  PASSIVE: "settings.searchOpen",
+  OFFLINE: "settings.searchClosed",
+};
+
+/** Map a backend shortlist row to the candidate card the detail sheet expects. */
+function shortlistCard(
+  c: ShortlistCandidate,
+  t: TranslateFn,
+): CandidateCardData {
+  const availKey = AVAIL_LABEL_KEY[c.availability];
+  return {
+    id: c.id,
+    name: c.name,
+    title: c.title,
+    location: c.location,
+    salary: c.salary,
+    skills: c.skills,
+    availability: availKey ? t(availKey) : null,
+    years: c.years,
+    matchScore: c.matchScore,
+    verified: c.verified,
+    summary: null,
+    experience: [],
+    contact: {
+      email: null,
+      phone: null,
+      telegram: null,
+      whatsapp: null,
+      website: null,
+    },
+  };
+}
+
 const TYPE_LABEL_KEY: Record<VacancyType, MessageKey> = {
   [VACANCY_TYPE.FULL_TIME]: "applications.typeFullTime",
   [VACANCY_TYPE.PART_TIME]: "applications.typePartTime",
   [VACANCY_TYPE.CONTRACT]: "applications.typeContract",
   [VACANCY_TYPE.SEASONAL]: "applications.typeSeasonal",
   [VACANCY_TYPE.INTERNSHIP]: "applications.typeInternship",
+  [VACANCY_TYPE.SHIFT_WORK]: "applications.typeShiftWork",
+  [VACANCY_TYPE.FREELANCE]: "applications.typeFreelance",
+  [VACANCY_TYPE.TEMPORARY]: "applications.typeTemporary",
 };
 function formatBookmarkSalary(
   v: BookmarkVacancyPreview,
@@ -178,16 +259,25 @@ function formatBookmarkSalary(
   if (v.salaryRaw) return v.salaryRaw;
   const cur = v.currency ? ` ${v.currency}` : "";
   const fmt = (n: number) =>
-    new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(n);
-  if (v.salaryMin != null && v.salaryMax != null) return `${fmt(v.salaryMin)}–${fmt(v.salaryMax)}${cur}`;
-  if (v.salaryMin != null) return t("applications.salaryFrom", { amount: `${fmt(v.salaryMin)}${cur}` });
+    new Intl.NumberFormat(locale, {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(n);
+  if (v.salaryMin != null && v.salaryMax != null)
+    return `${fmt(v.salaryMin)}–${fmt(v.salaryMax)}${cur}`;
+  if (v.salaryMin != null)
+    return t("applications.salaryFrom", {
+      amount: `${fmt(v.salaryMin)}${cur}`,
+    });
   if (v.salaryMax != null) return `${fmt(v.salaryMax)}${cur}`;
   return null;
 }
 function savedTags(v: BookmarkVacancyPreview, t: TranslateFn): string[] {
   const tags: string[] = [];
   if (v.type) tags.push(t(TYPE_LABEL_KEY[v.type]));
-  tags.push(v.isRemote ? t("applications.workRemote") : t("applications.workOnSite"));
+  tags.push(
+    v.isRemote ? t("applications.workRemote") : t("applications.workOnSite"),
+  );
   return tags;
 }
 
@@ -200,7 +290,10 @@ const EMPTY_CONTACT = {
   website: null,
   contactForm: null,
 };
-function jobFromBookmark(v: BookmarkVacancyPreview, salary: string | null): JobCardData {
+function jobFromBookmark(
+  v: BookmarkVacancyPreview,
+  salary: string | null,
+): JobCardData {
   return {
     id: v.id,
     title: v.title,
@@ -355,7 +448,8 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
   const [unreadOnly, setUnreadOnly] = useState(false);
 
   const threads = useMemo<Thread[]>(() => {
-    if (employer) return (employerApps.data ?? []).map((e) => employerThread(e, locale));
+    if (employer)
+      return (employerApps.data ?? []).map((e) => employerThread(e, locale));
     return (workerApps.data ?? []).map((a) => workerThread(a, locale));
   }, [employer, employerApps.data, workerApps.data, locale]);
 
@@ -434,8 +528,12 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           className={cn(s["sv-tab"], tab === "applied" && s.on)}
           onClick={() => setTab("applied")}
         >
-          {employer ? t("candidates.tabConversations") : t("applications.tabApplied")}
-          {totalUnread > 0 ? <span className={s["sv-tabbadge"]}>{totalUnread}</span> : null}
+          {employer
+            ? t("candidates.tabConversations")
+            : t("applications.tabApplied")}
+          {totalUnread > 0 ? (
+            <span className={s["sv-tabbadge"]}>{totalUnread}</span>
+          ) : null}
         </button>
         <button
           type="button"
@@ -491,11 +589,30 @@ function AppliedTab({
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className={s["sv-item"]} aria-hidden="true">
             <span className={s["sv-avwrap"]}>
-              <span className={s["sv-av"]} style={{ background: "var(--bg-secondary-hover)" }} />
+              <span
+                className={s["sv-av"]}
+                style={{ background: "var(--bg-secondary-hover)" }}
+              />
             </span>
             <span className={s["sv-item-main"]}>
-              <span className={s["sv-role"]} style={{ height: 14, background: "var(--bg-secondary-hover)", borderRadius: 6, maxWidth: 180 }} />
-              <span className={s["sv-co"]} style={{ height: 12, background: "var(--bg-secondary-hover)", borderRadius: 6, maxWidth: 120 }} />
+              <span
+                className={s["sv-role"]}
+                style={{
+                  height: 14,
+                  background: "var(--bg-secondary-hover)",
+                  borderRadius: 6,
+                  maxWidth: 180,
+                }}
+              />
+              <span
+                className={s["sv-co"]}
+                style={{
+                  height: 12,
+                  background: "var(--bg-secondary-hover)",
+                  borderRadius: 6,
+                  maxWidth: 120,
+                }}
+              />
             </span>
           </div>
         ))}
@@ -507,8 +624,16 @@ function AppliedTab({
     return (
       <Empty
         icon="chat"
-        title={employer ? t("candidates.emptyNoApplicants") : t("applications.emptyNoApps")}
-        desc={employer ? t("candidates.emptyNoApplicantsDesc") : t("applications.emptyNoAppsDesc")}
+        title={
+          employer
+            ? t("candidates.emptyNoApplicants")
+            : t("applications.emptyNoApps")
+        }
+        desc={
+          employer
+            ? t("candidates.emptyNoApplicantsDesc")
+            : t("applications.emptyNoAppsDesc")
+        }
       />
     );
   }
@@ -567,8 +692,15 @@ function AppliedTab({
                     ) : (
                       <span className={s["sv-meta-date"]}>
                         {th.lastMessageMine ? (
-                          <span className={cn(s["sv-tick"], th.lastMessageRead && s["sv-tick--read"])}>
-                            <MIc name={th.lastMessageRead ? "checks" : "check"} />
+                          <span
+                            className={cn(
+                              s["sv-tick"],
+                              th.lastMessageRead && s["sv-tick--read"],
+                            )}
+                          >
+                            <MIc
+                              name={th.lastMessageRead ? "checks" : "check"}
+                            />
                           </span>
                         ) : null}
                         {th.date}
@@ -583,7 +715,12 @@ function AppliedTab({
                       : th.subLine}
                   </span>
                 ) : null}
-                <span className={cn(s["sv-status"], s[`sv-status--${th.statusCls}`])}>
+                <span
+                  className={cn(
+                    s["sv-status"],
+                    s[`sv-status--${th.statusCls}`],
+                  )}
+                >
                   {t(th.statusLabelKey)}
                 </span>
               </span>
@@ -609,9 +746,14 @@ function SavedTab({
   const removeBookmark = useRemoveBookmark();
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
   const openCandidate = useCandidateDetailStore((st) => st.openCandidate);
+  // Employer shortlist — real backend data (`GET /employer/shortlist`).
+  const shortlistQ = useEmployerShortlist(employer);
+  const removeShortlist = useRemoveFromShortlist();
 
   if (employer) {
-    if (MOCK_SHORTLIST.length === 0) {
+    const shortlist = shortlistQ.data ?? [];
+    if (shortlistQ.isLoading) return null;
+    if (shortlist.length === 0) {
       return (
         <Empty
           icon="bookmark"
@@ -622,15 +764,21 @@ function SavedTab({
     }
     return (
       <div className={s["sv-saved"]}>
-        {MOCK_SHORTLIST.map((c) => {
+        {shortlist.map((sc) => {
+          const c = shortlistCard(sc, t);
           const tags = [
             ...c.skills.slice(0, 1),
-            ...(c.years != null ? [t("candidates.yearsShort", { n: c.years })] : []),
+            ...(c.years != null
+              ? [t("candidates.yearsShort", { n: c.years })]
+              : []),
           ];
           return (
             <div key={c.id} className={s["sv-job"]}>
               <div className={s["sv-job-top"]}>
-                <span className={s["sv-av"]} style={{ background: avatarColor(c.name) }}>
+                <span
+                  className={s["sv-av"]}
+                  style={{ background: avatarColor(c.name) }}
+                >
                   {initials(c.name)}
                 </span>
                 <div className={s["sv-job-head"]}>
@@ -643,7 +791,11 @@ function SavedTab({
                   type="button"
                   className={s["sv-job-save"]}
                   aria-label={t("applications.removeSaved")}
-                  onClick={() => toast(t("applications.toastRemoved"))}
+                  onClick={() =>
+                    removeShortlist.mutate(c.id, {
+                      onSuccess: () => toast(t("applications.toastRemoved")),
+                    })
+                  }
                 >
                   <MIc name="bookmark" />
                 </button>
@@ -672,7 +824,9 @@ function SavedTab({
                 <button
                   type="button"
                   className={cn(s["sv-btn"], s["sv-btn-primary"])}
-                  onClick={() => toast(t("candidates.msgOpened", { name: c.name }))}
+                  onClick={() =>
+                    toast(t("candidates.msgOpened", { name: c.name }))
+                  }
                 >
                   {t("candidates.messageBtn")}
                 </button>
@@ -726,7 +880,10 @@ function SavedTab({
         return (
           <div key={b.id} className={s["sv-job"]}>
             <div className={s["sv-job-top"]}>
-              <span className={s["sv-av"]} style={{ background: avatarColor(label) }}>
+              <span
+                className={s["sv-av"]}
+                style={{ background: avatarColor(label) }}
+              >
                 {v.companyLogoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={v.companyLogoUrl} alt="" />
@@ -821,13 +978,18 @@ function ThreadView({
 }) {
   const { t, locale } = useI18n();
   const employer = scope === "employer";
-  const { data: messages, isLoading } = useApplicationMessages(scope, thread.id, true);
+  const { data: messages, isLoading } = useApplicationMessages(
+    scope,
+    thread.id,
+    true,
+  );
   const send = useSendApplicationMessage(scope, thread.id);
   const markRead = useMarkApplicationRead(scope, thread.id);
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
   const [draft, setDraft] = useState("");
   const msgsRef = useRef<HTMLDivElement>(null);
-  const me: ApplicationMessageSender = scope === "worker" ? "WORKER" : "EMPLOYER";
+  const me: ApplicationMessageSender =
+    scope === "worker" ? "WORKER" : "EMPLOYER";
 
   // Mark the thread read once on open.
   const marked = useRef(false);
@@ -847,7 +1009,9 @@ function ThreadView({
     event.preventDefault();
     const text = draft.trim();
     if (!text || send.isPending) return;
-    send.mutate(text, { onError: () => toast.error(t("applications.errorSend")) });
+    send.mutate(text, {
+      onError: () => toast.error(t("applications.errorSend")),
+    });
     setDraft("");
   };
 
@@ -867,7 +1031,10 @@ function ThreadView({
           <MIc name="back" />
         </button>
         <span className={s["sv-avwrap"]}>
-          <span className={cn(s["sv-av"], s["sv-av--sm"])} style={{ background: thread.color }}>
+          <span
+            className={cn(s["sv-av"], s["sv-av--sm"])}
+            style={{ background: thread.color }}
+          >
             {thread.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={thread.avatarUrl} alt="" />
@@ -934,10 +1101,16 @@ function ThreadView({
               </span>
             </button>
           )}
-          <span className={s["sv-pin-role"]}>{thread.vacancyTitle || thread.mainLine}</span>
+          <span className={s["sv-pin-role"]}>
+            {thread.vacancyTitle || thread.mainLine}
+          </span>
         </div>
         {employer ? (
-          <button type="button" className={s["sv-pin-go"]} onClick={onViewProfile}>
+          <button
+            type="button"
+            className={s["sv-pin-go"]}
+            onClick={onViewProfile}
+          >
             {t("candidates.viewProfile")}
             <MIc name="open" />
           </button>
@@ -965,7 +1138,9 @@ function ThreadView({
           ) : null}
 
           {isLoading ? (
-            <div className={s["sv-sys"]}>{t("applications.loadingConversation")}</div>
+            <div className={s["sv-sys"]}>
+              {t("applications.loadingConversation")}
+            </div>
           ) : list.length === 0 && !showApplied ? (
             <div className={s["sv-sys"]}>
               <MIc name="eye" />
@@ -977,7 +1152,8 @@ function ThreadView({
               const day = dayLabel(m.createdAt, locale, t);
               const showDay = Boolean(day) && day !== lastDay;
               if (showDay) lastDay = day;
-              const read = scope === "worker" ? m.readByEmployer : m.readByWorker;
+              const read =
+                scope === "worker" ? m.readByEmployer : m.readByWorker;
               return (
                 <Fragment key={m.id}>
                   {showDay ? (
@@ -1025,7 +1201,9 @@ function ThreadView({
               className={s["sv-qchip"]}
               onClick={() => {
                 if (send.isPending) return;
-                send.mutate(label, { onError: () => toast.error(t("applications.errorSend")) });
+                send.mutate(label, {
+                  onError: () => toast.error(t("applications.errorSend")),
+                });
               }}
             >
               {label}
@@ -1073,7 +1251,11 @@ function ThreadView({
 
 /* ---------------- candidate profile + CV (employer, from the thread pin) ----- */
 function slugName(name: string): string {
-  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 function expYear(iso: string): string {
   const d = new Date(iso);
@@ -1176,7 +1358,10 @@ function CandidateDetailView({
               n={matchScore != null ? `${matchScore}%` : "—"}
               l={t("candidates.statMatch")}
             />
-            <DStat n={t("candidates.identityPending")} l={t("candidates.statIdentity")} />
+            <DStat
+              n={t("candidates.identityPending")}
+              l={t("candidates.statIdentity")}
+            />
           </div>
 
           {summary ? (
@@ -1282,7 +1467,13 @@ interface CvViewData {
 /** Shared CV page (prototype `saved.js` cvHTML) — the sv-cv-* paper. Fed by the
  * candidate profile (employer views the applicant) or the worker's own profile
  * (worker views "My CV" for a job). */
-function MessengerCvView({ data, onBack }: { data: CvViewData; onBack: () => void }) {
+function MessengerCvView({
+  data,
+  onBack,
+}: {
+  data: CvViewData;
+  onBack: () => void;
+}) {
   const { t } = useI18n();
   const {
     name,
@@ -1331,7 +1522,10 @@ function MessengerCvView({ data, onBack }: { data: CvViewData; onBack: () => voi
               <div className={s["sv-cv-name"]}>{name}</div>
               {role ? <div className={s["sv-cv-title"]}>{role}</div> : null}
             </div>
-            <span className={cn(s["sv-av"], s["sv-cv-av"])} style={{ background: color }}>
+            <span
+              className={cn(s["sv-av"], s["sv-cv-av"])}
+              style={{ background: color }}
+            >
               {initials(name)}
             </span>
           </div>
@@ -1439,7 +1633,13 @@ function MessengerCvView({ data, onBack }: { data: CvViewData; onBack: () => voi
 }
 
 /** Employer views the applicant's CV (candidate-profile endpoint). */
-function CandidateCvView({ thread, onBack }: { thread: Thread; onBack: () => void }) {
+function CandidateCvView({
+  thread,
+  onBack,
+}: {
+  thread: Thread;
+  onBack: () => void;
+}) {
   const { data: profile } = useCandidateProfile(thread.id);
   return (
     <MessengerCvView
@@ -1462,7 +1662,13 @@ function CandidateCvView({ thread, onBack }: { thread: Thread; onBack: () => voi
 }
 
 /** Worker views their OWN CV for the job ("My CV" from the thread pin). */
-function WorkerCvView({ thread, onBack }: { thread: Thread; onBack: () => void }) {
+function WorkerCvView({
+  thread,
+  onBack,
+}: {
+  thread: Thread;
+  onBack: () => void;
+}) {
   const { user } = useSession();
   const { data: profile } = useWorkerProfile(true);
   const name = user?.name ?? thread.name;

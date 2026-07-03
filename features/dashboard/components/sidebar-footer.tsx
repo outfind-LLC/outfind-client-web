@@ -9,6 +9,7 @@ import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import { useLogout } from "@/features/auth/hooks/use-auth-mutations";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { useEmployerProfile } from "@/features/profile/hooks/use-profile";
+import { useSetAppLanguage } from "@/features/settings/hooks/use-user-settings";
 import { isApiClientError } from "@/lib/api/error";
 import { LOCALE_LABELS, LOCALES } from "@/lib/i18n/config";
 import { useI18n } from "@/providers/i18n-provider";
@@ -37,7 +38,8 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const { plan } = useMyPlan();
   const logout = useLogout();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
+  const setAppLanguage = useSetAppLanguage();
 
   const planLabel = plan?.name ?? t("common.freePlan");
   const isEmployer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
@@ -45,7 +47,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   // their own. The company profile is a cached query, enabled only for employers.
   const employerProfile = useEmployerProfile(isEmployer);
   const company = employerProfile.data;
-  const displayName = isEmployer ? (company?.companyName ?? user.name) : user.name;
+  const displayName = isEmployer
+    ? (company?.companyName ?? user.name)
+    : user.name;
   const displayAvatar = isEmployer
     ? (company?.companyLogoUrl ?? null)
     : (user.avatarUrl ?? null);
@@ -58,9 +62,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modal, setModal] = useState<
-    null | "help" | "logout" | "upgrade"
-  >(null);
+  const [modal, setModal] = useState<null | "help" | "logout" | "upgrade">(
+    null,
+  );
   const footRef = useRef<HTMLDivElement>(null);
 
   // Close both popovers on outside click / Escape.
@@ -90,7 +94,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     logout.mutate(undefined, {
       onError: (error) =>
         toast.error(
-          isApiClientError(error) ? error.message : t("accountMenu.logoutError"),
+          isApiClientError(error)
+            ? error.message
+            : t("accountMenu.logoutError"),
         ),
     });
   };
@@ -131,7 +137,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
               className={s["lang-opt"]}
               aria-pressed={code === locale}
               onClick={() => {
-                setLocale(code);
+                setAppLanguage(code);
                 setLangOpen(false);
               }}
             >
@@ -143,7 +149,10 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
       </div>
 
       {/* Account menu (opens above the profile row) */}
-      <div className={s["profile-menu"]} data-open={menuOpen ? "true" : "false"}>
+      <div
+        className={s["profile-menu"]}
+        data-open={menuOpen ? "true" : "false"}
+      >
         <Link
           href={profileHref}
           className={s["pm-head"]}
@@ -225,7 +234,13 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   );
 }
 
-function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+function Avatar({
+  name,
+  avatarUrl,
+}: {
+  name: string;
+  avatarUrl: string | null;
+}) {
   return (
     <span className={s.avatar} aria-hidden="true">
       {avatarUrl ? (

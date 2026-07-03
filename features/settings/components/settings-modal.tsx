@@ -16,15 +16,36 @@ import {
   useSwitchAccount,
 } from "@/features/auth/hooks/use-auth-mutations";
 import { useSession } from "@/features/auth/hooks/use-session";
-import { useSoundSettings } from "@/features/settings/hooks/use-sound-settings";
-import { useLocalSettings } from "@/features/settings/hooks/use-local-settings";
+import {
+  useEmployerProfile,
+  useWorkerProfile,
+} from "@/features/profile/hooks/use-profile";
+import {
+  useUpdateHiringPrefs,
+  useUpdateWorkerPrefs,
+} from "@/features/settings/hooks/use-pref-mutations";
+import {
+  useSetAppLanguage,
+  useUpdateSettings,
+  useUserSettings,
+} from "@/features/settings/hooks/use-user-settings";
+import { toAppTheme } from "@/features/settings/lib/settings-maps";
 import { isApiClientError } from "@/lib/api/error";
 import { ICONS as REG } from "@/components/icons";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
 import { type MessageKey } from "@/lib/i18n/translate";
 import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
-import { ACCOUNT_TYPE } from "@/interfaces/enums";
+import {
+  ACCOUNT_TYPE,
+  WORK_FORMAT,
+  type HiringStatus,
+  type JobAlertFrequency,
+  type ResumeVisibility,
+  type VacancyType,
+} from "@/interfaces/enums";
+import type { UpdateUserSettingsPayload } from "@/interfaces/user-settings.interface";
+import type { WorkerProfile } from "@/interfaces/worker-profile.interface";
 import s from "@/features/settings/styles/settings.module.css";
 
 /* ---------------- Icons (exact prototype paths) ---------------- */
@@ -93,7 +114,13 @@ function Row({
   );
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function Toggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) {
   return (
     <button
       type="button"
@@ -157,7 +184,12 @@ function SettingsSelect({
       {open ? (
         <div
           className={cn(s["set-pop"], s.show)}
-          style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, left: "auto" }}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            right: 0,
+            left: "auto",
+          }}
           role="menu"
         >
           {options.map((o) => (
@@ -173,9 +205,15 @@ function SettingsSelect({
               }}
             >
               {o.dot ? (
-                <span className={s["set-pop-dot"]} style={{ background: o.dot }} />
+                <span
+                  className={s["set-pop-dot"]}
+                  style={{ background: o.dot }}
+                />
               ) : o.icon ? (
-                <span className={s["set-pop-dot"]} style={{ background: "transparent" }}>
+                <span
+                  className={s["set-pop-dot"]}
+                  style={{ background: "transparent" }}
+                >
                   <SIc name={o.icon} />
                 </span>
               ) : null}
@@ -216,7 +254,10 @@ function Pill({
   return (
     <button
       type="button"
-      className={cn(s["set-pill"], kind === "danger" ? s["set-pill-danger"] : s["set-pill-ghost"])}
+      className={cn(
+        s["set-pill"],
+        kind === "danger" ? s["set-pill-danger"] : s["set-pill-ghost"],
+      )}
       onClick={onClick}
     >
       {icon ? <SIc name={icon} /> : null}
@@ -240,11 +281,25 @@ function initials(name: string): string {
   );
 }
 
-type SectionId = "general" | "notif" | "jobs" | "privacy" | "account" | "security";
-const SECTIONS: { id: SectionId; icon: SettingsIcon; label: (employer: boolean) => MessageKey }[] = [
+type SectionId =
+  | "general"
+  | "notif"
+  | "jobs"
+  | "privacy"
+  | "account"
+  | "security";
+const SECTIONS: {
+  id: SectionId;
+  icon: SettingsIcon;
+  label: (employer: boolean) => MessageKey;
+}[] = [
   { id: "general", icon: "gear", label: () => "settings.secGeneral" },
   { id: "notif", icon: "bell", label: () => "settings.secNotif" },
-  { id: "jobs", icon: "briefcase", label: (e) => (e ? "settings.secHiring" : "settings.secJobs") },
+  {
+    id: "jobs",
+    icon: "briefcase",
+    label: (e) => (e ? "settings.secHiring" : "settings.secJobs"),
+  },
   { id: "privacy", icon: "shield", label: () => "settings.secPrivacy" },
   { id: "account", icon: "user", label: () => "settings.secAccount" },
   { id: "security", icon: "lock", label: () => "settings.secSecurity" },
@@ -252,21 +307,30 @@ const SECTIONS: { id: SectionId; icon: SettingsIcon; label: (employer: boolean) 
 
 /**
  * Settings — the prototype's modal-on-desktop / tabs-on-mobile surface, rendered
- * as a route overlay. Theme (next-themes), language, account type, logout, and
- * sounds are wired to live app state; the remaining preferences persist locally
- * until the settings API ships (see api-need.md). Every label runs through the
- * shared i18n layer, so the panel follows the app language (en/ru/uz).
+ * as a route overlay. Everything persists server-side: app preferences on
+ * `PATCH /me/settings`, worker job-search rows on `PATCH /worker/profile`, and
+ * employer hiring rows on `PATCH /employer/profile` — no localStorage. Every
+ * label runs through the shared i18n layer (en/ru/uz).
  */
 export function SettingsModal() {
   const router = useRouter();
-  const { user } = useSession();
-  const { t, locale, setLocale } = useI18n();
+  const { user, isWorker, isEmployer } = useSession();
+  const { t, locale } = useI18n();
+  const setAppLanguage = useSetAppLanguage();
   const { theme, setTheme } = useTheme();
   const switchAccount = useSwitchAccount();
   const logout = useLogout();
-  const { settings: sound, update: updateSound } = useSoundSettings();
-  const { settings: local, update } = useLocalSettings();
+  const { data: prefs } = useUserSettings(user !== null);
+  const updateSettings = useUpdateSettings();
+  const workerProfileQ = useWorkerProfile(isWorker);
+  const employerProfileQ = useEmployerProfile(isEmployer);
+  const updateWorkerPrefs = useUpdateWorkerPrefs();
+  const updateHiringPrefs = useUpdateHiringPrefs();
   const [active, setActive] = useState<SectionId>("general");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const patch = (payload: UpdateUserSettingsPayload) =>
+    updateSettings.mutate(payload);
 
   const close = () => router.back();
 
@@ -282,54 +346,106 @@ export function SettingsModal() {
 
   if (!user) return null;
   const employer = user.accountType === ACCOUNT_TYPE.EMPLOYER;
+  const workerProfile = workerProfileQ.data;
+  const companyProfile = employerProfileQ.data;
 
   // Localized option sets (rebuilt per render so they follow the active locale).
-  const langOpts: Opt[] = LOCALES.map((code) => ({ v: code, l: LOCALE_LABELS[code] }));
+  const langOpts: Opt[] = LOCALES.map((code) => ({
+    v: code,
+    l: LOCALE_LABELS[code],
+  }));
   const themeOpts: Opt[] = [
     { v: "light", l: t("settings.themeLight"), icon: "sun" },
     { v: "dark", l: t("settings.themeDark"), icon: "moon" },
     { v: "system", l: t("settings.themeSystem"), icon: "desktop" },
   ];
   const freqOpts: Opt[] = [
-    { v: "instant", l: t("settings.freqInstant") },
-    { v: "daily", l: t("settings.freqDaily") },
-    { v: "weekly", l: t("settings.freqWeekly") },
-    { v: "off", l: t("settings.freqOff") },
+    { v: "INSTANT", l: t("settings.freqInstant") },
+    { v: "DAILY", l: t("settings.freqDaily") },
+    { v: "WEEKLY", l: t("settings.freqWeekly") },
+    { v: "OFF", l: t("settings.freqOff") },
   ];
   const searchOpts: Opt[] = [
-    { v: "active", l: t("settings.searchActive"), dot: "var(--accent-brand)" },
-    { v: "open", l: t("settings.searchOpen"), dot: "var(--warning)" },
-    { v: "closed", l: t("settings.searchClosed"), dot: "var(--gray-400)" },
+    { v: "ACTIVE", l: t("settings.searchActive"), dot: "var(--accent-brand)" },
+    { v: "PASSIVE", l: t("settings.searchOpen"), dot: "var(--warning)" },
+    { v: "OFFLINE", l: t("settings.searchClosed"), dot: "var(--gray-400)" },
   ];
   const hireOpts: Opt[] = [
-    { v: "active", l: t("settings.hireActive"), dot: "var(--accent-brand)" },
-    { v: "open", l: t("settings.hireOpen"), dot: "var(--warning)" },
-    { v: "paused", l: t("settings.hirePaused"), dot: "var(--gray-400)" },
+    {
+      v: "ACTIVELY_HIRING",
+      l: t("settings.hireActive"),
+      dot: "var(--accent-brand)",
+    },
+    {
+      v: "OPEN_TO_APPLICATIONS",
+      l: t("settings.hireOpen"),
+      dot: "var(--warning)",
+    },
+    { v: "PAUSED", l: t("settings.hirePaused"), dot: "var(--gray-400)" },
   ];
   const empOpts: Opt[] = [
-    { v: "full", l: t("settings.empFull") },
-    { v: "part", l: t("settings.empPart") },
-    { v: "shift", l: t("settings.empShift") },
+    { v: "FULL_TIME", l: t("settings.empFull") },
+    { v: "PART_TIME", l: t("settings.empPart") },
+    { v: "SHIFT_WORK", l: t("settings.empShift") },
     { v: "any", l: t("settings.empAny") },
   ];
   const visOpts: Opt[] = [
-    { v: "all", l: employer ? t("settings.visAllHire") : t("settings.visAll") },
-    { v: "applied", l: employer ? t("settings.visAppliedHire") : t("settings.visApplied") },
-    { v: "hidden", l: t("settings.visHidden") },
+    {
+      v: "EVERYONE",
+      l: employer ? t("settings.visAllHire") : t("settings.visAll"),
+    },
+    {
+      v: "APPLIED_ONLY",
+      l: employer ? t("settings.visAppliedHire") : t("settings.visApplied"),
+    },
+    { v: "HIDDEN", l: t("settings.visHidden") },
   ];
 
-  const editValue = (title: string, current: string, key: "expectedSalary" | "preferredCity") => {
+  /** Single-select UI over the profile's employment-types array. */
+  const employmentChoice = (types: string[]): string =>
+    types.length === 1 && empOpts.some((o) => o.v === types[0])
+      ? types[0]
+      : "any";
+
+  const promptText = (
+    title: string,
+    current: string,
+    save: (v: string) => void,
+  ) => {
     const next = window.prompt(title, current);
-    if (next && next.trim()) update({ [key]: next.trim() });
+    if (next && next.trim()) save(next.trim());
+  };
+
+  const promptSalary = (wp: WorkerProfile) => {
+    const next = window.prompt(
+      t("settings.jSalary"),
+      wp.expectedSalaryRange ? String(wp.expectedSalaryRange.min) : "",
+    );
+    if (next === null || !next.trim()) return;
+    const digits = next.replace(/[^\d]/g, "");
+    if (!digits) {
+      toast.error(t("settings.salaryInvalid"));
+      return;
+    }
+    updateWorkerPrefs.mutate({
+      expectedSalaryRange: {
+        min: Number(digits),
+        max: wp.expectedSalaryRange?.max ?? null,
+        currency: wp.expectedSalaryRange?.currency ?? "UZS",
+      },
+    });
   };
 
   const switchTo = (target: "seeker" | "employer") => {
-    const next = target === "employer" ? ACCOUNT_TYPE.EMPLOYER : ACCOUNT_TYPE.WORKER;
+    const next =
+      target === "employer" ? ACCOUNT_TYPE.EMPLOYER : ACCOUNT_TYPE.WORKER;
     if (next === user.accountType) return;
     switchAccount.mutate(next, {
       onSuccess: () => toast.success(t("settings.toastAcctSwitched")),
       onError: (error) =>
-        toast.error(isApiClientError(error) ? error.message : t("settings.errAcctSwitch")),
+        toast.error(
+          isApiClientError(error) ? error.message : t("settings.errAcctSwitch"),
+        ),
     });
   };
 
@@ -337,21 +453,27 @@ export function SettingsModal() {
     if (!window.confirm(t("settings.confirmLogout"))) return;
     logout.mutate(undefined, {
       onError: (error) =>
-        toast.error(isApiClientError(error) ? error.message : t("settings.errLogout")),
+        toast.error(
+          isApiClientError(error) ? error.message : t("settings.errLogout"),
+        ),
     });
   };
 
   const sections: Record<SectionId, ReactNode> = {
     general: (
       <>
-        {!user.email && !local.bannerDismissed ? (
+        {!user.email && !bannerDismissed ? (
           <div className={s["set-banner"]}>
             <div className={s["set-banner-ic"]}>
               <SIc name="shield" />
             </div>
             <div className={s["set-banner-main"]}>
-              <div className={s["set-banner-t"]}>{t("settings.bannerTitle")}</div>
-              <div className={s["set-banner-d"]}>{t("settings.bannerDesc")}</div>
+              <div className={s["set-banner-t"]}>
+                {t("settings.bannerTitle")}
+              </div>
+              <div className={s["set-banner-d"]}>
+                {t("settings.bannerDesc")}
+              </div>
               <button
                 type="button"
                 className={s["set-banner-btn"]}
@@ -364,7 +486,7 @@ export function SettingsModal() {
               type="button"
               className={s["set-banner-x"]}
               aria-label={t("settings.ariaDismiss")}
-              onClick={() => update({ bannerDismissed: true })}
+              onClick={() => setBannerDismissed(true)}
             >
               <SIc name="x" />
             </button>
@@ -400,7 +522,7 @@ export function SettingsModal() {
             <SettingsSelect
               value={locale}
               options={langOpts}
-              onChange={(v) => setLocale(v as Locale)}
+              onChange={(v) => setAppLanguage(v as Locale)}
             />
           }
         />
@@ -408,7 +530,15 @@ export function SettingsModal() {
           label={t("settings.appear")}
           desc={t("settings.appearD")}
           control={
-            <SettingsSelect value={theme ?? "system"} options={themeOpts} onChange={setTheme} />
+            <SettingsSelect
+              value={theme ?? "system"}
+              options={themeOpts}
+              onChange={(v) => {
+                setTheme(v);
+                const mapped = toAppTheme(v);
+                if (mapped) patch({ theme: mapped });
+              }}
+            />
           }
         />
         <Row
@@ -416,8 +546,10 @@ export function SettingsModal() {
           desc={t("settings.enterD")}
           control={
             <Toggle
-              checked={local.enterToSend}
-              onChange={() => update({ enterToSend: !local.enterToSend })}
+              checked={prefs?.enterToSend ?? true}
+              onChange={() =>
+                patch({ enterToSend: !(prefs?.enterToSend ?? true) })
+              }
             />
           }
         />
@@ -430,28 +562,42 @@ export function SettingsModal() {
           label={employer ? t("settings.notifMsgHire") : t("settings.notifMsg")}
           control={
             <Toggle
-              checked={local.notif_messages}
-              onChange={() => update({ notif_messages: !local.notif_messages })}
+              checked={prefs?.notifMessages ?? true}
+              onChange={() =>
+                patch({ notifMessages: !(prefs?.notifMessages ?? true) })
+              }
             />
           }
         />
         <Row
-          label={employer ? t("settings.notifStatusHire") : t("settings.notifStatus")}
-          desc={employer ? t("settings.notifStatusDHire") : t("settings.notifStatusD")}
+          label={
+            employer ? t("settings.notifStatusHire") : t("settings.notifStatus")
+          }
+          desc={
+            employer
+              ? t("settings.notifStatusDHire")
+              : t("settings.notifStatusD")
+          }
           control={
             <Toggle
-              checked={local.notif_status}
-              onChange={() => update({ notif_status: !local.notif_status })}
+              checked={prefs?.notifStatus ?? true}
+              onChange={() =>
+                patch({ notifStatus: !(prefs?.notifStatus ?? true) })
+              }
             />
           }
         />
         <Row
-          label={employer ? t("settings.notifJobsHire") : t("settings.notifJobs")}
-          desc={employer ? t("settings.notifJobsDHire") : t("settings.notifJobsD")}
+          label={
+            employer ? t("settings.notifJobsHire") : t("settings.notifJobs")
+          }
+          desc={
+            employer ? t("settings.notifJobsDHire") : t("settings.notifJobsD")
+          }
           control={
             <Toggle
-              checked={local.notif_jobs}
-              onChange={() => update({ notif_jobs: !local.notif_jobs })}
+              checked={prefs?.notifJobs ?? true}
+              onChange={() => patch({ notifJobs: !(prefs?.notifJobs ?? true) })}
             />
           }
         />
@@ -459,8 +605,10 @@ export function SettingsModal() {
           label={t("settings.sounds")}
           control={
             <Toggle
-              checked={sound.enabled}
-              onChange={() => updateSound({ enabled: !sound.enabled })}
+              checked={prefs?.soundEnabled ?? true}
+              onChange={() =>
+                patch({ soundEnabled: !(prefs?.soundEnabled ?? true) })
+              }
             />
           }
         />
@@ -469,10 +617,10 @@ export function SettingsModal() {
           label={employer ? t("settings.emailJobHire") : t("settings.emailJob")}
           control={
             <Toggle
-              checked={local.notif_email}
+              checked={prefs?.notifEmail ?? false}
               onChange={() => {
-                const next = !local.notif_email;
-                update({ notif_email: next });
+                const next = !(prefs?.notifEmail ?? false);
+                patch({ notifEmail: next });
                 if (next) toast(t("settings.toastAlertsOn"));
               }}
             />
@@ -482,62 +630,121 @@ export function SettingsModal() {
           label={t("settings.freq")}
           control={
             <SettingsSelect
-              value={local.jobAlertFreq}
+              value={prefs?.jobAlertFrequency ?? "DAILY"}
               options={freqOpts}
-              onChange={(v) => update({ jobAlertFreq: v as never })}
+              onChange={(v) =>
+                patch({ jobAlertFrequency: v as JobAlertFrequency })
+              }
             />
           }
         />
       </>
     ),
     jobs: employer ? (
-      <>
-        <Row
-          label={t("settings.hStatus")}
-          desc={t("settings.hStatusD")}
-          control={
-            <SettingsSelect
-              value={local.hireStatus}
-              options={hireOpts}
-              withDot
-              onChange={(v) => update({ hireStatus: v as never })}
-            />
-          }
-        />
-        <Row
-          label={t("settings.hEmpType")}
-          control={
-            <SettingsSelect
-              value={local.employmentType}
-              options={empOpts}
-              onChange={(v) => update({ employmentType: v as never })}
-            />
-          }
-        />
-        <Row
-          label={t("settings.hLoc")}
-          control={
-            <GoRow
-              value={local.preferredCity}
-              onClick={() => editValue(t("settings.hLoc"), local.preferredCity, "preferredCity")}
-            />
-          }
-        />
-        <Row
-          label={t("settings.hRemote")}
-          control={<Toggle checked={local.openRemote} onChange={() => update({ openRemote: !local.openRemote })} />}
-        />
-        <Row
-          label={t("settings.hScreen")}
-          desc={t("settings.hScreenD")}
-          control={<Toggle checked={local.aiScreen} onChange={() => update({ aiScreen: !local.aiScreen })} />}
-        />
-        <Row
-          label={t("settings.hAutoInvite")}
-          desc={t("settings.hAutoInviteD")}
-          control={<Toggle checked={local.autoInvite} onChange={() => update({ autoInvite: !local.autoInvite })} />}
-        />
-      </>
+      employerProfileQ.isLoading ? null : !companyProfile ? (
+        <div className={s["set-row"]}>
+          <div className={s["set-row-main"]}>
+            <div className={s["set-row-d"]}>
+              {t("settings.hiringNoProfile")}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Row
+            label={t("settings.hStatus")}
+            desc={t("settings.hStatusD")}
+            control={
+              <SettingsSelect
+                value={companyProfile.hiringStatus}
+                options={hireOpts}
+                withDot
+                onChange={(v) =>
+                  updateHiringPrefs.mutate({ hiringStatus: v as HiringStatus })
+                }
+              />
+            }
+          />
+          <Row
+            label={t("settings.hEmpType")}
+            control={
+              <SettingsSelect
+                value={employmentChoice(companyProfile.hiringRoles)}
+                options={empOpts}
+                onChange={(v) =>
+                  updateHiringPrefs.mutate({
+                    hiringRoles: v === "any" ? [] : [v as VacancyType],
+                  })
+                }
+              />
+            }
+          />
+          <Row
+            label={t("settings.hLoc")}
+            control={
+              <GoRow
+                value={
+                  companyProfile.defaultJobLocation ?? t("settings.notAdded")
+                }
+                onClick={() =>
+                  promptText(
+                    t("settings.hLoc"),
+                    companyProfile.defaultJobLocation ?? "",
+                    (v) => updateHiringPrefs.mutate({ defaultJobLocation: v }),
+                  )
+                }
+              />
+            }
+          />
+          <Row
+            label={t("settings.hRemote")}
+            control={
+              <Toggle
+                checked={companyProfile.openToRemote}
+                onChange={() =>
+                  updateHiringPrefs.mutate({
+                    openToRemote: !companyProfile.openToRemote,
+                  })
+                }
+              />
+            }
+          />
+          <Row
+            label={t("settings.hScreen")}
+            desc={t("settings.hScreenD")}
+            control={
+              <Toggle
+                checked={companyProfile.aiScreening}
+                onChange={() =>
+                  updateHiringPrefs.mutate({
+                    aiScreening: !companyProfile.aiScreening,
+                  })
+                }
+              />
+            }
+          />
+          <Row
+            label={t("settings.hAutoInvite")}
+            desc={t("settings.hAutoInviteD")}
+            control={
+              <Toggle
+                checked={companyProfile.autoInviteTopMatches}
+                onChange={() =>
+                  updateHiringPrefs.mutate({
+                    autoInviteTopMatches: !companyProfile.autoInviteTopMatches,
+                  })
+                }
+              />
+            }
+          />
+        </>
+      )
+    ) : workerProfileQ.isLoading ? null : !workerProfile ? (
+      <div className={s["set-row"]}>
+        <div className={s["set-row-main"]}>
+          <div className={s["set-row-d"]}>{t("settings.jobsNoProfile")}</div>
+        </div>
+      </div>
     ) : (
       <>
         <Row
@@ -545,10 +752,14 @@ export function SettingsModal() {
           desc={t("settings.jStatusD")}
           control={
             <SettingsSelect
-              value={local.searchStatus}
+              value={workerProfile.workerStatus}
               options={searchOpts}
               withDot
-              onChange={(v) => update({ searchStatus: v as never })}
+              onChange={(v) =>
+                updateWorkerPrefs.mutate({
+                  workerStatus: v as "ACTIVE" | "PASSIVE" | "OFFLINE",
+                })
+              }
             />
           }
         />
@@ -556,9 +767,13 @@ export function SettingsModal() {
           label={t("settings.jEmp")}
           control={
             <SettingsSelect
-              value={local.employmentType}
+              value={employmentChoice(workerProfile.employmentTypes)}
               options={empOpts}
-              onChange={(v) => update({ employmentType: v as never })}
+              onChange={(v) =>
+                updateWorkerPrefs.mutate({
+                  employmentTypes: v === "any" ? [] : [v],
+                })
+              }
             />
           }
         />
@@ -566,8 +781,12 @@ export function SettingsModal() {
           label={t("settings.jSalary")}
           control={
             <GoRow
-              value={local.expectedSalary}
-              onClick={() => editValue(t("settings.jSalary"), local.expectedSalary, "expectedSalary")}
+              value={
+                workerProfile.expectedSalaryRange
+                  ? `${workerProfile.expectedSalaryRange.min.toLocaleString()} ${workerProfile.expectedSalaryRange.currency}`
+                  : t("settings.notAdded")
+              }
+              onClick={() => promptSalary(workerProfile)}
             />
           }
         />
@@ -575,18 +794,48 @@ export function SettingsModal() {
           label={t("settings.jLoc")}
           control={
             <GoRow
-              value={local.preferredCity}
-              onClick={() => editValue(t("settings.jLoc"), local.preferredCity, "preferredCity")}
+              value={workerProfile.targetCities[0] ?? t("settings.notAdded")}
+              onClick={() =>
+                promptText(
+                  t("settings.jLoc"),
+                  workerProfile.targetCities[0] ?? "",
+                  (v) => updateWorkerPrefs.mutate({ targetCities: [v] }),
+                )
+              }
             />
           }
         />
         <Row
           label={t("settings.jRemote")}
-          control={<Toggle checked={local.openRemote} onChange={() => update({ openRemote: !local.openRemote })} />}
+          control={
+            <Toggle
+              checked={workerProfile.workFormats.includes(WORK_FORMAT.REMOTE)}
+              onChange={() =>
+                updateWorkerPrefs.mutate({
+                  workFormats: workerProfile.workFormats.includes(
+                    WORK_FORMAT.REMOTE,
+                  )
+                    ? workerProfile.workFormats.filter(
+                        (f) => f !== WORK_FORMAT.REMOTE,
+                      )
+                    : [...workerProfile.workFormats, WORK_FORMAT.REMOTE],
+                })
+              }
+            />
+          }
         />
         <Row
           label={t("settings.jRelocate")}
-          control={<Toggle checked={local.readyRelocate} onChange={() => update({ readyRelocate: !local.readyRelocate })} />}
+          control={
+            <Toggle
+              checked={workerProfile.readyToRelocate}
+              onChange={() =>
+                updateWorkerPrefs.mutate({
+                  readyToRelocate: !workerProfile.readyToRelocate,
+                })
+              }
+            />
+          }
         />
       </>
     ),
@@ -597,29 +846,59 @@ export function SettingsModal() {
           desc={employer ? t("settings.visDHire") : t("settings.visD")}
           control={
             <SettingsSelect
-              value={local.resumeVisibility}
+              value={prefs?.resumeVisibility ?? "EVERYONE"}
               options={visOpts}
-              onChange={(v) => update({ resumeVisibility: v as never })}
+              onChange={(v) =>
+                patch({ resumeVisibility: v as ResumeVisibility })
+              }
             />
           }
         />
         <Row
           label={employer ? t("settings.hiddenHire") : t("settings.hidden")}
           desc={employer ? t("settings.hiddenDHire") : t("settings.hiddenD")}
-          control={<GoRow value={t("settings.none")} onClick={() => toast(t("settings.toastNothingHidden"))} />}
+          control={
+            <GoRow
+              value={t("settings.none")}
+              onClick={() => toast(t("settings.toastNothingHidden"))}
+            />
+          }
         />
         <Row
           label={t("settings.online")}
-          control={<Toggle checked={local.showOnline} onChange={() => update({ showOnline: !local.showOnline })} />}
+          control={
+            <Toggle
+              checked={prefs?.showOnline ?? true}
+              onChange={() =>
+                patch({ showOnline: !(prefs?.showOnline ?? true) })
+              }
+            />
+          }
         />
         <Row
           label={t("settings.receipts")}
-          desc={employer ? t("settings.receiptsDHire") : t("settings.receiptsD")}
-          control={<Toggle checked={local.readReceipts} onChange={() => update({ readReceipts: !local.readReceipts })} />}
+          desc={
+            employer ? t("settings.receiptsDHire") : t("settings.receiptsD")
+          }
+          control={
+            <Toggle
+              checked={prefs?.readReceipts ?? true}
+              onChange={() =>
+                patch({ readReceipts: !(prefs?.readReceipts ?? true) })
+              }
+            />
+          }
         />
         <Row
           label={employer ? t("settings.callsHire") : t("settings.calls")}
-          control={<Toggle checked={local.allowCalls} onChange={() => update({ allowCalls: !local.allowCalls })} />}
+          control={
+            <Toggle
+              checked={prefs?.allowCalls ?? true}
+              onChange={() =>
+                patch({ allowCalls: !(prefs?.allowCalls ?? true) })
+              }
+            />
+          }
         />
       </>
     ),
@@ -636,7 +915,10 @@ export function SettingsModal() {
             </div>
           </div>
           <div className={s["set-row-ctl"]}>
-            <Pill label={t("settings.edit")} onClick={() => toast(t("settings.toastEditProfile"))} />
+            <Pill
+              label={t("settings.edit")}
+              onClick={() => toast(t("settings.toastEditProfile"))}
+            />
           </div>
         </div>
 
@@ -667,7 +949,11 @@ export function SettingsModal() {
         <GroupLabel>{t("settings.connGroup")}</GroupLabel>
         <Row
           label="Google"
-          desc={user.provider === "GOOGLE" ? t("settings.connected") : t("settings.signInFaster")}
+          desc={
+            user.provider === "GOOGLE"
+              ? t("settings.connected")
+              : t("settings.signInFaster")
+          }
           control={
             user.provider === "GOOGLE" ? (
               <span className={cn(s["set-conn"], s["is-on"])}>
@@ -675,7 +961,10 @@ export function SettingsModal() {
                 {t("settings.connected")}
               </span>
             ) : (
-              <Pill label={t("settings.connect")} onClick={() => toast(t("settings.toastConnectGoogle"))} />
+              <Pill
+                label={t("settings.connect")}
+                onClick={() => toast(t("settings.toastConnectGoogle"))}
+              />
             )
           }
         />
@@ -684,11 +973,19 @@ export function SettingsModal() {
         <Row
           label={t("settings.logout")}
           desc={t("settings.logoutD")}
-          control={<Pill label={t("settings.logout")} icon="logout" onClick={doLogout} />}
+          control={
+            <Pill
+              label={t("settings.logout")}
+              icon="logout"
+              onClick={doLogout}
+            />
+          }
         />
         <Row
           stack
-          label={employer ? t("settings.delAccountHire") : t("settings.delAccount")}
+          label={
+            employer ? t("settings.delAccountHire") : t("settings.delAccount")
+          }
           desc={employer ? t("settings.delDHire") : t("settings.delD")}
           control={
             <Pill
@@ -720,12 +1017,24 @@ export function SettingsModal() {
         <Row
           label={t("settings.password")}
           desc={t("settings.passwordD")}
-          control={<Pill label={t("settings.setup")} icon="key" onClick={() => toast(t("settings.toastPwSoon"))} />}
+          control={
+            <Pill
+              label={t("settings.setup")}
+              icon="key"
+              onClick={() => toast(t("settings.toastPwSoon"))}
+            />
+          }
         />
         <Row
           label={t("settings.twoStep")}
           desc={t("settings.twoStepD")}
-          control={<Toggle checked={local.twoStep} onChange={() => update({ twoStep: !local.twoStep })} />}
+          control={
+            <Pill
+              label={t("settings.setup")}
+              icon="key"
+              onClick={() => toast(t("settings.toast2faSoon"))}
+            />
+          }
         />
         <GroupLabel>{t("settings.sessions")}</GroupLabel>
         <Row
@@ -763,7 +1072,12 @@ export function SettingsModal() {
         if (event.target === event.currentTarget) close();
       }}
     >
-      <div className={s["set-modal"]} role="dialog" aria-modal="true" aria-label={t("settings.title")}>
+      <div
+        className={s["set-modal"]}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("settings.title")}
+      >
         <header className={s["set-topbar"]}>
           <div className={s["set-title"]}>{t("settings.title")}</div>
           <button
@@ -802,7 +1116,9 @@ export function SettingsModal() {
                 onClick={() => setActive(sec.id)}
               >
                 <SIc name={sec.icon} />
-                <span className={s["set-navitem-l"]}>{t(sec.label(employer))}</span>
+                <span className={s["set-navitem-l"]}>
+                  {t(sec.label(employer))}
+                </span>
               </button>
             ))}
           </nav>
@@ -811,7 +1127,9 @@ export function SettingsModal() {
             <div className={s["set-inner"]}>
               <div className={s["set-head"]}>
                 <h1 className={s["set-h2"]}>
-                  {t(SECTIONS.find((sec) => sec.id === active)!.label(employer))}
+                  {t(
+                    SECTIONS.find((sec) => sec.id === active)!.label(employer),
+                  )}
                 </h1>
               </div>
               {sections[active]}

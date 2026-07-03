@@ -4,10 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
 import { applicationsService } from "@/features/applications/services/applications.service";
-import {
-  EMPLOYER_MOCKS_ENABLED,
-  mockEmployerApplications,
-} from "@/features/applications/data/employer-mocks";
 import type {
   Application,
   ApplyToVacancyPayload,
@@ -28,8 +24,10 @@ export function useApplications(status?: ApplicationStatus) {
 export function useApplyToVacancy() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vars: { vacancyId: string; payload?: ApplyToVacancyPayload }) =>
-      applicationsService.apply(vars.vacancyId, vars.payload),
+    mutationFn: (vars: {
+      vacancyId: string;
+      payload?: ApplyToVacancyPayload;
+    }) => applicationsService.apply(vars.vacancyId, vars.payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["applications"] }),
   });
@@ -55,17 +53,11 @@ export function useVacancyApplicants(vacancyId: string) {
 }
 
 /** Employer: flat list of all applicants across the employer's vacancies
- * (Candidates inbox). PROPOSED endpoint — `retry:false` so a 404 degrades to an
- * empty inbox instead of retrying/toasting. See api-need.md §2. */
+ * (Candidates inbox) — `GET /employer/applications`. */
 export function useEmployerApplications() {
   return useQuery<EmployerApplication[]>({
     queryKey: ["applicants", "all"],
     queryFn: () => applicationsService.listAllApplicants(),
-    retry: false,
-    // Mock seam: seed the inbox so it's fully populated today; a live endpoint
-    // result replaces it, and a 404 leaves the seed in place. Flip off in
-    // employer-mocks.ts once the endpoint ships. See docs/api/candidates.md.
-    initialData: EMPLOYER_MOCKS_ENABLED ? mockEmployerApplications() : undefined,
   });
 }
 

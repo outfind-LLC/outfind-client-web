@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 
 import { CanonicalHostGuard } from "@/components/canonical-host-guard";
 import { OAuthRedirectListener } from "@/features/auth/components/oauth-redirect-listener";
+import { SettingsSync } from "@/features/settings/components/settings-sync";
 import { Toaster } from "@/ui/sonner";
 import { AnalyticsProvider } from "./analytics-provider";
 import { I18nProvider } from "./i18n-provider";
@@ -23,6 +24,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <QueryProvider>
           <AnalyticsProvider>
             <CanonicalHostGuard />
+            <SettingsSync />
             {children}
             {/* Suspense isolates useSearchParams so static pages aren't de-opted. */}
             <Suspense fallback={null}>

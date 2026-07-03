@@ -34,10 +34,20 @@ import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import { isApiClientError } from "@/lib/api/error";
 import {
+  EDUCATION_LEVEL,
   EXPERIENCE_LEVEL,
+  PAYMENT_FREQUENCY,
+  PAYMENT_TYPE,
+  VACANCY_KIND,
   VACANCY_TYPE,
+  VACANCY_VISIBILITY,
+  WORK_FORMAT,
+  type EducationLevel,
   type ExperienceLevel,
+  type PaymentFrequency,
+  type PaymentType,
   type VacancyType,
+  type WorkFormat,
 } from "@/interfaces/enums";
 import type { CreateVacancyPayload } from "@/interfaces/vacancy.interface";
 import { useAnchoredPopup, AnchoredPopup } from "@/lib/anchored-popup";
@@ -230,15 +240,48 @@ const TYPE_MAP: Record<string, VacancyType> = {
   intern: VACANCY_TYPE.INTERNSHIP,
   temp: VACANCY_TYPE.SEASONAL,
 };
+const EDU_MAP: Record<string, EducationLevel> = {
+  none: EDUCATION_LEVEL.NO_FORMAL_EDUCATION,
+  secondary: EDUCATION_LEVEL.SECONDARY_EDUCATION,
+  vocational: EDUCATION_LEVEL.VOCATIONAL_TRAINING,
+  // "Incomplete higher": the completed level is secondary school.
+  incomplete: EDUCATION_LEVEL.SECONDARY_EDUCATION,
+  higher: EDUCATION_LEVEL.BACHELORS_DEGREE,
+};
+const PAY_MAP: Record<string, PaymentType> = {
+  fixed: PAYMENT_TYPE.FIXED,
+  hourly: PAYMENT_TYPE.HOURLY,
+  piece: PAYMENT_TYPE.PIECEWORK,
+  other: PAYMENT_TYPE.OTHER,
+};
+const FREQ_MAP: Record<string, PaymentFrequency> = {
+  month: PAYMENT_FREQUENCY.MONTHLY,
+  twice: PAYMENT_FREQUENCY.TWICE_MONTHLY,
+  week: PAYMENT_FREQUENCY.WEEKLY,
+  piece: PAYMENT_FREQUENCY.PER_TASK,
+};
+const PROBATION_MAP: Record<string, number> = {
+  none: 0,
+  "1m": 1,
+  "2m": 2,
+  "3m": 3,
+};
+/** Office / Hybrid / Remote control → WORK_FORMAT. */
+const ARRANGEMENT_MAP: Record<string, WorkFormat> = {
+  office: WORK_FORMAT.ONSITE,
+  hybrid: WORK_FORMAT.HYBRID,
+  remote: WORK_FORMAT.REMOTE,
+};
 
 /**
  * Vacancy creation wizard (Vacancy Wizard.html). Full-screen overlay launched
  * from the Vacancies screen once the company is approved. Single-scroll with a
  * numbered scroll-spy nav, a Regular/Daily toggle, a live preview overlay and a
- * sticky footer. Publishing maps the form to `POST /employer/vacancies`; the
- * draft persists to localStorage (`pv_state`). Fields the backend create schema
- * doesn't model yet (team size, pay type/frequency, probation, visibility,
- * contact channels, freeform description) are documented in docs/api/vacancies.md.
+ * sticky footer. Publishing maps the FULL form to `POST /employer/vacancies`
+ * (both wizards share the endpoint via `kind`); an in-progress form autosaves to
+ * localStorage (`pv_state`) purely so an accidental close doesn't lose typing —
+ * cleared on publish/draft-save. The "Company website" field has no vacancy
+ * column (it lives on the employer profile) so it is intentionally not sent.
  */
 export function VacancyWizard({ onClose }: { onClose: () => void }) {
   const { locale } = useI18n();
@@ -453,6 +496,7 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
   }, [previewOpen]);
 
   const buildPayload = (saveAsDraft: boolean): CreateVacancyPayload => {
+    const isDaily = state.jobType === "daily";
     const country =
       (state.country && findLabel(OPTS.country, state.country, "en", tEn)) ||
       "Uzbekistan";
@@ -465,8 +509,17 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       ...INCL_KEYS.filter((k) => state.incl[k]).map((k) => t(k)),
       ...(state.benExtra ? [state.benExtra.trim()] : []),
     ];
+    // Language name + level pairs (stable EN labels; the backend derives the
+    // plain `languagesRequired` search array from these).
+    const languageRequirements = state.langs
+      .filter((l) => l.lang && l.level)
+      .map((l) => ({
+        language: findLabel(OPTS.lang, l.lang, "en", tEn) || l.lang,
+        level: findLabel(OPTS.level, l.level, "en", tEn) || l.level,
+      }));
     return {
       title: state.title.trim(),
+      kind: isDaily ? VACANCY_KIND.DAILY : VACANCY_KIND.REGULAR,
       country,
       type: state.empType ? (TYPE_MAP[state.empType] ?? null) : null,
       city: state.city || null,
@@ -479,6 +532,9 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       languagesRequired: state.langs
         .filter((l) => l.lang)
         .map((l) => findLabel(OPTS.lang, l.lang, locale, t)),
+      languageRequirements: languageRequirements.length
+        ? languageRequirements
+        : null,
       housingProvided: Boolean(state.incl["incl.housing"]),
       relocationAssistance: BEN.social.some(
         (k, i) => k === "b.reloc" && state.ben.social[`${k}_${i}`],
@@ -490,12 +546,46 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
             .map((l) => l.trim())
             .filter(Boolean)
         : null,
+      description: state.desc.trim() || null,
+      // ── Role details ──
+      profession: state.prof
+        ? findLabel(OPTS.prof, state.prof, "en", tEn) || state.prof
+        : null,
+      category: state.cat
+        ? findLabel(OPTS.cat, state.cat, "en", tEn) || state.cat
+        : null,
+      address: state.address.trim() || null,
+      workFormat: !isDaily && state.format ? tEn(`opt.${state.format}`) : null,
+      workArrangement: !isDaily ? (ARRANGEMENT_MAP[state.wf] ?? null) : null,
+      workSchedule: state.schedule
+        ? findLabel(OPTS.schedule, state.schedule, "en", tEn) || state.schedule
+        : null,
+      teamSize: !isDaily && state.team > 0 ? state.team : null,
+      educationRequired: EDU_MAP[state.edu] ?? null,
+      probationMonths: PROBATION_MAP[state.probation] ?? null,
+      // ── Payment ──
+      paymentType: PAY_MAP[state.payType] ?? null,
+      paymentFrequency: FREQ_MAP[state.freq] ?? null,
+      paymentNote: state.payNote.trim() || null,
+      // ── Daily-job specifics ──
+      workDate: isDaily && state.date ? state.date : null,
+      shiftHours: isDaily && state.hours.trim() ? state.hours.trim() : null,
+      // ── Publishing ──
+      visibility:
+        state.vis === "link"
+          ? VACANCY_VISIBILITY.BY_LINK
+          : VACANCY_VISIBILITY.PUBLIC,
+      acceptResponses: state.resp,
       saveAsDraft,
     };
   };
 
   const publish = () => {
     if (!state.agree || createVacancy.isPending) return;
+    if (state.jobType === "daily" && !state.date) {
+      toast.error(t("toast.dateRequired"));
+      return;
+    }
     createVacancy.mutate(buildPayload(false), {
       onSuccess: () => {
         setPublished(true);
