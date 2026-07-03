@@ -2,16 +2,12 @@
 
 import { routes } from "@/config/routes";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
-import {
-  DEFAULT_MODEL_ID,
-  useComposerStore,
-} from "@/features/chat/store/composer.store";
+import { useComposerStore } from "@/features/chat/store/composer.store";
 import { AI_SPECIALIST } from "@/interfaces/enums";
 
 export interface JobSearchParams {
   profession: string;
   city: string;
-  model: string | null;
 }
 
 /** Compose the opening prompt sent to the Job Finder specialist. */
@@ -21,11 +17,11 @@ function buildPrompt({ profession, city }: JobSearchParams): string {
 
 /**
  * Seed a Job Finder conversation from the search modal: pin the composer to the
- * JOB_FINDER specialist and chosen model, then create the conversation and route
- * to its thread under `/jobs/<id>` (where the seeded prompt auto-sends).
+ * JOB_FINDER specialist, then create the conversation and route to its thread
+ * under `/jobs/<id>` (where the seeded prompt auto-sends). The model is chosen
+ * server-side by plan tier.
  */
 export function useStartJobSearch() {
-  const setModel = useComposerStore((s) => s.setModel);
   const setSpecialist = useComposerStore((s) => s.setSpecialist);
   const setJobSearch = useComposerStore((s) => s.setJobSearch);
   const start = useStartConversation(routes.jobsThread);
@@ -35,9 +31,6 @@ export function useStartJobSearch() {
     onError?: (error: unknown) => void,
   ) => {
     setSpecialist(AI_SPECIALIST.JOB_FINDER);
-    // The Job Finder always needs a model id; fall back to the default gateway
-    // model if the picker didn't yield one.
-    setModel(params.model ?? DEFAULT_MODEL_ID);
     start.mutate(
       { message: buildPrompt(params), specialist: AI_SPECIALIST.JOB_FINDER },
       {

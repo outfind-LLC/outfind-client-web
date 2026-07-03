@@ -45,6 +45,16 @@ export function useSetEmployerProfileActive() {
   });
 }
 
+/**
+ * Parse a spoken/typed company description into onboarding-form fields.
+ * Persists nothing (no cache to invalidate) — the caller prefills the form.
+ */
+export function useParseCompanyProfile() {
+  return useMutation({
+    mutationFn: (text: string) => profileService.parseCompanyProfile(text),
+  });
+}
+
 /** Delete the company profile. Refreshes the session gate too. */
 export function useDeleteEmployerProfile() {
   const queryClient = useQueryClient();

@@ -165,7 +165,8 @@ export const ru: Messages = {
     applyTo: "Отклик на {title}",
     coverFor:
       "Добавьте сопроводительное письмо для {company} — или создайте его с помощью ИИ.",
-    coverGeneric: "Добавьте сопроводительное письмо — или создайте его с помощью ИИ.",
+    coverGeneric:
+      "Добавьте сопроводительное письмо — или создайте его с помощью ИИ.",
     coverLetter: "Сопроводительное письмо",
     optional: "(необязательно)",
     generateAi: "Создать с ИИ",
@@ -512,7 +513,8 @@ export const ru: Messages = {
   upgrade: {
     title: "Улучшить план",
     note: "Вы на бесплатном плане. Перейдите на Pro для безлимитных откликов и приоритетного подбора.",
-    noteHire: "Вы на бесплатном тарифе. Перейдите на Pro для большего числа вакансий, ИИ-скрининга и приоритетного подбора.",
+    noteHire:
+      "Вы на бесплатном тарифе. Перейдите на Pro для большего числа вакансий, ИИ-скрининга и приоритетного подбора.",
     current: "Текущий",
     perMo: "/мес",
     freeF1: "5 откликов в месяц",
@@ -699,7 +701,8 @@ export const ru: Messages = {
     manage: "Управление",
     postJob: "Опубликовать вакансию",
     emptyTitle: "Пока нет вакансий",
-    emptyDesc: "Разместите вакансию, чтобы Peoplor подбирал и ранжировал кандидатов.",
+    emptyDesc:
+      "Разместите вакансию, чтобы Peoplor подбирал и ранжировал кандидатов.",
     factSpec: "Специализация",
     factSalary: "Оплата",
     factEmployment: "Занятость",
@@ -709,6 +712,7 @@ export const ru: Messages = {
     updatedAgo: "Обновлено {when}",
     publishedOn: "Опубликовано {date}",
     statusActive: "Активна",
+    statusDraft: "Черновик",
     statusPaused: "Приостановлена",
     statusFilled: "Закрыта",
     statusExpired: "Истекла",
@@ -743,7 +747,8 @@ export const ru: Messages = {
     emptyNoApplicantsDesc:
       "Когда кто-то откликнется на вашу вакансию, чат с ним появится здесь.",
     emptyNoShortlist: "Шортлист пуст",
-    emptyNoShortlistDesc: "Добавьте кандидата в шортлист, чтобы сохранить его на потом.",
+    emptyNoShortlistDesc:
+      "Добавьте кандидата в шортлист, чтобы сохранить его на потом.",
     viewProfile: "Открыть профиль",
     ariaViewProfile: "Открыть профиль кандидата",
     matchLabel: "совпадение",
@@ -922,6 +927,7 @@ export const ru: Messages = {
     edit: "Изменить",
     changeStatus: "Изменить статус",
     markActive: "Сделать активной",
+    publish: "Опубликовать",
     pause: "Приостановить",
     markFilled: "Закрыть (нанят)",
     delete: "Удалить",

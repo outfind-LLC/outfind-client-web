@@ -110,3 +110,44 @@ export interface InterviewPrepResult {
   questions: InterviewQuestion[];
   tips: string[];
 }
+
+export interface ParsedProfileLanguage {
+  language: string;
+  proficiency: string; // BASIC | CONVERSATIONAL | PROFESSIONAL | NATIVE
+}
+
+export interface ParsedProfileExperience {
+  companyName: string | null;
+  position: string | null;
+  description: string | null;
+}
+
+export interface ParsedProfileEducation {
+  institutionName: string | null;
+  degree: string | null;
+  fieldOfStudy: string | null;
+  educationLevel: string | null;
+}
+
+/**
+ * Result of `POST /worker/ai/parse-profile` — a spoken/typed self-description
+ * mapped to profile fields for form autofill. Every field is null except
+ * `summary` (the model returns null for anything the worker didn't state).
+ */
+export interface ParsedWorkerProfile {
+  profession: string | null;
+  additionalProfessions: string[] | null;
+  experienceLevel: string | null;
+  experienceYears: number | null;
+  currentCountry: string | null;
+  currentCity: string | null;
+  targetCountries: string[] | null;
+  abroadExperience: boolean | null;
+  skills: string[] | null;
+  expectedSalaryMin: number | null;
+  languages: ParsedProfileLanguage[] | null;
+  experiences: ParsedProfileExperience[] | null;
+  education: ParsedProfileEducation[] | null;
+  /** Always present — an editable first-person "about me" paragraph. */
+  summary: string;
+}

@@ -128,6 +128,7 @@ export const REACTION_TYPE = {
 export type ReactionType = (typeof REACTION_TYPE)[keyof typeof REACTION_TYPE];
 
 export const VACANCY_STATUS = {
+  DRAFT: "DRAFT",
   ACTIVE: "ACTIVE",
   EXPIRED: "EXPIRED",
   FILLED: "FILLED",

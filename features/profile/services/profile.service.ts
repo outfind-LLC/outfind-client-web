@@ -64,6 +64,28 @@ export type LanguageInput = {
   proficiency: string;
 };
 
+/**
+ * Result of `POST /employer/profile/parse` — a spoken/typed company description
+ * mapped to onboarding-form fields. Every field is null except what was stated.
+ */
+export type ParsedCompanyProfile = {
+  companyName: string | null;
+  tagline: string | null;
+  industry: string | null;
+  companySize: string | null;
+  foundedYear: number | null;
+  taxId: string | null;
+  country: string | null;
+  city: string | null;
+  registeredAddress: string | null;
+  contactName: string | null;
+  corporateEmail: string | null;
+  phone: string | null;
+  website: string | null;
+  /** Editable "about the company" paragraph. */
+  description: string | null;
+};
+
 export const profileService = {
   async getWorkerProfile(): Promise<WorkerProfile> {
     return api.get<WorkerProfile>("/worker/profile");
@@ -87,6 +109,14 @@ export const profileService = {
 
   async setEmployerProfileActive(isActive: boolean): Promise<EmployerProfile> {
     return api.patch<EmployerProfile>("/employer/profile/active", { isActive });
+  },
+
+  /**
+   * Map a spoken/typed company description into onboarding-form fields for
+   * autofill. Persists nothing — the employer reviews/edits, then saves.
+   */
+  async parseCompanyProfile(text: string): Promise<ParsedCompanyProfile> {
+    return api.post<ParsedCompanyProfile>("/employer/profile/parse", { text });
   },
 
   async deleteEmployerProfile(): Promise<null> {

@@ -8,6 +8,7 @@ import type {
   JobInsightsResult,
   MatchScorePayload,
   MatchScoreResult,
+  ParsedWorkerProfile,
 } from "@/interfaces/worker-ai.interface";
 
 /**
@@ -34,9 +35,7 @@ export const workerAiService = {
     return api.post<MatchScoreResult>("/worker/ai/match-score", payload);
   },
 
-  async getJobInsights(
-    payload: JobContextPayload,
-  ): Promise<JobInsightsResult> {
+  async getJobInsights(payload: JobContextPayload): Promise<JobInsightsResult> {
     return api.post<JobInsightsResult>("/worker/ai/job-insights", payload);
   },
 
@@ -44,5 +43,14 @@ export const workerAiService = {
     payload: JobContextPayload,
   ): Promise<InterviewPrepResult> {
     return api.post<InterviewPrepResult>("/worker/ai/interview-prep", payload);
+  },
+
+  /**
+   * Map a spoken/typed self-description to profile fields for form autofill.
+   * Persists nothing — the worker reviews/edits, then saves via the profile
+   * endpoints. Only stated fields are populated (rest null).
+   */
+  async parseProfile(text: string): Promise<ParsedWorkerProfile> {
+    return api.post<ParsedWorkerProfile>("/worker/ai/parse-profile", { text });
   },
 };

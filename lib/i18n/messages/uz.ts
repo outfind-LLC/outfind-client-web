@@ -402,8 +402,10 @@ export const uz: Messages = {
     notifMsgHire: "Nomzodlardan xabarlar",
     notifStatus: "Ariza holati yangilanishlari",
     notifStatusHire: "Nomzod faolligi",
-    notifStatusD: "Ish beruvchi ko‘rganda, javob berganda yoki qaror qabul qilganda",
-    notifStatusDHire: "Nomzod ariza berganda, javob berganda yoki rozi bo‘lganda",
+    notifStatusD:
+      "Ish beruvchi ko‘rganda, javob berganda yoki qaror qabul qilganda",
+    notifStatusDHire:
+      "Nomzod ariza berganda, javob berganda yoki rozi bo‘lganda",
     notifJobs: "Mos keladigan yangi ishlar",
     notifJobsHire: "Mos keladigan yangi nomzodlar",
     notifJobsD: "Qidiruv va rezyumengizga mos ishlar",
@@ -512,7 +514,8 @@ export const uz: Messages = {
   upgrade: {
     title: "Tarifni yangilash",
     note: "Siz bepul tarifdasiz. Cheksiz arizalar va ustuvor moslik uchun Pro’ga o‘ting.",
-    noteHire: "Bepul tarifdasiz. Ko‘proq vakansiya, AI-skrining va ustuvor tanlov uchun Pro’ga o‘ting.",
+    noteHire:
+      "Bepul tarifdasiz. Ko‘proq vakansiya, AI-skrining va ustuvor tanlov uchun Pro’ga o‘ting.",
     current: "Joriy",
     perMo: "/oy",
     freeF1: "Oyiga 5 ta ariza",
@@ -596,7 +599,8 @@ export const uz: Messages = {
       "Pasport, sudlanmaganlik to‘g‘risidagi ma’lumotnoma va tajriba tasdig‘i — skan qilingan va yuborishga tayyor.",
     stepDocsA: "Hujjatlar ro‘yxati",
     stepCertT: "Malakangizni tan oldiring",
-    stepCertD: "Guvohnoma yoki sertifikatingizni {country} ekvivalentiga o‘tkazing.",
+    stepCertD:
+      "Guvohnoma yoki sertifikatingizni {country} ekvivalentiga o‘tkazing.",
     stepCertA: "Tan olishni tekshirish",
     stepApplyT: "Homiylik bilan ishlarga ariza bering",
     stepApplyD:
@@ -699,7 +703,8 @@ export const uz: Messages = {
     manage: "Boshqarish",
     postJob: "Vakansiya joylash",
     emptyTitle: "Hali ish o‘rinlari yo‘q",
-    emptyDesc: "Vakansiya joylang — Peoplor siz uchun nomzodlarni tanlab, tartiblaydi.",
+    emptyDesc:
+      "Vakansiya joylang — Peoplor siz uchun nomzodlarni tanlab, tartiblaydi.",
     factSpec: "Mutaxassislik",
     factSalary: "To‘lov",
     factEmployment: "Bandlik",
@@ -709,6 +714,7 @@ export const uz: Messages = {
     updatedAgo: "Yangilandi {when}",
     publishedOn: "{date} da joylangan",
     statusActive: "Faol",
+    statusDraft: "Qoralama",
     statusPaused: "To‘xtatilgan",
     statusFilled: "Yopilgan",
     statusExpired: "Muddati o‘tgan",
@@ -901,7 +907,8 @@ export const uz: Messages = {
     statusReviewBody:
       "Kompaniyangiz hali jamoamiz tomonidan tekshirilmoqda. Administrator tasdiqlashi bilan vakansiya yaratish va e’lon qilish ochiladi.",
     gotIt: "Tushunarli",
-    toastApproved: "Kompaniya tasdiqlandi — endi vakansiya joylashtirishingiz mumkin",
+    toastApproved:
+      "Kompaniya tasdiqlandi — endi vakansiya joylashtirishingiz mumkin",
     bannerTitle: "Kompaniya tekshiruvda",
     bannerDesc:
       "Administrator kompaniyangizni tekshirmoqda. Tasdiqlangach vakansiya joylashtirish ochiladi.",
@@ -912,7 +919,8 @@ export const uz: Messages = {
     tabActive: "Faol",
     tabClosed: "Yopilgan",
     emptyTitle: "Ideal xodimni toping",
-    emptyDesc: "Vakansiya joylashtiring — yaxshi nomzodlarni o‘tkazib yubormang",
+    emptyDesc:
+      "Vakansiya joylashtiring — yaxshi nomzodlarni o‘tkazib yubormang",
     postJob: "Vakansiya joylashtirish",
     loadError: "Vakansiyalarni yuklab bo‘lmadi. Qayta urinib ko‘ring.",
     remote: "Masofadan",
@@ -922,6 +930,7 @@ export const uz: Messages = {
     edit: "Tahrirlash",
     changeStatus: "Holatni o‘zgartirish",
     markActive: "Faol qilish",
+    publish: "Chop etish",
     pause: "To‘xtatib turish",
     markFilled: "Yopish (ishga olindi)",
     delete: "O‘chirish",

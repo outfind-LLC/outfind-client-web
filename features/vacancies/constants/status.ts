@@ -16,6 +16,7 @@ interface StatusMeta {
 
 /** Display label + badge variant for each vacancy status. */
 export const VACANCY_STATUS_META: Record<VacancyStatus, StatusMeta> = {
+  [VACANCY_STATUS.DRAFT]: { label: "Draft", variant: "outline" },
   [VACANCY_STATUS.ACTIVE]: { label: "Active", variant: "success" },
   [VACANCY_STATUS.PAUSED]: { label: "Paused", variant: "warning" },
   [VACANCY_STATUS.FILLED]: { label: "Filled", variant: "secondary" },
@@ -23,6 +24,7 @@ export const VACANCY_STATUS_META: Record<VacancyStatus, StatusMeta> = {
 };
 
 export const VACANCY_STATUS_ORDER: VacancyStatus[] = [
+  VACANCY_STATUS.DRAFT,
   VACANCY_STATUS.ACTIVE,
   VACANCY_STATUS.PAUSED,
   VACANCY_STATUS.FILLED,

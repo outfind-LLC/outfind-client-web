@@ -5,10 +5,6 @@ import { BriefcaseBusiness, Loader2, MapPin, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  DEFAULT_MODEL_ID,
-  useComposerStore,
-} from "@/features/chat/store/composer.store";
-import {
   useStartJobSearch,
   type JobSearchParams,
 } from "@/features/jobs/hooks/use-start-job-search";
@@ -82,11 +78,8 @@ function JobSearchForm({
   onClose: () => void;
 }) {
   const t = useT();
-  const storeModel = useComposerStore((s) => s.model);
   const [profession, setProfession] = useState(defaultProfession);
   const [city, setCity] = useState(defaultCity);
-  // The engine is chosen for the user — a default free-tier model on every plan.
-  const model = storeModel ?? DEFAULT_MODEL_ID;
   const { startSearch, isPending } = useStartJobSearch();
 
   const canSubmit =
@@ -95,7 +88,7 @@ function JobSearchForm({
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSubmit) return;
-    const params: JobSearchParams = { profession, city, model };
+    const params: JobSearchParams = { profession, city };
     startSearch(params, (error) =>
       toast.error(
         isApiClientError(error) ? error.message : t("chat.searchError"),

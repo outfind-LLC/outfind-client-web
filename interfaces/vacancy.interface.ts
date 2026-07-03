@@ -128,6 +128,12 @@ export interface CreateVacancyPayload {
   recruitmentProcess?: string[] | null;
   requiredDomainExperience?: DomainRequirement[] | null;
   expiresAt?: string | null;
+  /**
+   * Save as a private DRAFT instead of publishing: consumes no posting slot, has
+   * no expiry, and is never shown to workers. Publish later via the status
+   * endpoint (status = ACTIVE).
+   */
+  saveAsDraft?: boolean;
 }
 
 /** Body for `PATCH /employer/vacancies/:id` — any subset of the create fields. */

@@ -126,7 +126,8 @@ export const en = {
     recAdd: "Add",
     recCancel: "Cancel recording",
     recConfirm: "Use recording",
-    micBlocked: "Microphone blocked. Allow mic access in your browser settings.",
+    micBlocked:
+      "Microphone blocked. Allow mic access in your browser settings.",
     micNoSpeech: "Didn't catch that — try speaking again.",
     micNoDevice: "No microphone found.",
     micNetwork: "Voice service is unavailable right now.",
@@ -522,7 +523,8 @@ export const en = {
   upgrade: {
     title: "Upgrade plan",
     note: "You're on the Free plan. Upgrade to Pro for unlimited applications and priority matching.",
-    noteHire: "You're on the Free plan. Upgrade to Pro for more active job posts, AI screening and priority matching.",
+    noteHire:
+      "You're on the Free plan. Upgrade to Pro for more active job posts, AI screening and priority matching.",
     current: "Current",
     perMo: "/mo",
     freeF1: "5 applications per month",
@@ -606,7 +608,8 @@ export const en = {
       "Passport, police clearance and proof of experience — scanned and ready to share.",
     stepDocsA: "Document checklist",
     stepCertT: "Get your skills recognised",
-    stepCertD: "Convert your licence or certificate to the {country} equivalent.",
+    stepCertD:
+      "Convert your licence or certificate to the {country} equivalent.",
     stepCertA: "Check recognition",
     stepApplyT: "Apply to sponsored roles",
     stepApplyD:
@@ -726,6 +729,7 @@ export const en = {
     updatedAgo: "Updated {when}",
     publishedOn: "Published on {date}",
     statusActive: "Active",
+    statusDraft: "Draft",
     statusPaused: "Paused",
     statusFilled: "Filled",
     statusExpired: "Expired",
@@ -945,6 +949,7 @@ export const en = {
     edit: "Edit",
     changeStatus: "Change status",
     markActive: "Mark active",
+    publish: "Publish",
     pause: "Pause",
     markFilled: "Mark filled",
     delete: "Delete",

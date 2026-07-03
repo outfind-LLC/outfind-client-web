@@ -12,7 +12,14 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
-import { useCreateVacancy } from "@/features/vacancies/hooks/use-vacancies";
+import { track } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
+import {
+  useCreateVacancy,
+  useParseVacancy,
+} from "@/features/vacancies/hooks/use-vacancies";
+import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
+import type { ParsedVacancy } from "@/features/vacancies/services/vacancies.service";
 import {
   BEN,
   findLabel,
@@ -114,7 +121,11 @@ interface WizardState {
   freq: string;
   currency: string;
   payNote: string;
-  ben: { fin: Record<string, boolean>; health: Record<string, boolean>; social: Record<string, boolean> };
+  ben: {
+    fin: Record<string, boolean>;
+    health: Record<string, boolean>;
+    social: Record<string, boolean>;
+  };
   benExtra: string;
   incl: Record<string, boolean>;
   desc: string;
@@ -243,6 +254,10 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.JOB_POST_STARTED, { input_mode: "wizard" });
+  }, []);
+
   // Persist the draft (a localStorage write → effect, React-Compiler-safe).
   useEffect(() => {
     try {
@@ -253,9 +268,74 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
   }, [state]);
 
   const update = useCallback(
-    (patch: Partial<WizardState>) => setState((prev) => ({ ...prev, ...patch })),
+    (patch: Partial<WizardState>) =>
+      setState((prev) => ({ ...prev, ...patch })),
     [],
   );
+
+  // ── Voice → wizard: speak a job brief, the AI fills the free-form fields; the
+  // employer completes the option/enum steps, then publishes or saves a draft. ──
+  const parseVacancy = useParseVacancy();
+  const voiceRef = useRef("");
+
+  const applyParsed = (d: ParsedVacancy) => {
+    const patch: Partial<WizardState> = {};
+    if (d.title) patch.title = d.title;
+    if (d.description) patch.desc = d.description;
+    if (d.city) patch.city = d.city;
+    if (d.address) patch.address = d.address;
+    if (d.currency) patch.currency = d.currency;
+    if (d.paymentNote) patch.payNote = d.paymentNote;
+    if (d.salaryMin != null) patch.salFrom = String(d.salaryMin);
+    if (d.salaryMax != null) patch.salTo = String(d.salaryMax);
+    if (d.teamSize != null) patch.team = d.teamSize;
+    if (d.skillsRequired?.length) patch.skills = d.skillsRequired;
+    update(patch);
+    track(ANALYTICS_EVENTS.VOICE_RECORDING_COMPLETED, { surface: "vacancy" });
+    toast.success("Filled in what we heard — review and complete the wizard.");
+  };
+
+  const runParse = () => {
+    const text = voiceRef.current.trim();
+    if (!text) {
+      toast.error("Say a bit about the job first, then tap to stop.");
+      return;
+    }
+    parseVacancy.mutate(text, {
+      onSuccess: applyParsed,
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error)
+            ? error.message
+            : "Couldn't read your description — please try again.",
+        ),
+    });
+  };
+
+  const speech = useSpeechRecognition({
+    onTranscript: (text) => {
+      voiceRef.current = text;
+    },
+    onError: (code) =>
+      toast.error(
+        code === "not-allowed"
+          ? "Microphone access is blocked — enable it in your browser."
+          : code === "no-speech"
+            ? "Didn't catch that — try speaking again."
+            : "Voice input isn't available right now.",
+      ),
+  });
+
+  const toggleVoice = () => {
+    if (parseVacancy.isPending) return;
+    if (speech.listening) {
+      speech.stop();
+      runParse();
+    } else {
+      voiceRef.current = "";
+      speech.start();
+    }
+  };
 
   /* ----- field helpers bound to state ----- */
   const lab = useCallback(
@@ -293,7 +373,9 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
         name: "step.7",
         meta: "step.7m",
         done: () => published,
-        render: () => <Step7 s={state} t={t} locale={locale} update={update} lab={lab} />,
+        render: () => (
+          <Step7 s={state} t={t} locale={locale} update={update} lab={lab} />
+        ),
       },
     ];
     const daily: StepDef[] = [
@@ -301,19 +383,25 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
         name: "dstep.1",
         meta: "dstep.1m",
         done: (s) => !!(s.title && s.city && s.date),
-        render: () => <DailyMain s={state} t={t} locale={locale} update={update} />,
+        render: () => (
+          <DailyMain s={state} t={t} locale={locale} update={update} />
+        ),
       },
       {
         name: "dstep.2",
         meta: "dstep.2m",
         done: (s) => !!s.salFrom,
-        render: () => <DailyPay s={state} t={t} locale={locale} update={update} />,
+        render: () => (
+          <DailyPay s={state} t={t} locale={locale} update={update} />
+        ),
       },
       {
         name: "step.7",
         meta: "step.7m",
         done: () => published,
-        render: () => <Step7 s={state} t={t} locale={locale} update={update} lab={lab} />,
+        render: () => (
+          <Step7 s={state} t={t} locale={locale} update={update} lab={lab} />
+        ),
       },
     ];
     return state.jobType === "daily" ? daily : regular;
@@ -347,7 +435,9 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
     const root = rootRef.current;
     if (!el || !root) return;
     const target =
-      root.scrollTop + (el.getBoundingClientRect().top - root.getBoundingClientRect().top) - 80;
+      root.scrollTop +
+      (el.getBoundingClientRect().top - root.getBoundingClientRect().top) -
+      80;
     root.scrollTo({ top: target, behavior: "smooth" });
   };
 
@@ -361,8 +451,7 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [previewOpen]);
 
-  const publish = () => {
-    if (!state.agree || createVacancy.isPending) return;
+  const buildPayload = (saveAsDraft: boolean): CreateVacancyPayload => {
     const country =
       (state.country && findLabel(OPTS.country, state.country, "en", tEn)) ||
       "Uzbekistan";
@@ -375,7 +464,7 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       ...INCL_KEYS.filter((k) => state.incl[k]).map((k) => t(k)),
       ...(state.benExtra ? [state.benExtra.trim()] : []),
     ];
-    const payload: CreateVacancyPayload = {
+    return {
       title: state.title.trim(),
       country,
       type: state.empType ? (TYPE_MAP[state.empType] ?? null) : null,
@@ -395,10 +484,18 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       ),
       benefits: benefits.length ? benefits : null,
       responsibilities: state.desc
-        ? state.desc.split("\n").map((l) => l.trim()).filter(Boolean)
+        ? state.desc
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean)
         : null,
+      saveAsDraft,
     };
-    createVacancy.mutate(payload, {
+  };
+
+  const publish = () => {
+    if (!state.agree || createVacancy.isPending) return;
+    createVacancy.mutate(buildPayload(false), {
       onSuccess: () => {
         setPublished(true);
         try {
@@ -416,13 +513,31 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
     });
   };
 
+  // Save the vacancy to the backend as a private DRAFT (invisible to workers,
+  // consumes no posting slot). Publish it later from the Vacancies list.
   const saveDraft = () => {
-    try {
-      window.localStorage.setItem(PV_KEY, JSON.stringify(state));
-    } catch {
-      /* ignore */
+    if (createVacancy.isPending) return;
+    if (!state.title.trim()) {
+      toast.error("Add a job title to save a draft.");
+      return;
     }
-    toast.success(t("toast.saved"));
+    createVacancy.mutate(buildPayload(true), {
+      onSuccess: () => {
+        try {
+          window.localStorage.removeItem(PV_KEY);
+        } catch {
+          /* ignore */
+        }
+        toast.success("Saved as draft — publish it anytime from Vacancies.");
+        onClose();
+      },
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error)
+            ? error.message
+            : "Couldn't save the draft — please try again.",
+        ),
+    });
   };
 
   const pct = Math.min(100, Math.round(((activeIdx + 1) / total) * 100));
@@ -445,6 +560,20 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
           <span className={w.htitle}>{t("h.title")}</span>
         </div>
         <div className={w.hright}>
+          {speech.supported && (
+            <button
+              type="button"
+              className={w.draft}
+              onClick={toggleVoice}
+              disabled={parseVacancy.isPending}
+            >
+              {parseVacancy.isPending
+                ? "Reading…"
+                : speech.listening
+                  ? "Stop"
+                  : "🎙 Speak"}
+            </button>
+          )}
           <button type="button" className={w.draft} onClick={saveDraft}>
             {t("h.draft")}
           </button>
@@ -525,7 +654,11 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
                   onClick={() => gotoStep(i)}
                 >
                   <span className={w["nav-num"]}>
-                    {stateCls === "done" ? <WSvg name="check" sw={2.4} /> : i + 1}
+                    {stateCls === "done" ? (
+                      <WSvg name="check" sw={2.4} />
+                    ) : (
+                      i + 1
+                    )}
                   </span>
                   <span className={w["nav-label"]}>
                     <span className={w["nav-t"]}>{t(step.name)}</span>
@@ -581,7 +714,10 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       {/* preview overlay */}
       {previewOpen ? (
         <div className={w["pv-overlay"]}>
-          <div className={w["pv-scrim"]} onClick={() => setPreviewOpen(false)} />
+          <div
+            className={w["pv-scrim"]}
+            onClick={() => setPreviewOpen(false)}
+          />
           <div className={w["pv-panel"]}>
             <div className={w["pv-panel-head"]}>
               <div className={w["pv-panel-title"]}>{t("s6.badge")}</div>
@@ -595,12 +731,16 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
               </button>
             </div>
             <div className={w["pv-panel-body"]}>
-              <Preview s={state} t={t} locale={locale} complete={isComplete(0)} />
+              <Preview
+                s={state}
+                t={t}
+                locale={locale}
+                complete={isComplete(0)}
+              />
             </div>
           </div>
         </div>
       ) : null}
-
     </div>
   );
 }
@@ -995,7 +1135,9 @@ function Step2({ s, t, locale, update }: StepProps) {
                 aria-label="remove"
                 onClick={() => {
                   const next = s.langs.filter((_, j) => j !== i);
-                  update({ langs: next.length ? next : [{ lang: "", level: "" }] });
+                  update({
+                    langs: next.length ? next : [{ lang: "", level: "" }],
+                  });
                 }}
               >
                 <WSvg name="x" sw={1.9} />
@@ -1006,7 +1148,9 @@ function Step2({ s, t, locale, update }: StepProps) {
         <button
           type="button"
           className={w["add-btn"]}
-          onClick={() => update({ langs: [...s.langs, { lang: "", level: "" }] })}
+          onClick={() =>
+            update({ langs: [...s.langs, { lang: "", level: "" }] })
+          }
         >
           <WIco name="plus" sw={1.9} />
           <span>{t("s2.addLang")}</span>
@@ -1023,15 +1167,36 @@ function Step3({ s, t, locale, update }: StepProps) {
       <h3>{t("s3.cond")}</h3>
       <div className={w.field}>
         <FieldLabel text={t("s3.empType")} />
-        <Dd value={s.empType} list={OPTS.empType} placeholder={t("s3.empTypePh")} onChange={(v) => update({ empType: v })} t={t} locale={locale} />
+        <Dd
+          value={s.empType}
+          list={OPTS.empType}
+          placeholder={t("s3.empTypePh")}
+          onChange={(v) => update({ empType: v })}
+          t={t}
+          locale={locale}
+        />
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s3.schedule")} />
-        <Dd value={s.schedule} list={OPTS.schedule} placeholder={t("s3.schedulePh")} onChange={(v) => update({ schedule: v })} t={t} locale={locale} />
+        <Dd
+          value={s.schedule}
+          list={OPTS.schedule}
+          placeholder={t("s3.schedulePh")}
+          onChange={(v) => update({ schedule: v })}
+          t={t}
+          locale={locale}
+        />
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s3.probation")} />
-        <Dd value={s.probation} list={OPTS.probation} placeholder={t("s3.probationPh")} onChange={(v) => update({ probation: v })} t={t} locale={locale} />
+        <Dd
+          value={s.probation}
+          list={OPTS.probation}
+          placeholder={t("s3.probationPh")}
+          onChange={(v) => update({ probation: v })}
+          t={t}
+          locale={locale}
+        />
       </div>
 
       <h3 className={w.mt}>{t("s3.pay")}</h3>
@@ -1055,21 +1220,47 @@ function Step3({ s, t, locale, update }: StepProps) {
           <div className={w["grid-2"]}>
             <div className={w.field}>
               <FieldLabel text={t("s3.salFrom")} />
-              <input className={w.inp} type="number" value={s.salFrom} placeholder={t("s3.salFrom")} onChange={(e) => update({ salFrom: e.target.value })} />
+              <input
+                className={w.inp}
+                type="number"
+                value={s.salFrom}
+                placeholder={t("s3.salFrom")}
+                onChange={(e) => update({ salFrom: e.target.value })}
+              />
             </div>
             <div className={w.field}>
               <FieldLabel text={t("s3.salTo")} />
-              <input className={w.inp} type="number" value={s.salTo} placeholder={t("s3.salTo")} onChange={(e) => update({ salTo: e.target.value })} />
+              <input
+                className={w.inp}
+                type="number"
+                value={s.salTo}
+                placeholder={t("s3.salTo")}
+                onChange={(e) => update({ salTo: e.target.value })}
+              />
             </div>
           </div>
           <div className={w["grid-2"]}>
             <div className={w.field}>
               <FieldLabel text={t("s3.freq")} />
-              <Dd value={s.freq} list={OPTS.freq} placeholder={t("s3.freqPh")} onChange={(v) => update({ freq: v })} t={t} locale={locale} />
+              <Dd
+                value={s.freq}
+                list={OPTS.freq}
+                placeholder={t("s3.freqPh")}
+                onChange={(v) => update({ freq: v })}
+                t={t}
+                locale={locale}
+              />
             </div>
             <div className={w.field}>
               <FieldLabel text={t("s3.currency")} />
-              <Dd value={s.currency} list={OPTS.currency} placeholder={t("s3.currencyPh")} onChange={(v) => update({ currency: v })} t={t} locale={locale} />
+              <Dd
+                value={s.currency}
+                list={OPTS.currency}
+                placeholder={t("s3.currencyPh")}
+                onChange={(v) => update({ currency: v })}
+                t={t}
+                locale={locale}
+              />
             </div>
           </div>
         </div>
@@ -1081,7 +1272,13 @@ function Step3({ s, t, locale, update }: StepProps) {
           <p>{t("s3.payInfoD")}</p>
           <div className={w.field} style={{ marginTop: 18 }}>
             <FieldLabel text={t("s3.payNote")} opt={t("s3.opt")} />
-            <textarea className={w.ta} value={s.payNote} maxLength={300} placeholder={t("s3.payNotePh")} onChange={(e) => update({ payNote: e.target.value })} />
+            <textarea
+              className={w.ta}
+              value={s.payNote}
+              maxLength={300}
+              placeholder={t("s3.payNotePh")}
+              onChange={(e) => update({ payNote: e.target.value })}
+            />
           </div>
         </div>
       </div>
@@ -1105,7 +1302,9 @@ function Step5({ s, t, locale, update }: StepProps) {
   const generate = () => {
     setAiOpen(true);
     setAiBusy(true);
-    const sample = t("s5.aiTpl").split("{role}").join(s.title || t("step.1"));
+    const sample = t("s5.aiTpl")
+      .split("{role}")
+      .join(s.title || t("step.1"));
     window.setTimeout(() => {
       update({ desc: sample });
       setAiBusy(false);
@@ -1121,21 +1320,42 @@ function Step5({ s, t, locale, update }: StepProps) {
       <div className={w["grid-2"]}>
         <div className={w.field}>
           <FieldLabel text={t("s5.country")} req />
-          <Dd value={s.country} list={OPTS.country} placeholder={t("s5.countryPh")} onChange={(v) => update({ country: v })} t={t} locale={locale} />
+          <Dd
+            value={s.country}
+            list={OPTS.country}
+            placeholder={t("s5.countryPh")}
+            onChange={(v) => update({ country: v })}
+            t={t}
+            locale={locale}
+          />
         </div>
         <div className={w.field}>
           <FieldLabel text={t("s1.city")} req />
-          <input className={w.inp} value={s.city} placeholder={t("s1.cityPh")} onChange={(e) => update({ city: e.target.value })} />
+          <input
+            className={w.inp}
+            value={s.city}
+            placeholder={t("s1.cityPh")}
+            onChange={(e) => update({ city: e.target.value })}
+          />
         </div>
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s5.address")} />
-        <input className={w.inp} value={s.address} placeholder={t("s5.addressPh")} onChange={(e) => update({ address: e.target.value })} />
+        <input
+          className={w.inp}
+          value={s.address}
+          placeholder={t("s5.addressPh")}
+          onChange={(e) => update({ address: e.target.value })}
+        />
       </div>
 
       <div className={cn(w["ai-gen"], aiOpen && w.open)}>
         <div className={w["ai-head"]}>
-          <button type="button" className={w["ai-toggle"]} onClick={() => setAiOpen((v) => !v)}>
+          <button
+            type="button"
+            className={w["ai-toggle"]}
+            onClick={() => setAiOpen((v) => !v)}
+          >
             <span className={w["ai-h"]}>
               <WIco name="spark" sw={1.5} />
               <span>{t("s5.ai.h")}</span>
@@ -1145,8 +1365,17 @@ function Step5({ s, t, locale, update }: StepProps) {
               <WSvg name="chev" sw={1.8} />
             </span>
           </button>
-          <button type="button" className={w["ai-btn"]} onClick={generate} disabled={aiBusy}>
-            {aiBusy ? <span className={w.spin} /> : <WIco name="spark" sw={1.5} />}
+          <button
+            type="button"
+            className={w["ai-btn"]}
+            onClick={generate}
+            disabled={aiBusy}
+          >
+            {aiBusy ? (
+              <span className={w.spin} />
+            ) : (
+              <WIco name="spark" sw={1.5} />
+            )}
             <span>{t("s5.ai.btn")}</span>
           </button>
         </div>
@@ -1228,7 +1457,12 @@ function Step5({ s, t, locale, update }: StepProps) {
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s5.site")} />
-        <input className={w.inp} value={s.site} placeholder="https://example.com" onChange={(e) => update({ site: e.target.value })} />
+        <input
+          className={w.inp}
+          value={s.site}
+          placeholder="https://example.com"
+          onChange={(e) => update({ site: e.target.value })}
+        />
       </div>
     </div>
   );
@@ -1249,7 +1483,10 @@ function Step7({
       <div className={w["pub-recap"]}>
         <PubRow k={t("step.1")} v={s.title} />
         <PubRow k={t("s6.field.place")} v={s.city} />
-        <PubRow k={t("s6.field.type")} v={s.empType ? lab(OPTS.empType, s.empType) : ""} />
+        <PubRow
+          k={t("s6.field.type")}
+          v={s.empType ? lab(OPTS.empType, s.empType) : ""}
+        />
         <PubRow k={t("s3.pay")} v={salary} plain />
       </div>
       <ul className={w["pub-note"]}>
@@ -1303,20 +1540,42 @@ function DailyMain({ s, t, locale, update }: StepProps) {
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s1.cat")} />
-        <Dd value={s.cat} list={OPTS.cat} placeholder={t("s1.catPh")} onChange={(v) => update({ cat: v, __catManual: true })} t={t} locale={locale} />
+        <Dd
+          value={s.cat}
+          list={OPTS.cat}
+          placeholder={t("s1.catPh")}
+          onChange={(v) => update({ cat: v, __catManual: true })}
+          t={t}
+          locale={locale}
+        />
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s1.city")} req />
-        <input className={w.inp} value={s.city} placeholder={t("s1.cityPh")} onChange={(e) => update({ city: e.target.value })} />
+        <input
+          className={w.inp}
+          value={s.city}
+          placeholder={t("s1.cityPh")}
+          onChange={(e) => update({ city: e.target.value })}
+        />
       </div>
       <div className={w["grid-2"]}>
         <div className={w.field}>
           <FieldLabel text={t("d.date")} req />
-          <input className={w.inp} type="date" value={s.date} onChange={(e) => update({ date: e.target.value })} />
+          <input
+            className={w.inp}
+            type="date"
+            value={s.date}
+            onChange={(e) => update({ date: e.target.value })}
+          />
         </div>
         <div className={w.field}>
           <FieldLabel text={t("d.hours")} />
-          <input className={w.inp} value={s.hours} placeholder={t("d.hoursPh")} onChange={(e) => update({ hours: e.target.value })} />
+          <input
+            className={w.inp}
+            value={s.hours}
+            placeholder={t("d.hoursPh")}
+            onChange={(e) => update({ hours: e.target.value })}
+          />
         </div>
       </div>
     </div>
@@ -1345,16 +1604,35 @@ function DailyPay({ s, t, locale, update }: StepProps) {
       <div className={w["grid-2"]}>
         <div className={w.field}>
           <FieldLabel text={t("s3.salFrom")} />
-          <input className={w.inp} type="number" value={s.salFrom} placeholder={t("s3.salFrom")} onChange={(e) => update({ salFrom: e.target.value })} />
+          <input
+            className={w.inp}
+            type="number"
+            value={s.salFrom}
+            placeholder={t("s3.salFrom")}
+            onChange={(e) => update({ salFrom: e.target.value })}
+          />
         </div>
         <div className={w.field}>
           <FieldLabel text={t("s3.currency")} />
-          <Dd value={s.currency} list={OPTS.currency} placeholder={t("s3.currencyPh")} onChange={(v) => update({ currency: v })} t={t} locale={locale} />
+          <Dd
+            value={s.currency}
+            list={OPTS.currency}
+            placeholder={t("s3.currencyPh")}
+            onChange={(v) => update({ currency: v })}
+            t={t}
+            locale={locale}
+          />
         </div>
       </div>
       <div className={w.field}>
         <FieldLabel text={t("s3.payNote")} opt={t("s3.opt")} />
-        <textarea className={w.ta} value={s.payNote} maxLength={300} placeholder={t("s3.payNotePh")} onChange={(e) => update({ payNote: e.target.value })} />
+        <textarea
+          className={w.ta}
+          value={s.payNote}
+          maxLength={300}
+          placeholder={t("s3.payNotePh")}
+          onChange={(e) => update({ payNote: e.target.value })}
+        />
       </div>
     </div>
   );
@@ -1425,7 +1703,9 @@ function Preview({
             {(s.title || "V").trim().charAt(0).toUpperCase() || "V"}
           </div>
           <div className={w["pv2-jc-head"]}>
-            <div className={w["pv2-jc-title"]}>{s.title || t("s1.titlePh")}</div>
+            <div className={w["pv2-jc-title"]}>
+              {s.title || t("s1.titlePh")}
+            </div>
             <div className={w["pv2-jc-sub"]}>{sub || t("s6.notSet")}</div>
           </div>
           <div className={w["pv2-match"]}>92%</div>
@@ -1512,10 +1792,16 @@ function Preview({
                 <Row k={t("s6.field.type")} v={lab(OPTS.empType, s.empType)} />
               ) : null}
               {s.schedule ? (
-                <Row k={t("s6.field.schedule")} v={lab(OPTS.schedule, s.schedule)} />
+                <Row
+                  k={t("s6.field.schedule")}
+                  v={lab(OPTS.schedule, s.schedule)}
+                />
               ) : null}
               {s.probation ? (
-                <Row k={t("s3.probation")} v={lab(OPTS.probation, s.probation)} />
+                <Row
+                  k={t("s3.probation")}
+                  v={lab(OPTS.probation, s.probation)}
+                />
               ) : null}
             </div>
           </div>

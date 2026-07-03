@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -12,10 +13,16 @@ import {
   ListField,
 } from "@/components/form/form-fields";
 import { routes } from "@/config/routes";
+import { track } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import {
   useCreateEmployerProfile,
+  useParseCompanyProfile,
   useUpdateEmployerProfile,
 } from "@/features/profile/hooks/use-employer-profile-mutations";
+import type { ParsedCompanyProfile } from "@/features/profile/services/profile.service";
+import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
+import { VoiceInputButton } from "@/features/chat/components/voice-input-button";
 import { isApiClientError } from "@/lib/api/error";
 import type {
   CreateEmployerProfilePayload,
@@ -67,7 +74,11 @@ const cleanList = (items: string[]): string[] =>
   items.map((item) => item.trim()).filter(Boolean);
 
 /** Create or edit the employer / company profile. One form drives both. */
-export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) {
+export function EmployerProfileForm({
+  profile,
+}: {
+  profile?: EmployerProfile;
+}) {
   const router = useRouter();
   const isEdit = Boolean(profile);
   const [state, setState] = useState<FormState>(() => initialState(profile));
@@ -77,6 +88,70 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setState((prev) => ({ ...prev, [key]: value }));
+
+  // ── Voice → fields: speak a company description, the AI maps it to the form,
+  // the employer reviews/edits, then saves. Only stated fields are filled. ──────
+  const parse = useParseCompanyProfile();
+  const transcriptRef = useRef("");
+
+  const applyParsed = (data: ParsedCompanyProfile) => {
+    if (data.companyName) set("companyName", data.companyName);
+    if (data.industry) set("industry", data.industry);
+    if (data.companySize) set("companySize", data.companySize);
+    if (data.country) set("country", data.country);
+    if (data.city) set("city", data.city);
+    if (data.description) set("description", data.description);
+    if (data.phone) set("phone", data.phone);
+    if (data.website) set("website", data.website);
+    if (!isEdit && data.corporateEmail)
+      set("corporateEmail", data.corporateEmail);
+    track(ANALYTICS_EVENTS.VOICE_RECORDING_COMPLETED, { surface: "company" });
+    toast.success("Filled in what we heard — review and edit, then save.");
+  };
+
+  const runParse = () => {
+    const text = transcriptRef.current.trim();
+    if (!text) {
+      toast.error(
+        "Say a bit about your company first, then tap the mic to stop.",
+      );
+      return;
+    }
+    parse.mutate(text, {
+      onSuccess: applyParsed,
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error)
+            ? error.message
+            : "Couldn't read your description — please try again.",
+        ),
+    });
+  };
+
+  const speech = useSpeechRecognition({
+    onTranscript: (t) => {
+      transcriptRef.current = t;
+    },
+    onError: (code) =>
+      toast.error(
+        code === "not-allowed"
+          ? "Microphone access is blocked — enable it in your browser."
+          : code === "no-speech"
+            ? "Didn't catch that — try speaking again."
+            : "Voice input isn't available right now.",
+      ),
+  });
+
+  const toggleVoice = () => {
+    if (parse.isPending) return;
+    if (speech.listening) {
+      speech.stop();
+      runParse();
+    } else {
+      transcriptRef.current = "";
+      speech.start();
+    }
+  };
 
   const onError = (error: unknown) =>
     toast.error(
@@ -134,6 +209,33 @@ export function EmployerProfileForm({ profile }: { profile?: EmployerProfile }) 
 
   return (
     <form onSubmit={submit} className="space-y-6">
+      {speech.supported && (
+        <div className="bg-muted/40 flex items-center gap-3 rounded-xl border p-3">
+          <VoiceInputButton
+            listening={speech.listening}
+            disabled={parse.isPending}
+            onClick={toggleVoice}
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">
+              {parse.isPending
+                ? "Reading your description…"
+                : speech.listening
+                  ? "Listening — tap to stop"
+                  : "Speak to autofill"}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Describe your company in any language — name, industry, size,
+              location, what you do. We'll fill the form; you can edit before
+              saving.
+            </p>
+          </div>
+          {parse.isPending && (
+            <Loader2 className="text-muted-foreground size-4 animate-spin" />
+          )}
+        </div>
+      )}
+
       <FormSection title="Company">
         <FormField label="Company name" htmlFor="companyName" required>
           <Input

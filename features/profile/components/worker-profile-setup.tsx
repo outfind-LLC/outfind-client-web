@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
+import { track } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { useUpdateJobSearchInfo } from "@/features/profile/hooks/use-worker-profile-mutations";
 import { useSession } from "@/features/auth/hooks/use-session";
+import { useParseProfile } from "@/features/ai-tools/hooks/use-worker-ai";
+import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
+import { VoiceInputButton } from "@/features/chat/components/voice-input-button";
+import type { ParsedWorkerProfile } from "@/interfaces/worker-ai.interface";
 import { isApiClientError } from "@/lib/api/error";
-import { FormField, SwitchField, TagInput } from "@/components/form/form-fields";
+import {
+  FormField,
+  SwitchField,
+  TagInput,
+} from "@/components/form/form-fields";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 
@@ -31,6 +41,75 @@ export function WorkerProfileSetup() {
 
   const firstName = user?.name?.split(" ")[0];
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.PROFILE_STARTED, { input_mode: "form" });
+  }, []);
+
+  // ── Voice → fields: speak a self-description, the AI maps it to the form, the
+  // worker reviews/edits, then saves. Only fields the AI actually returned are
+  // filled (never overwrites with a blank). ────────────────────────────────────
+  const parse = useParseProfile();
+  const transcriptRef = useRef("");
+
+  const applyParsed = (data: ParsedWorkerProfile) => {
+    if (data.profession) setProfession(data.profession);
+    if (data.experienceYears != null) {
+      setExperienceYears(String(data.experienceYears));
+    }
+    if (data.skills?.length) setSkills(data.skills);
+    if (data.targetCountries?.length) setTargetCountries(data.targetCountries);
+    if (data.expectedSalaryMin != null) {
+      setSalaryMin(String(data.expectedSalaryMin));
+    }
+    if (data.abroadExperience != null) setAbroad(data.abroadExperience);
+    track(ANALYTICS_EVENTS.VOICE_RECORDING_COMPLETED, {
+      surface: "worker_profile",
+    });
+    toast.success("Filled in what we heard — review and edit, then save.");
+  };
+
+  const runParse = () => {
+    const text = transcriptRef.current.trim();
+    if (!text) {
+      toast.error("Say a bit about yourself first, then tap the mic to stop.");
+      return;
+    }
+    parse.mutate(text, {
+      onSuccess: applyParsed,
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error)
+            ? error.message
+            : "Couldn't read your description — please try again.",
+        ),
+    });
+  };
+
+  const { supported, listening, start, stop } = useSpeechRecognition({
+    onTranscript: (t) => {
+      transcriptRef.current = t;
+    },
+    onError: (code) =>
+      toast.error(
+        code === "not-allowed"
+          ? "Microphone access is blocked — enable it in your browser."
+          : code === "no-speech"
+            ? "Didn't catch that — try speaking again."
+            : "Voice input isn't available right now.",
+      ),
+  });
+
+  const toggleVoice = () => {
+    if (parse.isPending) return;
+    if (listening) {
+      stop();
+      runParse();
+    } else {
+      transcriptRef.current = "";
+      start();
+    }
+  };
+
   const submit = () => {
     if (!profession.trim()) {
       toast.error("Tell us your profession to get started");
@@ -46,7 +125,8 @@ export function WorkerProfileSetup() {
         expectedSalaryMin: Math.max(0, parseInt(salaryMin, 10) || 0),
       },
       {
-        onSuccess: () => toast.success("Profile created — let's fill in the rest"),
+        onSuccess: () =>
+          toast.success("Profile created — let's fill in the rest"),
         onError: (error) =>
           toast.error(
             isApiClientError(error)
@@ -64,12 +144,41 @@ export function WorkerProfileSetup() {
           <UserRound className="size-6" />
         </span>
         <h2 className="text-xl font-semibold tracking-tight">
-          {firstName ? `Let's set up your profile, ${firstName}` : "Set up your profile"}
+          {firstName
+            ? `Let's set up your profile, ${firstName}`
+            : "Set up your profile"}
         </h2>
         <p className="text-muted-foreground mt-1.5 text-sm">
           Start with the basics so we can match you to the right jobs. You can
           add your experience, education and languages right after.
         </p>
+
+        {supported && (
+          <div className="bg-muted/40 mt-5 flex items-center gap-3 rounded-xl border p-3">
+            <VoiceInputButton
+              listening={listening}
+              disabled={parse.isPending}
+              onClick={toggleVoice}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">
+                {parse.isPending
+                  ? "Reading your description…"
+                  : listening
+                    ? "Listening — tap to stop"
+                    : "Speak to autofill"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                Describe yourself in any language — your job, experience,
+                skills, and where you'd like to work. We'll fill the form; you
+                can edit before saving.
+              </p>
+            </div>
+            {parse.isPending && (
+              <Loader2 className="text-muted-foreground size-4 animate-spin" />
+            )}
+          </div>
+        )}
 
         <div className="mt-6 space-y-5">
           <FormField label="Profession" htmlFor="profession" required>

@@ -46,12 +46,14 @@ function Ic({ name, className }: { name: IconName; className?: string }) {
 }
 
 const BADGE_CLASS: Record<VacancyStatus, string> = {
+  [VACANCY_STATUS.DRAFT]: s["badge-paused"],
   [VACANCY_STATUS.ACTIVE]: s["badge-active"],
   [VACANCY_STATUS.PAUSED]: s["badge-paused"],
   [VACANCY_STATUS.FILLED]: s["badge-filled"],
   [VACANCY_STATUS.EXPIRED]: s["badge-expired"],
 };
 const STATUS_LABEL: Record<VacancyStatus, MessageKey> = {
+  [VACANCY_STATUS.DRAFT]: "company.statusDraft",
   [VACANCY_STATUS.ACTIVE]: "company.statusActive",
   [VACANCY_STATUS.PAUSED]: "company.statusPaused",
   [VACANCY_STATUS.FILLED]: "company.statusFilled",
@@ -245,7 +247,9 @@ function VacancyCard({ vacancy }: { vacancy: Vacancy }) {
               </span>
             ) : null}
             {vacancy.salaryRaw ? (
-              <span className={cn(s.m, s["card-pay"])}>{vacancy.salaryRaw}</span>
+              <span className={cn(s.m, s["card-pay"])}>
+                {vacancy.salaryRaw}
+              </span>
             ) : null}
           </div>
         </div>
@@ -275,7 +279,9 @@ function VacancyCard({ vacancy }: { vacancy: Vacancy }) {
                 vacancy.status === VACANCY_STATUS.ACTIVE
               }
             >
-              {t("vacancies.markActive")}
+              {vacancy.status === VACANCY_STATUS.DRAFT
+                ? t("vacancies.publish")
+                : t("vacancies.markActive")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => changeStatus(VACANCY_STATUS.PAUSED)}

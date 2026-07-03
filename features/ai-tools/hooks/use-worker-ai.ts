@@ -12,8 +12,7 @@ import type {
 /** Each tool consumes a plan unit on success, so refresh entitlements/usage. */
 function useRefreshUsage() {
   const queryClient = useQueryClient();
-  return () =>
-    queryClient.invalidateQueries({ queryKey: qk.myEntitlements });
+  return () => queryClient.invalidateQueries({ queryKey: qk.myEntitlements });
 }
 
 /** AI CV Builder — generates a CV from the worker's stored profile. */
@@ -41,6 +40,19 @@ export function useMatchScore() {
   return useMutation({
     mutationFn: (payload: MatchScorePayload) =>
       workerAiService.getMatchScore(payload),
+    onSuccess: refresh,
+  });
+}
+
+/**
+ * AI Profile Parse (voice/text → profile fields). Takes a spoken/typed
+ * self-description and returns fields to pre-fill the profile form; persists
+ * nothing. Consumes a plan unit, so refresh usage on success.
+ */
+export function useParseProfile() {
+  const refresh = useRefreshUsage();
+  return useMutation({
+    mutationFn: (text: string) => workerAiService.parseProfile(text),
     onSuccess: refresh,
   });
 }

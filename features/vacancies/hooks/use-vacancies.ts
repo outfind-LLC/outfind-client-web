@@ -43,6 +43,16 @@ export function useCreateVacancy() {
   });
 }
 
+/**
+ * Employer: parse a spoken/typed job brief into wizard fields for autofill.
+ * Persists nothing — the wizard prefills from the result.
+ */
+export function useParseVacancy() {
+  return useMutation({
+    mutationFn: (text: string) => vacanciesService.parseVacancy(text),
+  });
+}
+
 /** Employer: update an owned vacancy. Refreshes the list + that detail. */
 export function useUpdateVacancy() {
   const queryClient = useQueryClient();
