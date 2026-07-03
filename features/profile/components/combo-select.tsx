@@ -65,10 +65,15 @@ export function ComboSelect({
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
+          {/* An unknown stored value (legacy free-text) still shows raw, not as
+              a placeholder, so nothing silently "disappears" in the editor. */}
           <span
-            className={cn(s["pf-combo-val"], !selected && s["pf-combo-ph"])}
+            className={cn(
+              s["pf-combo-val"],
+              !selected && !value && s["pf-combo-ph"],
+            )}
           >
-            {selected?.label ?? placeholder}
+            {selected?.label ?? (value || placeholder)}
           </span>
           <Ic name="chev" />
         </button>

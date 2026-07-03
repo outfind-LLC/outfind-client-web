@@ -7,6 +7,7 @@
  * feature-scoped). Wording matches the prototype exactly across en / ru / uz.
  */
 import { type Locale } from "@/lib/i18n";
+import { countryTriples } from "@/lib/countries";
 
 /** `[en, ru, uz]` triples. */
 const D: Record<string, [string, string, string]> = {
@@ -520,14 +521,11 @@ export const OPTS: Record<string, OptPair[]> = {
     ["eur", "EUR"],
     ["kzt", "KZT"],
   ],
-  country: [
-    ["uz", "Узбекистан|Uzbekistan|O‘zbekiston"],
-    ["kz", "Казахстан|Kazakhstan|Qozog‘iston"],
-    ["ru", "Россия|Russia|Rossiya"],
-    ["kg", "Кыргызстан|Kyrgyzstan|Qirg‘iziston"],
-    ["tj", "Таджикистан|Tajikistan|Tojikiston"],
-    ["other", "Другое|Other|Boshqa"],
-  ],
+  // The full world list (all ISO countries, priority-pinned) — the value is the
+  // English name, which is exactly what the create-vacancy payload stores.
+  country: countryTriples().map(
+    (c) => [c.en, `${c.ru}|${c.en}|${c.uz}`] as OptPair,
+  ),
 };
 
 /** Resolve an option label for the locale (`D` key, plain text, or `ru|en|uz`). */

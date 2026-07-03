@@ -30,6 +30,8 @@ import {
   useUpsertLanguages,
 } from "@/features/profile/hooks/use-worker-profile-mutations";
 import { Ic } from "@/features/profile/components/profile-icons";
+import { countryOptions } from "@/lib/countries";
+import { CURRENCIES } from "@/features/profile/constants/worker-profile.constants";
 import {
   ComboSelect,
   MultiCombo,
@@ -67,34 +69,6 @@ const WORK_FORMAT_KEY: Record<string, MessageKey> = {
   HYBRID: "profile.workHybrid",
 };
 
-/** Citizenship / work-permit options — verbatim from the prototype's COUNTRIES list. */
-const COUNTRIES = [
-  "Uzbekistan",
-  "Kazakhstan",
-  "Kyrgyzstan",
-  "Tajikistan",
-  "Turkmenistan",
-  "Russia",
-  "Azerbaijan",
-  "Armenia",
-  "Georgia",
-  "Turkey",
-  "United Arab Emirates",
-  "Saudi Arabia",
-  "Qatar",
-  "South Korea",
-  "United Kingdom",
-  "Germany",
-  "Poland",
-  "Czechia",
-  "Lithuania",
-  "Latvia",
-  "Estonia",
-  "United States",
-  "Canada",
-  "Other",
-] as const;
-
 /** UI caps (within the backend limits: 20 skills / 10 additional professions). */
 const MAX_SKILLS = 15;
 const MAX_SECONDARY_ROLES = 10;
@@ -103,24 +77,6 @@ const MAX_CITIZENSHIP = 10;
 const MAX_WORK_PERMIT = 20;
 const MAX_TARGET_COUNTRIES = 10;
 
-const COUNTRY_OPTIONS: ComboOption[] = COUNTRIES.map((c) => ({
-  value: c,
-  label: c,
-}));
-
-/** Currencies used across the app's regions (worker desired salary). */
-const CURRENCIES = [
-  "USD",
-  "EUR",
-  "RUB",
-  "UZS",
-  "KZT",
-  "KGS",
-  "TRY",
-  "AED",
-  "GBP",
-  "PLN",
-] as const;
 const CURRENCY_OPTIONS: ComboOption[] = CURRENCIES.map((c) => ({
   value: c,
   label: c,
@@ -497,8 +453,9 @@ function IdentityEditor({
   profile: WorkerProfile;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const update = useUpdateProfileInfo();
+  const countryOpts = countryOptions(locale);
 
   const [surname, setSurname] = useState(profile.lastName ?? "");
   const [firstName, setFirstName] = useState(profile.firstName ?? "");
@@ -602,7 +559,7 @@ function IdentityEditor({
           label={t("profile.idCitizenship")}
           values={citizenships}
           onChange={setCitizenships}
-          options={COUNTRY_OPTIONS}
+          options={countryOpts}
           placeholder={t("profile.selectCountries")}
           max={MAX_CITIZENSHIP}
         />
@@ -610,7 +567,7 @@ function IdentityEditor({
           label={t("profile.idWorkPermit")}
           values={workPermits}
           onChange={setWorkPermits}
-          options={COUNTRY_OPTIONS}
+          options={countryOpts}
           placeholder={t("profile.selectCountries")}
           max={MAX_WORK_PERMIT}
         />
@@ -1265,7 +1222,7 @@ function SearchAreaEditor({
   profile: WorkerProfile;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const update = useUpdateProfileInfo();
   const [countries, setCountries] = useState<string[]>(profile.targetCountries);
 
@@ -1290,7 +1247,7 @@ function SearchAreaEditor({
         label={t("profile.fldAreaTitle")}
         values={countries}
         onChange={setCountries}
-        options={COUNTRY_OPTIONS}
+        options={countryOptions(locale)}
         placeholder={t("profile.selectCountries")}
         max={MAX_TARGET_COUNTRIES}
       />

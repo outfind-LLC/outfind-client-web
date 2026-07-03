@@ -5,8 +5,13 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/providers/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
+import { countryOptions } from "@/lib/countries";
 import { useAnchoredPopup, AnchoredPopup } from "@/lib/anchored-popup";
 import type { CompanyVerifyForm } from "@/features/vacancies/hooks/use-employer-verify";
+import {
+  COMPANY_INDUSTRY_KEYS,
+  COMPANY_SIZE_KEYS,
+} from "@/features/vacancies/data/company-options";
 import { EvChev, EvLock, EvTick } from "./verify-icons";
 import s from "@/features/vacancies/styles/employer-verify.module.css";
 
@@ -22,22 +27,9 @@ interface FieldDef {
   req?: boolean;
   wide?: boolean;
   min?: number;
-  optionKeys?: string[];
+  optionKeys?: readonly MessageKey[];
 }
 type Row = { sec: string } | FieldDef;
-
-const INDUSTRY_KEYS = [
-  "indLogistics",
-  "indManufacturing",
-  "indRetail",
-  "indConstruction",
-  "indHospitality",
-  "indIT",
-  "indHealthcare",
-  "indAgriculture",
-  "indOther",
-];
-const SIZE_KEYS = ["size1", "size2", "size3", "size4", "size5"];
 
 /** Mirrors the prototype's `FIELDS` (employer-verify.js). */
 const ROWS: Row[] = [
@@ -55,14 +47,14 @@ const ROWS: Row[] = [
     key: "industry",
     label: "fIndustry",
     type: "select",
-    optionKeys: INDUSTRY_KEYS,
+    optionKeys: COMPANY_INDUSTRY_KEYS,
     req: true,
   },
   {
     key: "size",
     label: "fSize",
     type: "select",
-    optionKeys: SIZE_KEYS,
+    optionKeys: COMPANY_SIZE_KEYS,
     req: true,
   },
   {
@@ -77,8 +69,7 @@ const ROWS: Row[] = [
   {
     key: "country",
     label: "fCountry",
-    ph: "fCountryPh",
-    type: "text",
+    type: "select",
     req: true,
   },
   { key: "city", label: "fCity", ph: "fCityPh", type: "text", req: true },
@@ -262,6 +253,7 @@ function Field({
   onChange: (value: string) => void;
   tv: (k: string, params?: Record<string, string | number>) => string;
 }) {
+  const { t, locale } = useI18n();
   return (
     <div
       className={cn(
@@ -282,7 +274,12 @@ function Field({
         <EvDropdown
           value={value}
           placeholder={tv("selectPh")}
-          options={(def.optionKeys ?? []).map((k) => tv(k))}
+          options={
+            def.key === "country"
+              ? // Every country in the world; stores the EN name, shows the locale's.
+                countryOptions(locale).map((c) => ({ v: c.value, l: c.label }))
+              : (def.optionKeys ?? []).map((k) => ({ v: t(k), l: t(k) }))
+          }
           onChange={onChange}
         />
       ) : def.type === "textarea" ? (
@@ -308,7 +305,14 @@ function Field({
   );
 }
 
-/** Custom dropdown matching the wizard's `.dd` (option value === its label). */
+interface EvOption {
+  /** Stored value (EN for countries; the label itself for industry/size). */
+  v: string;
+  /** Displayed label (follows the app locale). */
+  l: string;
+}
+
+/** Custom dropdown matching the wizard's `.dd`. */
 function EvDropdown({
   value,
   placeholder,
@@ -317,7 +321,7 @@ function EvDropdown({
 }: {
   value: string;
   placeholder: string;
-  options: string[];
+  options: EvOption[];
   onChange: (value: string) => void;
 }) {
   const { t } = useI18n();
@@ -330,8 +334,9 @@ function EvDropdown({
   const searchable = options.length > 6;
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? options.filter((o) => o.toLowerCase().includes(q))
+    ? options.filter((o) => o.l.toLowerCase().includes(q))
     : options;
+  const current = options.find((o) => o.v === value);
 
   return (
     <div className={cn(s["ev-dd"], open && s.open)} ref={triggerRef}>
@@ -341,7 +346,7 @@ function EvDropdown({
         onClick={() => setOpen((v) => !v)}
       >
         <span className={cn(s["ev-dd-val"], !value && s.ph)}>
-          {value || placeholder}
+          {current?.l ?? (value || placeholder)}
         </span>
         <span className={s["ev-dd-chev"]}>
           <EvChev />
@@ -367,15 +372,15 @@ function EvDropdown({
           {filtered.length > 0 ? (
             filtered.map((opt) => (
               <button
-                key={opt}
+                key={opt.v}
                 type="button"
-                className={cn(s["ev-dd-opt"], opt === value && s.sel)}
+                className={cn(s["ev-dd-opt"], opt.v === value && s.sel)}
                 onClick={() => {
-                  onChange(opt);
+                  onChange(opt.v);
                   setOpen(false);
                 }}
               >
-                <span>{opt}</span>
+                <span>{opt.l}</span>
                 <span className={s["ev-dd-tick"]}>
                   <EvTick />
                 </span>

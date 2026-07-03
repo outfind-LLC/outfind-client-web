@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type CSSProperties,
@@ -20,6 +21,7 @@ import {
   useEmployerProfile,
   useWorkerProfile,
 } from "@/features/profile/hooks/use-profile";
+import { CURRENCIES } from "@/features/profile/constants/worker-profile.constants";
 import {
   useUpdateHiringPrefs,
   useUpdateWorkerPrefs,
@@ -45,7 +47,6 @@ import {
   type VacancyType,
 } from "@/interfaces/enums";
 import type { UpdateUserSettingsPayload } from "@/interfaces/user-settings.interface";
-import type { WorkerProfile } from "@/interfaces/worker-profile.interface";
 import s from "@/features/settings/styles/settings.module.css";
 
 /* ---------------- Icons (exact prototype paths) ---------------- */
@@ -240,6 +241,221 @@ function GoRow({ value, onClick }: { value?: string; onClick: () => void }) {
   );
 }
 
+/** Shared shell for the anchored inline-edit popovers (no window.prompt). */
+function useEditPop() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return { open, setOpen, ref };
+}
+
+function EditActions({
+  canSave,
+  onCancel,
+  onSave,
+}: {
+  canSave: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className={s["set-edit-actions"]}>
+      <button
+        type="button"
+        className={cn(s["set-edit-btn"], s["set-edit-btn-ghost"])}
+        onClick={onCancel}
+      >
+        {t("settings.popCancel")}
+      </button>
+      <button
+        type="button"
+        className={cn(s["set-edit-btn"], s["set-edit-btn-primary"])}
+        disabled={!canSave}
+        onClick={onSave}
+      >
+        {t("settings.popSave")}
+      </button>
+    </div>
+  );
+}
+
+/** Value row that opens a small anchored text form (e.g. preferred location). */
+function TextEdit({
+  rowValue,
+  label,
+  placeholder,
+  initial,
+  maxLength = 100,
+  onSave,
+}: {
+  rowValue: string;
+  label: string;
+  placeholder: string;
+  initial: string;
+  maxLength?: number;
+  onSave: (value: string) => void;
+}) {
+  const { open, setOpen, ref } = useEditPop();
+  const [draft, setDraft] = useState(initial);
+  const id = useId();
+
+  const save = () => {
+    const value = draft.trim();
+    if (!value) return;
+    onSave(value);
+    setOpen(false);
+  };
+
+  return (
+    <span ref={ref} className={s["set-edit"]}>
+      <button
+        type="button"
+        className={s["set-go"]}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) setDraft(initial);
+          setOpen(!open);
+        }}
+      >
+        <span className={s["set-go-v"]}>{rowValue}</span>
+        <SIc name="chev" />
+      </button>
+      {open ? (
+        <div className={s["set-editpop"]} role="dialog" aria-label={label}>
+          <label className={s["set-edit-label"]} htmlFor={id}>
+            {label}
+          </label>
+          <input
+            id={id}
+            className={s["set-edit-inp"]}
+            value={draft}
+            maxLength={maxLength}
+            placeholder={placeholder}
+            autoFocus
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") save();
+            }}
+          />
+          <EditActions
+            canSave={draft.trim().length > 0}
+            onCancel={() => setOpen(false)}
+            onSave={save}
+          />
+        </div>
+      ) : null}
+    </span>
+  );
+}
+
+const CURRENCY_OPTS: Opt[] = CURRENCIES.map((c) => ({ v: c, l: c }));
+/** Backend cap on `expectedSalaryRange.min`. */
+const MAX_SALARY = 100_000_000;
+
+/** Value row that opens an amount + currency form (expected salary). */
+function SalaryEdit({
+  label,
+  current,
+  onSave,
+}: {
+  label: string;
+  current: { min: number; currency: string } | null;
+  onSave: (min: number, currency: string) => void;
+}) {
+  const { t } = useI18n();
+  const { open, setOpen, ref } = useEditPop();
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState(current?.currency ?? "UZS");
+  const id = useId();
+
+  const digits = amount.replace(/[^\d]/g, "").slice(0, 9);
+  const num = Number(digits || "0");
+  const canSave = num > 0 && num <= MAX_SALARY;
+  // Grouped display while typing: 9500000 → "9 500 000".
+  const display = digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const rowValue = current
+    ? `${current.min.toLocaleString()} ${current.currency}`
+    : t("settings.notAdded");
+
+  const save = () => {
+    if (!canSave) return;
+    onSave(num, currency);
+    setOpen(false);
+  };
+
+  return (
+    <span ref={ref} className={s["set-edit"]}>
+      <button
+        type="button"
+        className={s["set-go"]}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) {
+            setAmount(current ? String(current.min) : "");
+            setCurrency(current?.currency ?? "UZS");
+          }
+          setOpen(!open);
+        }}
+      >
+        <span className={s["set-go-v"]}>{rowValue}</span>
+        <SIc name="chev" />
+      </button>
+      {open ? (
+        <div className={s["set-editpop"]} role="dialog" aria-label={label}>
+          <label className={s["set-edit-label"]} htmlFor={id}>
+            {label}
+          </label>
+          <div className={s["set-edit-row"]}>
+            <input
+              id={id}
+              className={s["set-edit-inp"]}
+              value={display}
+              inputMode="numeric"
+              placeholder={t("settings.salaryPh")}
+              autoFocus
+              onChange={(event) => setAmount(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") save();
+              }}
+            />
+            <span className={s["set-edit-cur"]}>
+              <SettingsSelect
+                value={currency}
+                options={CURRENCY_OPTS}
+                onChange={setCurrency}
+              />
+            </span>
+          </div>
+          <EditActions
+            canSave={canSave}
+            onCancel={() => setOpen(false)}
+            onSave={save}
+          />
+        </div>
+      ) : null}
+    </span>
+  );
+}
+
 function Pill({
   label,
   kind = "ghost",
@@ -406,35 +622,6 @@ export function SettingsModal() {
     types.length === 1 && empOpts.some((o) => o.v === types[0])
       ? types[0]
       : "any";
-
-  const promptText = (
-    title: string,
-    current: string,
-    save: (v: string) => void,
-  ) => {
-    const next = window.prompt(title, current);
-    if (next && next.trim()) save(next.trim());
-  };
-
-  const promptSalary = (wp: WorkerProfile) => {
-    const next = window.prompt(
-      t("settings.jSalary"),
-      wp.expectedSalaryRange ? String(wp.expectedSalaryRange.min) : "",
-    );
-    if (next === null || !next.trim()) return;
-    const digits = next.replace(/[^\d]/g, "");
-    if (!digits) {
-      toast.error(t("settings.salaryInvalid"));
-      return;
-    }
-    updateWorkerPrefs.mutate({
-      expectedSalaryRange: {
-        min: Number(digits),
-        max: wp.expectedSalaryRange?.max ?? null,
-        currency: wp.expectedSalaryRange?.currency ?? "UZS",
-      },
-    });
-  };
 
   const switchTo = (target: "seeker" | "employer") => {
     const next =
@@ -682,16 +869,15 @@ export function SettingsModal() {
           <Row
             label={t("settings.hLoc")}
             control={
-              <GoRow
-                value={
+              <TextEdit
+                rowValue={
                   companyProfile.defaultJobLocation ?? t("settings.notAdded")
                 }
-                onClick={() =>
-                  promptText(
-                    t("settings.hLoc"),
-                    companyProfile.defaultJobLocation ?? "",
-                    (v) => updateHiringPrefs.mutate({ defaultJobLocation: v }),
-                  )
+                label={t("settings.hLoc")}
+                placeholder={t("settings.locationPh")}
+                initial={companyProfile.defaultJobLocation ?? ""}
+                onSave={(v) =>
+                  updateHiringPrefs.mutate({ defaultJobLocation: v })
                 }
               />
             }
@@ -780,28 +966,37 @@ export function SettingsModal() {
         <Row
           label={t("settings.jSalary")}
           control={
-            <GoRow
-              value={
+            <SalaryEdit
+              label={t("settings.jSalary")}
+              current={
                 workerProfile.expectedSalaryRange
-                  ? `${workerProfile.expectedSalaryRange.min.toLocaleString()} ${workerProfile.expectedSalaryRange.currency}`
-                  : t("settings.notAdded")
+                  ? {
+                      min: workerProfile.expectedSalaryRange.min,
+                      currency: workerProfile.expectedSalaryRange.currency,
+                    }
+                  : null
               }
-              onClick={() => promptSalary(workerProfile)}
+              onSave={(min, currency) =>
+                updateWorkerPrefs.mutate({
+                  expectedSalaryRange: {
+                    min,
+                    max: workerProfile.expectedSalaryRange?.max ?? null,
+                    currency,
+                  },
+                })
+              }
             />
           }
         />
         <Row
           label={t("settings.jLoc")}
           control={
-            <GoRow
-              value={workerProfile.targetCities[0] ?? t("settings.notAdded")}
-              onClick={() =>
-                promptText(
-                  t("settings.jLoc"),
-                  workerProfile.targetCities[0] ?? "",
-                  (v) => updateWorkerPrefs.mutate({ targetCities: [v] }),
-                )
-              }
+            <TextEdit
+              rowValue={workerProfile.targetCities[0] ?? t("settings.notAdded")}
+              label={t("settings.jLoc")}
+              placeholder={t("settings.locationPh")}
+              initial={workerProfile.targetCities[0] ?? ""}
+              onSave={(v) => updateWorkerPrefs.mutate({ targetCities: [v] })}
             />
           }
         />

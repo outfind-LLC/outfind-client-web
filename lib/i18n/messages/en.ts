@@ -545,7 +545,10 @@ export const en = {
       "Set up your profile first to manage job search preferences.",
     hiringNoProfile:
       "Set up your company profile first to manage hiring preferences.",
-    salaryInvalid: "Enter the expected salary as a number, e.g. 9500000",
+    popSave: "Save",
+    popCancel: "Cancel",
+    salaryPh: "e.g. 9 500 000",
+    locationPh: "City, e.g. Tashkent",
     sessions: "Sessions",
     thisDevice: "This device",
     activeNow: "Active now",

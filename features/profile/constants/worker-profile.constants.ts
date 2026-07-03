@@ -69,6 +69,20 @@ export const DRIVING_CATEGORY_LABELS: Record<string, string> = {
   D: "Category D (Buses)",
 };
 
+/** Currencies used across the app's regions (worker desired salary). */
+export const CURRENCIES = [
+  "USD",
+  "EUR",
+  "RUB",
+  "UZS",
+  "KZT",
+  "KGS",
+  "TRY",
+  "AED",
+  "GBP",
+  "PLN",
+] as const;
+
 export const EXPERIENCE_LEVEL_LABELS: Record<string, string> = {
   NO_EXPERIENCE: "No experience",
   LESS_THAN_1: "Less than 1 year",

@@ -21,6 +21,11 @@ import {
   useUpdateEmployerProfile,
 } from "@/features/profile/hooks/use-employer-profile-mutations";
 import { useCreateVacancy } from "@/features/vacancies/hooks/use-vacancies";
+import {
+  COMPANY_INDUSTRY_KEYS,
+  COMPANY_SIZE_KEYS,
+} from "@/features/vacancies/data/company-options";
+import { countryOptions } from "@/lib/countries";
 import { Ic } from "@/features/profile/components/profile-icons";
 import { ComboSelect } from "@/features/profile/components/combo-select";
 import type { CompanyEditTarget } from "@/features/profile/types/company-edit-target";
@@ -395,8 +400,18 @@ function FieldEditor({
   field: "industry" | "size" | "founded" | "hq";
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const update = useUpdateEmployerProfile();
+
+  // Same option sets as company creation — the two surfaces never drift.
+  const industryOptions = COMPANY_INDUSTRY_KEYS.map((k) => ({
+    value: t(k),
+    label: t(k),
+  }));
+  const sizeOptions = COMPANY_SIZE_KEYS.map((k) => ({
+    value: t(k),
+    label: t(k),
+  }));
 
   const [industry, setIndustry] = useState(profile.industry ?? "");
   const [size, setSize] = useState(profile.companySize ?? "");
@@ -453,18 +468,20 @@ function FieldEditor({
       }
     >
       {field === "industry" ? (
-        <TextField
+        <ComboSelect
           label={t("company.industry")}
           value={industry}
           onChange={setIndustry}
-          placeholder={t("company.industryPh")}
+          options={industryOptions}
+          placeholder={t("company.selectPlaceholder")}
         />
       ) : field === "size" ? (
-        <TextField
+        <ComboSelect
           label={t("company.size")}
           value={size}
           onChange={setSize}
-          placeholder={t("company.sizePh")}
+          options={sizeOptions}
+          placeholder={t("company.selectPlaceholder")}
         />
       ) : field === "founded" ? (
         <TextField
@@ -481,11 +498,12 @@ function FieldEditor({
             onChange={setCity}
             placeholder={t("company.cityPh")}
           />
-          <TextField
+          <ComboSelect
             label={t("company.country")}
             value={country}
             onChange={setCountry}
-            placeholder={t("company.countryPh")}
+            options={countryOptions(locale)}
+            placeholder={t("company.selectPlaceholder")}
           />
         </>
       )}
@@ -570,7 +588,7 @@ function LocationEditor({
 }
 
 function PostJobEditor({ onClose }: { onClose: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const create = useCreateVacancy();
   const [title, setTitle] = useState("");
   const [employment, setEmployment] = useState("");
@@ -647,11 +665,12 @@ function PostJobEditor({ onClose }: { onClose: () => void }) {
         />
       </div>
       <div className={s["pf-row"]}>
-        <TextField
+        <ComboSelect
           label={t("company.pjCountry")}
           value={country}
           onChange={setCountry}
-          placeholder={t("company.countryPh")}
+          options={countryOptions(locale)}
+          placeholder={t("company.selectPlaceholder")}
         />
         <TextField
           label={t("company.pjCity")}

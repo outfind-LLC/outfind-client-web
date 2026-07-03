@@ -536,7 +536,10 @@ export const uz: Messages = {
       "Ish qidiruv sozlamalarini boshqarish uchun avval profilingizni to‘ldiring.",
     hiringNoProfile:
       "Yollash sozlamalarini boshqarish uchun avval kompaniya profilini yarating.",
-    salaryInvalid: "Kutilayotgan maoshni raqam bilan kiriting, masalan 9500000",
+    popSave: "Saqlash",
+    popCancel: "Bekor qilish",
+    salaryPh: "mas. 9 500 000",
+    locationPh: "Shahar, mas. Toshkent",
     sessions: "Seanslar",
     thisDevice: "Shu qurilma",
     activeNow: "Hozir faol",
