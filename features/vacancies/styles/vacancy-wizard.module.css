@@ -39,7 +39,13 @@
   --radius-sm: 10px;
   --radius-fill: 9999px;
   --font: var(--font-sans);
-  --font-display: var(--font-display, "Nunito", "DM Sans", system-ui, sans-serif);
+  --font-display: var(
+    --font-display,
+    "Nunito",
+    "DM Sans",
+    system-ui,
+    sans-serif
+  );
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
   position: fixed;
@@ -757,19 +763,50 @@
 .dd.open .dd-chev {
   transform: rotate(180deg);
 }
+/* Positioned via a portal (see lib/anchored-popup) — fixed coords set inline. */
 .dd-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 60;
+  z-index: 1000;
   background: var(--bg-2);
   border: 1px solid var(--card-bd);
   border-radius: var(--radius-sm);
-  box-shadow: 0 12px 32px -8px rgba(15, 15, 16, 0.18);
+  box-shadow: 0 16px 40px -8px rgba(15, 15, 16, 0.22);
   padding: 6px;
-  max-height: 264px;
   overflow-y: auto;
+}
+.dd-search {
+  position: sticky;
+  top: -6px;
+  margin: -6px -6px 6px;
+  padding: 8px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--card-bd);
+}
+.dd-search-inp {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--gray-100);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 11px;
+}
+.dd-search-inp::placeholder {
+  color: var(--muted, var(--text));
+  opacity: 0.7;
+}
+.dd-search-inp:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-2);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.dd-empty {
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.65;
 }
 .dd-opt {
   width: 100%;
@@ -842,7 +879,11 @@
 
 /* AI generate */
 .ai-gen {
-  background: linear-gradient(135deg, rgba(49, 88, 246, 0.1), rgba(49, 88, 246, 0.02));
+  background: linear-gradient(
+    135deg,
+    rgba(49, 88, 246, 0.1),
+    rgba(49, 88, 246, 0.02)
+  );
   border: 1px solid rgba(49, 88, 246, 0.25);
   border-radius: 14px;
   margin-bottom: 22px;

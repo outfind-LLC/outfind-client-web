@@ -913,6 +913,8 @@ export const en = {
       "What your company does, who you hire and why people join. (minimum 40 characters)",
     optional: "optional",
     selectPh: "Select…",
+    ddSearch: "Search…",
+    ddNoResults: "No matches",
     footNote: "Submitted for admin approval",
     submit: "Submit for verification",
     submitting: "Submitting…",

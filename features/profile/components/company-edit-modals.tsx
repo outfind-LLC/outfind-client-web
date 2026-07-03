@@ -22,6 +22,7 @@ import {
 } from "@/features/profile/hooks/use-employer-profile-mutations";
 import { useCreateVacancy } from "@/features/vacancies/hooks/use-vacancies";
 import { Ic } from "@/features/profile/components/profile-icons";
+import { ComboSelect } from "@/features/profile/components/combo-select";
 import type { CompanyEditTarget } from "@/features/profile/types/company-edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
@@ -190,39 +191,6 @@ function TextAreaField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
-    </Field>
-  );
-}
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-}) {
-  return (
-    <Field label={label}>
-      <span className={s["pf-selectwrap"]}>
-        <select
-          className={cn(s["pf-control"], s["pf-select"])}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">{placeholder}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <Ic name="chev" />
-      </span>
     </Field>
   );
 }
@@ -664,7 +632,7 @@ function PostJobEditor({ onClose }: { onClose: () => void }) {
         placeholder={t("company.pjRolePh")}
       />
       <div className={s["pf-row"]}>
-        <SelectField
+        <ComboSelect
           label={t("company.pjEmployment")}
           value={employment}
           onChange={setEmployment}

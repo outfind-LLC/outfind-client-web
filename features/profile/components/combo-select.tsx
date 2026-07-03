@@ -1,37 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
+import { useAnchoredPopup, AnchoredPopup } from "@/lib/anchored-popup";
 import { Ic } from "@/features/profile/components/profile-icons";
 import s from "@/features/profile/styles/profile.module.css";
 
 export interface ComboOption {
   value: string;
   label: string;
-}
-
-/** Shared open/close-on-outside-click + Escape behaviour for the popups. */
-function usePopup() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("mousedown", onDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-  return { open, setOpen, ref };
 }
 
 function useFiltered(options: ComboOption[], query: string): ComboOption[] {
@@ -63,7 +42,7 @@ export function ComboSelect({
   placeholder: string;
 }) {
   const { t } = useI18n();
-  const { open, setOpen, ref } = usePopup();
+  const { open, setOpen, triggerRef, popupRef, pos } = useAnchoredPopup();
   const [query, setQuery] = useState("");
   const filtered = useFiltered(options, query);
   const selected = options.find((o) => o.value === value) ?? null;
@@ -78,7 +57,7 @@ export function ComboSelect({
   return (
     <div className={s["pf-field"]}>
       <span className={s["pf-field-l"]}>{label}</span>
-      <div className={cn(s["pf-combo"], open && s.open)} ref={ref}>
+      <div className={cn(s["pf-combo"], open && s.open)} ref={triggerRef}>
         <button
           type="button"
           className={cn(s["pf-control"], s["pf-combo-btn"])}
@@ -94,7 +73,11 @@ export function ComboSelect({
           <Ic name="chev" />
         </button>
         {open ? (
-          <div className={s["pf-combo-pop"]} role="listbox">
+          <AnchoredPopup
+            pos={pos}
+            popupRef={popupRef}
+            className={s["pf-combo-pop"]}
+          >
             {searchable ? (
               <div className={s["pf-combo-search"]}>
                 <input
@@ -130,7 +113,7 @@ export function ComboSelect({
                 </div>
               )}
             </div>
-          </div>
+          </AnchoredPopup>
         ) : null}
       </div>
     </div>
@@ -157,7 +140,7 @@ export function MultiCombo({
   max?: number;
 }) {
   const { t } = useI18n();
-  const { open, setOpen, ref } = usePopup();
+  const { open, setOpen, triggerRef, popupRef, pos } = useAnchoredPopup();
   const [query, setQuery] = useState("");
   const filtered = useFiltered(options, query);
   const searchable = options.length > SEARCH_THRESHOLD;
@@ -190,7 +173,7 @@ export function MultiCombo({
           ))}
         </div>
       ) : null}
-      <div className={cn(s["pf-combo"], open && s.open)} ref={ref}>
+      <div className={cn(s["pf-combo"], open && s.open)} ref={triggerRef}>
         <button
           type="button"
           className={cn(s["pf-control"], s["pf-combo-btn"])}
@@ -206,10 +189,10 @@ export function MultiCombo({
           <Ic name="chev" />
         </button>
         {open ? (
-          <div
+          <AnchoredPopup
+            pos={pos}
+            popupRef={popupRef}
             className={s["pf-combo-pop"]}
-            role="listbox"
-            aria-multiselectable
           >
             {searchable ? (
               <div className={s["pf-combo-search"]}>
@@ -247,7 +230,7 @@ export function MultiCombo({
                 </div>
               )}
             </div>
-          </div>
+          </AnchoredPopup>
         ) : null}
       </div>
       {max != null ? (

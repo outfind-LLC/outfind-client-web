@@ -896,6 +896,8 @@ export const uz: Messages = {
       "Kompaniyangiz nima qiladi, kimni ishga olasiz va nega odamlar qo‘shiladi. (kamida 40 belgi)",
     optional: "ixtiyoriy",
     selectPh: "Tanlang…",
+    ddSearch: "Qidirish…",
+    ddNoResults: "Hech narsa topilmadi",
     footNote: "Administrator tasdig‘iga yuboriladi",
     submit: "Tekshiruvga yuborish",
     submitting: "Yuborilmoqda…",

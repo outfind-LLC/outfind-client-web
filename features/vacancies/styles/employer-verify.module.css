@@ -259,24 +259,46 @@
 .ev-dd.open .ev-dd-chev {
   transform: rotate(180deg);
 }
+/* Positioned via a portal (see lib/anchored-popup) — fixed coords set inline. */
 .ev-dd-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 60;
+  z-index: 1000;
   background: var(--evc-card);
   border: 1px solid var(--evc-bd);
   border-radius: 10px;
-  box-shadow: 0 12px 32px -8px rgba(15, 15, 16, 0.18);
+  box-shadow: 0 16px 40px -8px rgba(15, 15, 16, 0.22);
   padding: 6px;
-  display: none;
-  max-height: 248px;
   overflow-y: auto;
-}
-.ev-dd.open .ev-dd-menu {
-  display: block;
   animation: evddIn 0.14s var(--evc-ease);
+}
+.ev-dd-search {
+  position: sticky;
+  top: -6px;
+  margin: -6px -6px 6px;
+  padding: 8px;
+  background: var(--evc-card);
+  border-bottom: 1px solid var(--evc-bd);
+}
+.ev-dd-search-inp {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--evc-text, inherit);
+  background: var(--evc-bg, rgba(0, 0, 0, 0.04));
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 11px;
+}
+.ev-dd-search-inp:focus {
+  outline: none;
+  border-color: var(--evc-accent);
+  background: var(--evc-card);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--evc-accent) 22%, transparent);
+}
+.ev-dd-empty {
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.65;
 }
 @keyframes evddIn {
   from {

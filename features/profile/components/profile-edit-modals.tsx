@@ -553,61 +553,68 @@ function IdentityEditor({
     <Modal
       title={t("profile.idTitle")}
       onClose={onClose}
+      wide
       footer={<Foot onSave={save} saving={update.isPending} t={t} />}
     >
-      <TextField
-        label={t("profile.idSurname")}
-        value={surname}
-        onChange={setSurname}
-        placeholder={t("profile.idSurname")}
-      />
-      <TextField
-        label={t("profile.idName")}
-        value={firstName}
-        onChange={setFirstName}
-        placeholder={t("profile.idName")}
-      />
-      <Field label={t("profile.idGender")}>
-        <span className={s["pf-seg"]} role="radiogroup">
-          {genderOptions.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              className={cn(s["pf-seg-btn"], gender === o.value && s.on)}
-              aria-pressed={gender === o.value}
-              onClick={() => setGender(o.value)}
-            >
-              {o.label}
-            </button>
-          ))}
-        </span>
-      </Field>
-      <Field label={t("profile.idDob")}>
-        <DatePickerField
-          value={birthdate}
-          onChange={setBirthdate}
-          placeholder={t("profile.wpPickDate")}
-          defaultYear={2000}
-          min={dobMin}
-          max={dobMax}
+      <div className={s["pf-row"]}>
+        <TextField
+          label={t("profile.idSurname")}
+          value={surname}
+          onChange={setSurname}
+          placeholder={t("profile.idSurname")}
         />
-      </Field>
-      <MultiCombo
-        label={t("profile.idCitizenship")}
-        values={citizenships}
-        onChange={setCitizenships}
-        options={COUNTRY_OPTIONS}
-        placeholder={t("profile.selectCountries")}
-        max={MAX_CITIZENSHIP}
-      />
-      <MultiCombo
-        label={t("profile.idWorkPermit")}
-        values={workPermits}
-        onChange={setWorkPermits}
-        options={COUNTRY_OPTIONS}
-        placeholder={t("profile.selectCountries")}
-        max={MAX_WORK_PERMIT}
-      />
+        <TextField
+          label={t("profile.idName")}
+          value={firstName}
+          onChange={setFirstName}
+          placeholder={t("profile.idName")}
+        />
+      </div>
+      <div className={s["pf-row"]}>
+        <Field label={t("profile.idGender")}>
+          <span className={s["pf-seg"]} role="radiogroup">
+            {genderOptions.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className={cn(s["pf-seg-btn"], gender === o.value && s.on)}
+                aria-pressed={gender === o.value}
+                onClick={() => setGender(o.value)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </span>
+        </Field>
+        <Field label={t("profile.idDob")}>
+          <DatePickerField
+            value={birthdate}
+            onChange={setBirthdate}
+            placeholder={t("profile.wpPickDate")}
+            defaultYear={2000}
+            min={dobMin}
+            max={dobMax}
+          />
+        </Field>
+      </div>
+      <div className={s["pf-row"]}>
+        <MultiCombo
+          label={t("profile.idCitizenship")}
+          values={citizenships}
+          onChange={setCitizenships}
+          options={COUNTRY_OPTIONS}
+          placeholder={t("profile.selectCountries")}
+          max={MAX_CITIZENSHIP}
+        />
+        <MultiCombo
+          label={t("profile.idWorkPermit")}
+          values={workPermits}
+          onChange={setWorkPermits}
+          options={COUNTRY_OPTIONS}
+          placeholder={t("profile.selectCountries")}
+          max={MAX_WORK_PERMIT}
+        />
+      </div>
     </Modal>
   );
 }

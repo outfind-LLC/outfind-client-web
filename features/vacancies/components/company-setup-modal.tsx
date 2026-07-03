@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useI18n } from "@/providers/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 import { cn } from "@/lib/utils";
+import { useAnchoredPopup, AnchoredPopup } from "@/lib/anchored-popup";
 import type { CompanyVerifyForm } from "@/features/vacancies/hooks/use-employer-verify";
 import { EvChev, EvLock, EvTick } from "./verify-icons";
 import s from "@/features/vacancies/styles/employer-verify.module.css";
@@ -41,22 +42,74 @@ const SIZE_KEYS = ["size1", "size2", "size3", "size4", "size5"];
 /** Mirrors the prototype's `FIELDS` (employer-verify.js). */
 const ROWS: Row[] = [
   { sec: "secDetails" },
-  { key: "name", label: "fName", ph: "fNamePh", type: "text", req: true, wide: true },
+  {
+    key: "name",
+    label: "fName",
+    ph: "fNamePh",
+    type: "text",
+    req: true,
+    wide: true,
+  },
   { key: "regId", label: "fRegId", ph: "fRegIdPh", type: "text", req: true },
-  { key: "industry", label: "fIndustry", type: "select", optionKeys: INDUSTRY_KEYS, req: true },
-  { key: "size", label: "fSize", type: "select", optionKeys: SIZE_KEYS, req: true },
-  { key: "founded", label: "fFounded", ph: "fFoundedPh", type: "number", req: true },
+  {
+    key: "industry",
+    label: "fIndustry",
+    type: "select",
+    optionKeys: INDUSTRY_KEYS,
+    req: true,
+  },
+  {
+    key: "size",
+    label: "fSize",
+    type: "select",
+    optionKeys: SIZE_KEYS,
+    req: true,
+  },
+  {
+    key: "founded",
+    label: "fFounded",
+    ph: "fFoundedPh",
+    type: "number",
+    req: true,
+  },
   { key: "website", label: "fWebsite", ph: "fWebsitePh", type: "text" },
   { sec: "secLocation" },
-  { key: "country", label: "fCountry", ph: "fCountryPh", type: "text", req: true },
+  {
+    key: "country",
+    label: "fCountry",
+    ph: "fCountryPh",
+    type: "text",
+    req: true,
+  },
   { key: "city", label: "fCity", ph: "fCityPh", type: "text", req: true },
-  { key: "address", label: "fAddress", ph: "fAddressPh", type: "text", req: true, wide: true },
+  {
+    key: "address",
+    label: "fAddress",
+    ph: "fAddressPh",
+    type: "text",
+    req: true,
+    wide: true,
+  },
   { sec: "secContact" },
-  { key: "contactName", label: "fContactName", ph: "fContactNamePh", type: "text", req: true },
+  {
+    key: "contactName",
+    label: "fContactName",
+    ph: "fContactNamePh",
+    type: "text",
+    req: true,
+  },
   { key: "email", label: "fEmail", ph: "fEmailPh", type: "email", req: true },
   { key: "phone", label: "fPhone", ph: "fPhonePh", type: "tel", req: true },
   { sec: "secAbout" },
-  { key: "about", label: "fAbout", ph: "fAboutPh", type: "textarea", req: true, wide: true, min: 40 },
+  {
+    key: "about",
+    label: "fAbout",
+    ph: "fAboutPh",
+    type: "textarea",
+    req: true,
+    wide: true,
+    min: 40,
+  },
 ];
 
 const FIELDS = ROWS.filter((r): r is FieldDef => "key" in r);
@@ -267,20 +320,21 @@ function EvDropdown({
   options: string[];
   onChange: (value: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
+  const { t } = useI18n();
+  const { open, setOpen, triggerRef, popupRef, pos } = useAnchoredPopup();
+  const [query, setQuery] = useState("");
   useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
+    if (!open) setQuery("");
   }, [open]);
 
+  const searchable = options.length > 6;
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? options.filter((o) => o.toLowerCase().includes(q))
+    : options;
+
   return (
-    <div className={cn(s["ev-dd"], open && s.open)} ref={ref}>
+    <div className={cn(s["ev-dd"], open && s.open)} ref={triggerRef}>
       <button
         type="button"
         className={s["ev-dd-btn"]}
@@ -293,24 +347,47 @@ function EvDropdown({
           <EvChev />
         </span>
       </button>
-      <div className={s["ev-dd-menu"]} role="listbox">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            className={cn(s["ev-dd-opt"], opt === value && s.sel)}
-            onClick={() => {
-              onChange(opt);
-              setOpen(false);
-            }}
-          >
-            <span>{opt}</span>
-            <span className={s["ev-dd-tick"]}>
-              <EvTick />
-            </span>
-          </button>
-        ))}
-      </div>
+      {open ? (
+        <AnchoredPopup
+          pos={pos}
+          popupRef={popupRef}
+          className={s["ev-dd-menu"]}
+        >
+          {searchable ? (
+            <div className={s["ev-dd-search"]}>
+              <input
+                className={s["ev-dd-search-inp"]}
+                autoFocus
+                value={query}
+                placeholder={t("employerVerify.ddSearch")}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+          ) : null}
+          {filtered.length > 0 ? (
+            filtered.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                className={cn(s["ev-dd-opt"], opt === value && s.sel)}
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                }}
+              >
+                <span>{opt}</span>
+                <span className={s["ev-dd-tick"]}>
+                  <EvTick />
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className={s["ev-dd-empty"]}>
+              {t("employerVerify.ddNoResults")}
+            </div>
+          )}
+        </AnchoredPopup>
+      ) : null}
     </div>
   );
 }

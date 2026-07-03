@@ -40,6 +40,7 @@ import {
   type VacancyType,
 } from "@/interfaces/enums";
 import type { CreateVacancyPayload } from "@/interfaces/vacancy.interface";
+import { useAnchoredPopup, AnchoredPopup } from "@/lib/anchored-popup";
 import w from "@/features/vacancies/styles/vacancy-wizard.module.css";
 
 /* ----------------------------- icons ----------------------------- */
@@ -840,19 +841,19 @@ function Dd({
   t: WizardT;
   locale: import("@/lib/i18n").Locale;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const { open, setOpen, triggerRef, popupRef, pos } = useAnchoredPopup();
+  const [query, setQuery] = useState("");
   useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
+    if (!open) setQuery("");
   }, [open]);
   const current = list.find((p) => p[0] === value);
+  const searchable = list.length > 6;
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? list.filter((p) => optLabel(p, locale, t).toLowerCase().includes(q))
+    : list;
   return (
-    <div className={cn(w.dd, open && w.open)} ref={ref}>
+    <div className={cn(w.dd, open && w.open)} ref={triggerRef}>
       <button
         type="button"
         className={w["dd-btn"]}
@@ -866,24 +867,39 @@ function Dd({
         </span>
       </button>
       {open ? (
-        <div className={w["dd-menu"]} role="listbox">
-          {list.map((p) => (
-            <button
-              key={p[0]}
-              type="button"
-              className={cn(w["dd-opt"], value === p[0] && w.sel)}
-              onClick={() => {
-                onChange(p[0]);
-                setOpen(false);
-              }}
-            >
-              <span>{optLabel(p, locale, t)}</span>
-              <span className={w["dd-tick"]}>
-                <WSvg name="check" sw={2.2} />
-              </span>
-            </button>
-          ))}
-        </div>
+        <AnchoredPopup pos={pos} popupRef={popupRef} className={w["dd-menu"]}>
+          {searchable ? (
+            <div className={w["dd-search"]}>
+              <input
+                className={w["dd-search-inp"]}
+                autoFocus
+                value={query}
+                placeholder={t("dd.search")}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+          ) : null}
+          {filtered.length > 0 ? (
+            filtered.map((p) => (
+              <button
+                key={p[0]}
+                type="button"
+                className={cn(w["dd-opt"], value === p[0] && w.sel)}
+                onClick={() => {
+                  onChange(p[0]);
+                  setOpen(false);
+                }}
+              >
+                <span>{optLabel(p, locale, t)}</span>
+                <span className={w["dd-tick"]}>
+                  <WSvg name="check" sw={2.2} />
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className={w["dd-empty"]}>{t("dd.noResults")}</div>
+          )}
+        </AnchoredPopup>
       ) : null}
     </div>
   );

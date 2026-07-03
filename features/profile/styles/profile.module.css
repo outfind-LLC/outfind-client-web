@@ -1377,20 +1377,21 @@
 .pf-combo.open .pf-combo-btn .ic {
   transform: rotate(-90deg);
 }
+/* Portaled to <body> with `position:fixed` (coords set inline) so it escapes the
+   modal's overflow:auto body. Flex column: search fixed, list scrolls. */
 .pf-combo-pop {
-  position: absolute;
-  z-index: 60;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.14));
+  box-shadow: var(--shadow-lg, 0 16px 40px rgba(0, 0, 0, 0.18));
   overflow: hidden;
   animation: pfDpIn var(--dur-base) ease;
 }
 .pf-combo-search {
+  flex: 0 0 auto;
   padding: 8px;
   border-bottom: 1px solid var(--border-default);
 }
@@ -1409,11 +1410,13 @@
 }
 .pf-combo-search-inp:focus {
   outline: none;
-  border-color: var(--text-primary);
+  border-color: var(--accent-brand);
   background: var(--bg-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-brand) 20%, transparent);
 }
 .pf-combo-list {
-  max-height: 240px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 6px;
 }
@@ -1553,7 +1556,7 @@
 .pf-modal {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
@@ -1575,7 +1578,7 @@
   }
 }
 .pf-modal-wide {
-  max-width: 600px;
+  max-width: 640px;
 }
 .pf-modal-head {
   display: flex;
