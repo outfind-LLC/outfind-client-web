@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
+import { routes } from "@/config/routes";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
 import { formatRelativeTime } from "@/lib/format";
@@ -18,7 +19,6 @@ import type { MessageKey } from "@/lib/i18n/translate";
 import type { TranslateFn } from "@/providers/i18n-provider";
 import { useVacancies } from "@/features/vacancies/hooks/use-vacancies";
 import { useEmployerVerify } from "@/features/vacancies/hooks/use-employer-verify";
-import { VacancyWizard } from "@/features/vacancies/components/vacancy-wizard";
 import { VerifyStatusModal } from "@/features/vacancies/components/verify-status-modal";
 import { Ic } from "@/features/profile/components/profile-icons";
 import { CompanyEditModal } from "@/features/profile/components/company-edit-modals";
@@ -72,6 +72,7 @@ export function EmployerCompanyScreen({
   profile: EmployerProfile;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
   const foundedText =
     profile.foundedYear != null ? String(profile.foundedYear) : "";
@@ -94,13 +95,12 @@ export function EmployerCompanyScreen({
   }
   const [editTarget, setEditTarget] = useState<CompanyEditTarget | null>(null);
 
-  // "Post a job" opens the SAME full-screen Vacancy Wizard as the Vacancies
-  // screen (the design's 5-step / 3-step flow) — never a simplified modal.
+  // "Post a job" navigates to the wizard SCREEN (/vacancies/new — same design
+  // flow as the Vacancies screen; the sidebar stays visible).
   const { isApproved } = useEmployerVerify();
-  const [wizardOpen, setWizardOpen] = useState(false);
   const [pendingModal, setPendingModal] = useState(false);
   const postJob = () => {
-    if (isApproved) setWizardOpen(true);
+    if (isApproved) router.push(routes.vacancyNew);
     else setPendingModal(true);
   };
 
@@ -439,9 +439,6 @@ export function EmployerCompanyScreen({
           profile={profile}
           onClose={() => setEditTarget(null)}
         />
-      ) : null}
-      {wizardOpen ? (
-        <VacancyWizard onClose={() => setWizardOpen(false)} />
       ) : null}
       {pendingModal ? (
         <VerifyStatusModal

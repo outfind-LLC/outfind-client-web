@@ -1,21 +1,6 @@
-import { Briefcase } from "lucide-react";
+import { VacancyWizardScreen } from "@/features/vacancies/components/vacancy-wizard-screen";
 
-import { Container } from "@/components/container";
-import { PageHeader } from "@/features/dashboard/components/page-header";
-import { RequireCompanyProfile } from "@/features/vacancies/components/company-profile-gate";
-import { VacancyForm } from "@/features/vacancies/components/vacancy-form";
-
+/** Create vacancy — the design's 5-step / 3-step wizard, inside the app shell. */
 export default function NewVacancyPage() {
-  return (
-    <Container className="max-w-3xl py-8">
-      <PageHeader
-        icon={Briefcase}
-        title="New vacancy"
-        description="Post a new role for candidates to find and apply to."
-      />
-      <RequireCompanyProfile>
-        <VacancyForm />
-      </RequireCompanyProfile>
-    </Container>
-  );
+  return <VacancyWizardScreen />;
 }

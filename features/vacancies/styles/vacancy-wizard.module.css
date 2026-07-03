@@ -48,9 +48,13 @@
   );
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
-  position: fixed;
-  inset: 0;
-  z-index: 200;
+  /* In-shell screen: fills the app's main area (sidebar stays visible) and
+     scrolls itself — NOT a full-viewport overlay. */
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   background: var(--bg);
   color: var(--text);
@@ -974,10 +978,11 @@
 
 /* step footer (sticky bottom bar) */
 .foot {
-  position: fixed;
-  left: 0;
-  right: 0;
+  /* Pinned to the bottom of the wizard's own scroll area (inside the shell). */
+  position: sticky;
   bottom: 0;
+  margin-top: auto;
+  flex: 0 0 auto;
   z-index: 50;
   height: 72px;
   background: var(--head-bg);

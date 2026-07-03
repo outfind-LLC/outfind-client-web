@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
@@ -15,7 +16,6 @@ import {
 } from "@/features/vacancies/hooks/use-vacancies";
 import { useEmployerVerify } from "@/features/vacancies/hooks/use-employer-verify";
 import { UnderReviewBanner } from "./under-review-banner";
-import { VacancyWizard } from "./vacancy-wizard";
 import { VerifyStatusModal } from "./verify-status-modal";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -68,6 +68,7 @@ const STATUS_LABEL: Record<VacancyStatus, MessageKey> = {
  */
 export function VacanciesScreen() {
   const { t } = useI18n();
+  const router = useRouter();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
   const { user } = useSession();
   const profileSet = Boolean(user?.isEmployerProfileSet);
@@ -75,7 +76,6 @@ export function VacanciesScreen() {
   const { data, isLoading, isError } = useVacancies(undefined, profileSet);
 
   const [tab, setTab] = useState<"active" | "closed">("active");
-  const [wizardOpen, setWizardOpen] = useState(false);
   const [pendingModal, setPendingModal] = useState(false);
 
   const vacancies = data ?? [];
@@ -83,8 +83,9 @@ export function VacanciesScreen() {
   const closed = vacancies.filter((v) => v.status !== VACANCY_STATUS.ACTIVE);
   const shown = tab === "active" ? active : closed;
 
+  // The wizard is a real screen inside the shell (sidebar stays visible).
   const post = () => {
-    if (isApproved) setWizardOpen(true);
+    if (isApproved) router.push(routes.vacancyNew);
     else setPendingModal(true);
   };
 
@@ -157,9 +158,6 @@ export function VacanciesScreen() {
         )}
       </div>
 
-      {wizardOpen ? (
-        <VacancyWizard onClose={() => setWizardOpen(false)} />
-      ) : null}
       {pendingModal ? (
         <VerifyStatusModal
           kind="pending"
