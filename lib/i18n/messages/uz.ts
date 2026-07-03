@@ -213,6 +213,8 @@ export const uz: Messages = {
   },
   profile: {
     ariaOpenMenu: "Menyuni ochish",
+    headerSub: "Peoplor’da qanday ko‘rinasiz.",
+    loadError: "Profilingizni yuklab bo‘lmadi. Qayta urinib ko‘ring.",
     accountSettings: "Hisob sozlamalari",
     myResumes: "Mening rezyumelarim",
     createResume: "Rezyume yaratish",

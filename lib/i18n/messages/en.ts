@@ -224,6 +224,8 @@ export const en = {
   },
   profile: {
     ariaOpenMenu: "Open menu",
+    headerSub: "How you appear across Peoplor.",
+    loadError: "Couldn't load your profile. Please try again.",
     accountSettings: "Account settings",
     myResumes: "My resumes",
     createResume: "Create resume",

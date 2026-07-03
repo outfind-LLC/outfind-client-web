@@ -4,18 +4,30 @@
  */
 import type { EmployerVerificationStatus } from "./enums";
 
+/** An extra company site (office / branch), separate from the HQ on the profile. */
+export interface CompanyLocationItem {
+  id: string;
+  city: string;
+  address: string;
+}
+
 export interface EmployerProfile {
   id: string;
   userId: string;
   companyName: string;
   companyUrl: string;
   companyLogoUrl: string | null;
+  tagline: string | null;
   companySize: string | null;
   industry: string | null;
+  foundedYear: number | null;
+  taxId: string | null;
   country: string | null;
   city: string | null;
+  registeredAddress: string | null;
   description: string | null;
   corporateEmail: string;
+  contactName: string | null;
   phone: string | null;
   website: string | null;
   verificationStatus: EmployerVerificationStatus;
@@ -28,6 +40,7 @@ export interface EmployerProfile {
   totalVacanciesPosted: number;
   totalApplications: number;
   isActive: boolean;
+  locations: CompanyLocationItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -41,11 +54,16 @@ export interface CreateEmployerProfilePayload {
   companyUrl: string;
   corporateEmail: string;
   companyLogoUrl?: string | null;
+  tagline?: string | null;
   companySize?: string | null;
   industry?: string | null;
+  foundedYear?: number | null;
+  taxId?: string | null;
   country?: string | null;
   city?: string | null;
+  registeredAddress?: string | null;
   description?: string | null;
+  contactName?: string | null;
   phone?: string | null;
   website?: string | null;
   verificationDocs?: string[];

@@ -14,8 +14,6 @@ import {
   type ContactTile,
 } from "@/features/profile/lib/profile-data";
 import { Ic, type IconName } from "@/features/profile/components/profile-icons";
-import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
-import { useProfileContacts } from "@/features/profile/hooks/use-profile-contacts";
 import type { EditTarget } from "@/features/profile/types/edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
@@ -34,10 +32,10 @@ const CONTACT_LABEL: Record<ContactTile["key"], MessageKey> = {
 
 /**
  * Worker profile detail — the prototype's editable résumé view. Read rendering is
- * pixel-perfect + live. Each pencil / Add emits an `EditTarget`; sections backed
- * by existing CRUD (education, languages, search settings, driving) open a real
- * editor, the rest (header DOB, contacts, work experience) report "soon" until
- * their NEW backend fields ship (docs/api/profile.md).
+ * pixel-perfect + live off the server profile. Each pencil / Add emits an
+ * `EditTarget`; every section (identity/DOB, contacts, education, languages,
+ * search settings, driving, work experience) opens a real editor that persists
+ * through the worker-profile API.
  */
 export function WorkerProfileDetail({
   profile,
@@ -49,21 +47,33 @@ export function WorkerProfileDetail({
   onEdit: (target: EditTarget) => void;
 }) {
   const { t, locale } = useI18n();
-  const { identity } = useProfileIdentity();
   const displayName =
-    [identity.firstName, identity.surname].filter(Boolean).join(" ").trim() || user.name;
-  const birthdate = formatBirthdate(identity.birthdate, locale);
+    [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim() ||
+    user.name;
+  const birthdate = formatBirthdate(
+    (profile.dateOfBirth ?? "").slice(0, 10),
+    locale,
+  );
 
-  const { contacts } = useProfileContacts();
-  const allContacts: { key: ContactTile["key"]; value: string; brand?: "telegram" | "whatsapp" }[] = [
-    { key: "phone", value: contacts.phone },
-    { key: "email", value: contacts.email || user.email || "" },
+  const allContacts: {
+    key: ContactTile["key"];
+    value: string;
+    brand?: "telegram" | "whatsapp";
+  }[] = [
+    { key: "phone", value: profile.contactPhone ?? "" },
+    { key: "email", value: profile.contactEmail || user.email || "" },
     {
       key: "telegram",
-      value: contacts.telegram || (user.telegramUsername ? `@${user.telegramUsername}` : ""),
+      value:
+        profile.contactTelegram ||
+        (user.telegramUsername ? `@${user.telegramUsername}` : ""),
       brand: "telegram",
     },
-    { key: "whatsapp", value: contacts.whatsapp, brand: "whatsapp" },
+    {
+      key: "whatsapp",
+      value: profile.contactWhatsapp ?? "",
+      brand: "whatsapp",
+    },
   ];
   const filled = allContacts.filter((c) => c.value);
   const empty = allContacts.filter((c) => !c.value);
@@ -72,7 +82,10 @@ export function WorkerProfileDetail({
   const education = educationItems(profile);
   const companies = groupExperiences(profile, t, locale);
   const avatarUrl = profile.photoUrl ?? user.avatarUrl;
-  const totalExp = profile.experienceYears != null ? t("profile.yearsOfExp", { n: profile.experienceYears }) : "";
+  const totalExp =
+    profile.experienceYears != null
+      ? t("profile.yearsOfExp", { n: profile.experienceYears })
+      : "";
 
   return (
     <div className={s.page}>
@@ -104,14 +117,22 @@ export function WorkerProfileDetail({
       </div>
 
       {/* Contact info */}
-      <h3 className={cn(s["pd-h"], s["pd-title"])}>{t("profile.contactInfo")}</h3>
+      <h3 className={cn(s["pd-h"], s["pd-title"])}>
+        {t("profile.contactInfo")}
+      </h3>
       <div className={s["pd-contact"]}>
         <div className={s["pd-contact-grid"]}>
           {filled.map((c) => (
             <button
               key={c.key}
               type="button"
-              className={cn(s["pd-cc"], s.wide, s.added, c.brand && s.brand, c.brand && s[c.brand])}
+              className={cn(
+                s["pd-cc"],
+                s.wide,
+                s.added,
+                c.brand && s.brand,
+                c.brand && s[c.brand],
+              )}
               aria-label={t(CONTACT_LABEL[c.key])}
               onClick={() => onEdit({ type: "contact" })}
             >
@@ -129,7 +150,11 @@ export function WorkerProfileDetail({
               <button
                 key={c.key}
                 type="button"
-                className={cn(s["pd-cc"], c.brand && s.brand, c.brand && s[c.brand])}
+                className={cn(
+                  s["pd-cc"],
+                  c.brand && s.brand,
+                  c.brand && s[c.brand],
+                )}
                 aria-label={t(CONTACT_LABEL[c.key])}
                 onClick={() => onEdit({ type: "contact" })}
               >
@@ -141,17 +166,37 @@ export function WorkerProfileDetail({
       </div>
 
       {/* Search settings */}
-      <h3 className={cn(s["pd-h"], s["pd-title"])}>{t("profile.searchSettings")}</h3>
+      <h3 className={cn(s["pd-h"], s["pd-title"])}>
+        {t("profile.searchSettings")}
+      </h3>
       <div className={cn(s["pd-card"], s["pd-kvcard"], s["pd-searchcard"])}>
-        <Kv label={t("profile.whereLive")} value={live} onClick={() => onEdit({ type: "searchLocation" })} t={t} />
-        <Kv label={t("profile.whereSearch")} value={search} onClick={() => onEdit({ type: "searchArea" })} t={t} />
-        <button type="button" className={s["pd-card-edit"]} onClick={() => onEdit({ type: "searchLocation" })}>
+        <Kv
+          label={t("profile.whereLive")}
+          value={live}
+          onClick={() => onEdit({ type: "searchLocation" })}
+          t={t}
+        />
+        <Kv
+          label={t("profile.whereSearch")}
+          value={search}
+          onClick={() => onEdit({ type: "searchArea" })}
+          t={t}
+        />
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "searchLocation" })}
+        >
           {t("profile.edit")}
         </button>
       </div>
 
       {/* Education */}
-      <Shead title={t("profile.education")} onAdd={() => onEdit({ type: "education", item: null })} t={t} />
+      <Shead
+        title={t("profile.education")}
+        onAdd={() => onEdit({ type: "education", item: null })}
+        t={t}
+      />
       <div className={cn(s["pd-card"], s["pd-listcard"])}>
         {education.length > 0 ? (
           education.map((ed) => {
@@ -160,21 +205,34 @@ export function WorkerProfileDetail({
               <div key={ed.id} className={cn(s["pd-item"], s["pd-edu"])}>
                 <div className={s["pd-item-main"]}>
                   <div className={s["pd-item-t"]}>{ed.org}</div>
-                  {ed.field ? <div className={s["pd-item-s"]}>{ed.field}</div> : null}
-                  {ed.meta ? <div className={s["pd-item-m"]}>{ed.meta}</div> : null}
+                  {ed.field ? (
+                    <div className={s["pd-item-s"]}>{ed.field}</div>
+                  ) : null}
+                  {ed.meta ? (
+                    <div className={s["pd-item-m"]}>{ed.meta}</div>
+                  ) : null}
                 </div>
-                <EditPencil onClick={() => onEdit({ type: "education", item: raw })} t={t} />
+                <EditPencil
+                  onClick={() => onEdit({ type: "education", item: raw })}
+                  t={t}
+                />
               </div>
             );
           })
         ) : (
           <div className={cn(s["pd-item"], s["pd-edu"], s["pd-emptyrow"])}>
             <div className={s["pd-item-main"]}>
-              <div className={cn(s["pd-item-t"], s["pd-empty"])}>{t("profile.notSpecified")}</div>
+              <div className={cn(s["pd-item-t"], s["pd-empty"])}>
+                {t("profile.notSpecified")}
+              </div>
             </div>
           </div>
         )}
-        <button type="button" className={s["pd-card-edit"]} onClick={() => onEdit({ type: "education", item: null })}>
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "education", item: null })}
+        >
           {t("profile.edit")}
         </button>
       </div>
@@ -182,40 +240,66 @@ export function WorkerProfileDetail({
       {/* Driving experience */}
       {driving ? (
         <>
-          <h3 className={cn(s["pd-h"], s["pd-title"])}>{t("profile.drivingExp")}</h3>
+          <h3 className={cn(s["pd-h"], s["pd-title"])}>
+            {t("profile.drivingExp")}
+          </h3>
           <div className={cn(s["pd-card"], s["pd-kvcard"])}>
-            <Kv label={t("profile.drivingExp")} value={driving} onClick={() => onEdit({ type: "driving" })} t={t} />
+            <Kv
+              label={t("profile.drivingExp")}
+              value={driving}
+              onClick={() => onEdit({ type: "driving" })}
+              t={t}
+            />
           </div>
         </>
       ) : null}
 
       {/* Languages */}
-      <Shead title={t("profile.languages")} onAdd={() => onEdit({ type: "language", item: null })} t={t} />
+      <Shead
+        title={t("profile.languages")}
+        onAdd={() => onEdit({ type: "language", item: null })}
+        t={t}
+      />
       <div className={cn(s["pd-card"], s["pd-listcard"])}>
         {profile.languages.length > 0 ? (
           profile.languages.map((lang) => (
             <div key={lang.id} className={cn(s["pd-item"], s["pd-lang"])}>
               <div className={s["pd-item-main"]}>
                 <div className={s["pd-item-t"]}>{lang.language}</div>
-                <div className={s["pd-item-s"]}>{languageLevel(lang.proficiency, t)}</div>
+                <div className={s["pd-item-s"]}>
+                  {languageLevel(lang.proficiency, t)}
+                </div>
               </div>
-              <EditPencil onClick={() => onEdit({ type: "language", item: lang })} t={t} />
+              <EditPencil
+                onClick={() => onEdit({ type: "language", item: lang })}
+                t={t}
+              />
             </div>
           ))
         ) : (
           <div className={cn(s["pd-item"], s["pd-lang"], s["pd-emptyrow"])}>
             <div className={s["pd-item-main"]}>
-              <div className={cn(s["pd-item-t"], s["pd-empty"])}>{t("profile.notSpecified")}</div>
+              <div className={cn(s["pd-item-t"], s["pd-empty"])}>
+                {t("profile.notSpecified")}
+              </div>
             </div>
           </div>
         )}
-        <button type="button" className={s["pd-card-edit"]} onClick={() => onEdit({ type: "language", item: null })}>
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "language", item: null })}
+        >
           {t("profile.edit")}
         </button>
       </div>
 
       {/* Work experience */}
-      <Shead title={t("profile.workExp", { exp: totalExp })} onAdd={() => onEdit({ type: "experience", item: null })} t={t} />
+      <Shead
+        title={t("profile.workExp", { exp: totalExp })}
+        onAdd={() => onEdit({ type: "experience", item: null })}
+        t={t}
+      />
       <div className={cn(s["pd-card"], s["pd-co"], s["pd-workcard"])}>
         {companies.length > 0 ? (
           companies.map((co) => (
@@ -226,28 +310,36 @@ export function WorkerProfileDetail({
                 </div>
                 <div>
                   <div className={s["pd-co-name"]}>{co.company}</div>
-                  <div className={s["pd-co-years"]}>{t("profile.yearsOfExp", { n: co.years })}</div>
+                  <div className={s["pd-co-years"]}>
+                    {t("profile.yearsOfExp", { n: co.years })}
+                  </div>
                 </div>
               </div>
               <div className={s["pd-tl"]}>
                 {co.roles.map((role) => {
-                  const rawExp = profile.experiences.find((e) => e.id === role.id) ?? null;
+                  const rawExp =
+                    profile.experiences.find((e) => e.id === role.id) ?? null;
                   return (
-                  <div key={role.id} className={s["pd-pos"]}>
-                    <span className={s["pd-pos-dot"]} />
-                    <div>
-                      <div className={s["pd-pos-top"]}>
-                        <div className={s["pd-pos-role"]}>{role.role}</div>
-                        <EditPencil onClick={() => onEdit({ type: "experience", item: rawExp })} t={t} />
+                    <div key={role.id} className={s["pd-pos"]}>
+                      <span className={s["pd-pos-dot"]} />
+                      <div>
+                        <div className={s["pd-pos-top"]}>
+                          <div className={s["pd-pos-role"]}>{role.role}</div>
+                          <EditPencil
+                            onClick={() =>
+                              onEdit({ type: "experience", item: rawExp })
+                            }
+                            t={t}
+                          />
+                        </div>
+                        <div className={s["pd-pos-dates"]}>{role.dates}</div>
+                        {role.bullets.map((b, i) => (
+                          <p key={i} className={s["pd-pos-p"]}>
+                            {b}
+                          </p>
+                        ))}
                       </div>
-                      <div className={s["pd-pos-dates"]}>{role.dates}</div>
-                      {role.bullets.map((b, i) => (
-                        <p key={i} className={s["pd-pos-p"]}>
-                          {b}
-                        </p>
-                      ))}
                     </div>
-                  </div>
                   );
                 })}
               </div>
@@ -256,11 +348,17 @@ export function WorkerProfileDetail({
         ) : (
           <div className={cn(s["pd-item"], s["pd-emptyrow"])}>
             <div className={s["pd-item-main"]}>
-              <div className={cn(s["pd-item-t"], s["pd-empty"])}>{t("profile.notSpecified")}</div>
+              <div className={cn(s["pd-item-t"], s["pd-empty"])}>
+                {t("profile.notSpecified")}
+              </div>
             </div>
           </div>
         )}
-        <button type="button" className={s["pd-card-edit"]} onClick={() => onEdit({ type: "experience", item: null })}>
+        <button
+          type="button"
+          className={s["pd-card-edit"]}
+          onClick={() => onEdit({ type: "experience", item: null })}
+        >
           {t("profile.edit")}
         </button>
       </div>
@@ -272,7 +370,11 @@ export function WorkerProfileDetail({
 function formatBirthdate(value: string, locale: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!m) return value;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString(locale, {
+  return new Date(
+    Number(m[1]),
+    Number(m[2]) - 1,
+    Number(m[3]),
+  ).toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -301,9 +403,20 @@ function Kv({
   );
 }
 
-function EditPencil({ onClick, t }: { onClick: () => void; t: (k: MessageKey) => string }) {
+function EditPencil({
+  onClick,
+  t,
+}: {
+  onClick: () => void;
+  t: (k: MessageKey) => string;
+}) {
   return (
-    <button type="button" className={s["pd-edit"]} aria-label={t("profile.edit")} onClick={onClick}>
+    <button
+      type="button"
+      className={s["pd-edit"]}
+      aria-label={t("profile.edit")}
+      onClick={onClick}
+    >
       <Ic name="pen" />
       <span className={s["pd-edit-t"]}>{t("profile.edit")}</span>
     </button>

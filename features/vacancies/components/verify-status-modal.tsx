@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
-import { EvCheck, EvClock, EvShield } from "./verify-icons";
+import { EvClock, EvShield } from "./verify-icons";
 import s from "@/features/vacancies/styles/employer-verify.module.css";
 
 export type StatusKind = "none" | "submitted" | "pending";
@@ -14,17 +14,15 @@ export type StatusKind = "none" | "submitted" | "pending";
  *  - `none`     — prompt to complete the company profile (Not now / Complete);
  *  - `submitted`— confirmation right after onboarding;
  *  - `pending`  — shown when a verification-gated action is attempted in review.
- * `submitted`/`pending` carry the "Demo: approve as admin" shortcut.
+ * Approval happens admin-side (peoplor dashboard) — there is no local shortcut.
  */
 export function VerifyStatusModal({
   kind,
   onClose,
-  onApprove,
   onComplete,
 }: {
   kind: StatusKind;
   onClose: () => void;
-  onApprove?: () => void;
   onComplete?: () => void;
 }) {
   const { t } = useI18n();
@@ -68,7 +66,10 @@ export function VerifyStatusModal({
     >
       <div className={cn(s["ev-modal"], s["ev-modal-sm"])}>
         <div
-          className={cn(s["ev-st-ic"], isNone ? s["ev-tone-accent"] : s["ev-tone-warn"])}
+          className={cn(
+            s["ev-st-ic"],
+            isNone ? s["ev-tone-accent"] : s["ev-tone-warn"],
+          )}
         >
           {isNone ? <EvShield /> : <EvClock />}
         </div>
@@ -105,12 +106,6 @@ export function VerifyStatusModal({
             </button>
           )}
         </div>
-        {!isNone && onApprove ? (
-          <button type="button" className={s["ev-demo"]} onClick={onApprove}>
-            <EvCheck />
-            <span>{t("employerVerify.demoApprove")}</span>
-          </button>
-        ) : null}
       </div>
     </div>
   );

@@ -17,6 +17,21 @@ export interface SalaryRange {
   currency: string;
 }
 
+export type Gender = "MALE" | "FEMALE";
+
+/** Citizenship — flexible shape mirrored from the backend Json column. */
+export interface Citizenship {
+  countries?: string[];
+  primaryCountry?: string | null;
+}
+
+/** Work permit — flexible shape mirrored from the backend Json column. */
+export interface WorkPermit {
+  countries?: string[];
+  eligibleAbroad?: boolean;
+  note?: string | null;
+}
+
 export interface WorkerLanguage {
   id: string;
   language: string;
@@ -56,6 +71,18 @@ export interface WorkerProfile {
   id: string;
   userId: string;
   workerStatus: WorkerStatus;
+  // ── Personal identity (résumé header) — persisted server-side ──
+  firstName: string | null;
+  lastName: string | null;
+  gender: Gender | null;
+  dateOfBirth: string | null;
+  citizenship: Citizenship | null;
+  workPermit: WorkPermit | null;
+  // ── Contact (shown on the CV; may differ from the login email) ──
+  contactPhone: string | null;
+  contactEmail: string | null;
+  contactTelegram: string | null;
+  contactWhatsapp: string | null;
   profession: string | null;
   additionalProfessions: string[];
   experienceLevel: ExperienceLevel | null;

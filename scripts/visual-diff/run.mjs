@@ -106,9 +106,16 @@ async function loadTokens() {
  * short-lived access tokens from it, so the session survives a long sweep
  * (a bare access_token expires in ~15 min). Dev cookies: httpOnly, not secure. */
 function cookiesForRole(t) {
-  const base = { url: APP_ORIGIN, httpOnly: true, secure: false, sameSite: "Lax" };
-  if (t.refresh_token) return [{ name: "refresh_token", value: t.refresh_token, ...base }];
-  if (t.access_token) return [{ name: "access_token", value: t.access_token, ...base }];
+  const base = {
+    url: APP_ORIGIN,
+    httpOnly: true,
+    secure: false,
+    sameSite: "Lax",
+  };
+  if (t.refresh_token)
+    return [{ name: "refresh_token", value: t.refresh_token, ...base }];
+  if (t.access_token)
+    return [{ name: "access_token", value: t.access_token, ...base }];
   return [];
 }
 
@@ -126,8 +133,11 @@ async function buildRoleContext(browser, role, tokens) {
   let seed = null;
   if (existsSync(sf)) {
     const tokenIsNewer =
-      hasToken && existsSync(TOKENS) && statSync(TOKENS).mtimeMs > statSync(sf).mtimeMs;
-    if (tokenIsNewer) seed = cookiesForRole(t); // user supplied a fresh token → restart chain
+      hasToken &&
+      existsSync(TOKENS) &&
+      statSync(TOKENS).mtimeMs > statSync(sf).mtimeMs;
+    if (tokenIsNewer)
+      seed = cookiesForRole(t); // user supplied a fresh token → restart chain
     else opts = { storageState: sf }; // continue the rotation chain
   } else if (hasToken) {
     seed = cookiesForRole(t);
@@ -145,19 +155,11 @@ async function buildRoleContext(browser, role, tokens) {
   if (have.some((c) => c.name === "refresh_token" && c.value)) {
     await ctx.clearCookies({ name: "access_token" }).catch(() => {});
   }
-  // Employer screens sit behind the verification gate. Seed the documented
-  // "Demo: approve" localStorage seam so the gate passes and the real screens
-  // render (it only unblocks the UI — it fabricates no data).
-  if (role === "employer") {
-    await ctx.addInitScript(() => {
-      try {
-        localStorage.setItem(
-          "peoplor_employer_verify_v1",
-          JSON.stringify({ status: "approved" }),
-        );
-      } catch {}
-    });
-  }
+  // Employer screens sit behind the verification gate, which is now fully
+  // backend-driven (EmployerProfile.verificationStatus). For employer screens to
+  // render past the gate, the employer test account must be VERIFIED server-side
+  // (approve it via the peoplor admin dashboard / DB). There is no localStorage
+  // bypass anymore.
   return ctx;
 }
 
@@ -218,14 +220,31 @@ async function main() {
       const page = await ctx.newPage();
       await page.setViewportSize({ width, height: 900 });
       try {
-        const protoUrl = pathToFileURL(path.join(ROOT, PROTO_DIR, t.proto.file)).href;
-        const protoBuf = await capture(page, "proto", protoUrl, t.proto.steps, t.protoMask);
-        const appBuf = await capture(page, "app", APP_ORIGIN + t.app.path, t.app.steps, t.appMask);
+        const protoUrl = pathToFileURL(
+          path.join(ROOT, PROTO_DIR, t.proto.file),
+        ).href;
+        const protoBuf = await capture(
+          page,
+          "proto",
+          protoUrl,
+          t.proto.steps,
+          t.protoMask,
+        );
+        const appBuf = await capture(
+          page,
+          "app",
+          APP_ORIGIN + t.app.path,
+          t.app.steps,
+          t.appMask,
+        );
 
         const d = diff(protoBuf, appBuf);
         await writeFile(path.join(dir, `${width}-proto.png`), protoBuf);
         await writeFile(path.join(dir, `${width}-app.png`), appBuf);
-        await writeFile(path.join(dir, `${width}-diff.png`), PNG.sync.write(d.out));
+        await writeFile(
+          path.join(dir, `${width}-diff.png`),
+          PNG.sync.write(d.out),
+        );
         report.push({
           name: t.name,
           width,
@@ -254,8 +273,13 @@ async function main() {
   }
 
   report.sort((a, b) => (b["diff%"] ?? -1) - (a["diff%"] ?? -1));
-  await writeFile(path.join(OUT, "report.json"), JSON.stringify(report, null, 2));
-  console.log("\nVisual-diff report (worst first) — images in scripts/visual-diff/out/<name>/\n");
+  await writeFile(
+    path.join(OUT, "report.json"),
+    JSON.stringify(report, null, 2),
+  );
+  console.log(
+    "\nVisual-diff report (worst first) — images in scripts/visual-diff/out/<name>/\n",
+  );
   console.table(report);
   await browser.close();
 }

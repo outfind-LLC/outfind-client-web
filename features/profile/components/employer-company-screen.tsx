@@ -17,7 +17,6 @@ import type { Vacancy } from "@/interfaces/vacancy.interface";
 import type { MessageKey } from "@/lib/i18n/translate";
 import type { TranslateFn } from "@/providers/i18n-provider";
 import { useVacancies } from "@/features/vacancies/hooks/use-vacancies";
-import { useCompanyExtras } from "@/features/profile/hooks/use-company-extras";
 import { Ic } from "@/features/profile/components/profile-icons";
 import { CompanyEditModal } from "@/features/profile/components/company-edit-modals";
 import type { CompanyEditTarget } from "@/features/profile/types/company-edit-target";
@@ -59,17 +58,24 @@ function vacancyEmployment(v: Vacancy, t: TranslateFn): string | null {
  * Employer Company surface — pixel-perfect port of `profile.js` (employer +
  * company-detail). Overview = company card → Company detail (header, stats,
  * About, Contact, Company details with per-field edits, Locations, Job posts).
- * Backend-backed fields edit via the employer-profile API; tagline / founded /
- * locations use the `use-company-extras` seam; job posts are live vacancies; a
- * Post-a-job modal creates a vacancy. See `docs/api/company.md`.
+ * All fields — including tagline / founded / locations — edit via the
+ * employer-profile API; job posts are live vacancies; a Post-a-job modal creates
+ * a vacancy. See `docs/api/company.md`.
  */
-export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile }) {
+export function EmployerCompanyScreen({
+  profile,
+}: {
+  profile: EmployerProfile;
+}) {
   const { t } = useI18n();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
-  const { extras } = useCompanyExtras();
+  const foundedText =
+    profile.foundedYear != null ? String(profile.foundedYear) : "";
   const vacanciesQuery = useVacancies();
   const vacancies = vacanciesQuery.data ?? [];
-  const activeCount = vacancies.filter((v) => v.status === VACANCY_STATUS.ACTIVE).length;
+  const activeCount = vacancies.filter(
+    (v) => v.status === VACANCY_STATUS.ACTIVE,
+  ).length;
 
   // The sidebar account-menu header deep-links here with `?view=detail` to open
   // the company "About" detail directly. Synced in render (not an effect).
@@ -85,7 +91,8 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
   const [editTarget, setEditTarget] = useState<CompanyEditTarget | null>(null);
 
   const location = [profile.city, profile.country].filter(Boolean).join(", ");
-  const verified = profile.verificationStatus === EMPLOYER_VERIFICATION_STATUS.VERIFIED;
+  const verified =
+    profile.verificationStatus === EMPLOYER_VERIFICATION_STATUS.VERIFIED;
 
   const postCard = (v: Vacancy) => {
     const salary = vacancySalary(v);
@@ -95,15 +102,21 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
       <div key={v.id} className={cn(s["rz-card"], s["rz-resume"])}>
         <div className={s["rz-resume-top"]}>
           <h3 className={s["rz-resume-title"]}>{v.title}</h3>
-          <span className={cn(s["co-verified"])}>{t(STATUS_LABEL[v.status] ?? "company.statusActive")}</span>
+          <span className={cn(s["co-verified"])}>
+            {t(STATUS_LABEL[v.status] ?? "company.statusActive")}
+          </span>
         </div>
         <div className={s["rz-resume-date"]}>
           {t("company.updatedAgo", { when: formatRelativeTime(v.updatedAt) })}
         </div>
         <div className={s["rz-facts"]}>
-          {v.vacancyDomain ? <Fact k={t("company.factSpec")} v={v.vacancyDomain} /> : null}
+          {v.vacancyDomain ? (
+            <Fact k={t("company.factSpec")} v={v.vacancyDomain} />
+          ) : null}
           {salary ? <Fact k={t("company.factSalary")} v={salary} /> : null}
-          {employment ? <Fact k={t("company.factEmployment")} v={employment} /> : null}
+          {employment ? (
+            <Fact k={t("company.factEmployment")} v={employment} />
+          ) : null}
           {loc ? <Fact k={t("company.factLocation")} v={loc} /> : null}
         </div>
       </div>
@@ -183,7 +196,10 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
               <span className={s["rz-acct-main"]}>
                 <span className={s["rz-acct-name"]}>{profile.companyName}</span>
                 <span className={s["rz-acct-sub"]}>
-                  {extras.tagline || profile.industry || location || profile.corporateEmail}
+                  {profile.tagline ||
+                    profile.industry ||
+                    location ||
+                    profile.corporateEmail}
                 </span>
               </span>
               <span className={s["rz-chev"]}>
@@ -212,7 +228,9 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
             <div className={s["pd-head-row"]}>
               <div className={s["pd-head-main"]}>
                 <h2 className={s["pd-name"]}>{profile.companyName}</h2>
-                {extras.tagline ? <div className={s["pd-bd"]}>{extras.tagline}</div> : null}
+                {profile.tagline ? (
+                  <div className={s["pd-bd"]}>{profile.tagline}</div>
+                ) : null}
                 {verified ? (
                   <div className={s["co-badge-row"]}>
                     <span className={s["co-verified"]}>
@@ -258,7 +276,9 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
             {profile.description ? (
               <p className={s["co-about-text"]}>{profile.description}</p>
             ) : (
-              <p className={cn(s["co-about-text"], s["pd-empty"])}>{t("company.aboutPh")}</p>
+              <p className={cn(s["co-about-text"], s["pd-empty"])}>
+                {t("company.aboutPh")}
+              </p>
             )}
             <button
               type="button"
@@ -273,38 +293,93 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
           <SectionTitle title={t("company.contact")} />
           <div className={s["pd-contact"]}>
             <div className={s["co-contact-grid"]}>
-              <ContactCard icon="phone" label={t("company.phone")} value={profile.phone} onClick={() => setEditTarget({ type: "contact", field: "phone" })} t={t} />
-              <ContactCard icon="mail" label={t("company.email")} value={profile.corporateEmail} t={t} />
-              <ContactCard icon="globe" label={t("company.website")} value={profile.website} onClick={() => setEditTarget({ type: "contact", field: "website" })} t={t} />
+              <ContactCard
+                icon="phone"
+                label={t("company.phone")}
+                value={profile.phone}
+                onClick={() =>
+                  setEditTarget({ type: "contact", field: "phone" })
+                }
+                t={t}
+              />
+              <ContactCard
+                icon="mail"
+                label={t("company.email")}
+                value={profile.corporateEmail}
+                t={t}
+              />
+              <ContactCard
+                icon="globe"
+                label={t("company.website")}
+                value={profile.website}
+                onClick={() =>
+                  setEditTarget({ type: "contact", field: "website" })
+                }
+                t={t}
+              />
             </div>
           </div>
 
           {/* Company details */}
           <SectionTitle title={t("company.details")} />
           <div className={cn(s["pd-card"], s["pd-kvcard"])}>
-            <Kv label={t("company.industry")} value={profile.industry} onClick={() => setEditTarget({ type: "field", field: "industry" })} t={t} />
-            <Kv label={t("company.size")} value={profile.companySize} onClick={() => setEditTarget({ type: "field", field: "size" })} t={t} />
-            <Kv label={t("company.founded")} value={extras.founded || null} onClick={() => setEditTarget({ type: "field", field: "founded" })} t={t} />
-            <Kv label={t("company.hq")} value={location || null} onClick={() => setEditTarget({ type: "field", field: "hq" })} t={t} />
+            <Kv
+              label={t("company.industry")}
+              value={profile.industry}
+              onClick={() =>
+                setEditTarget({ type: "field", field: "industry" })
+              }
+              t={t}
+            />
+            <Kv
+              label={t("company.size")}
+              value={profile.companySize}
+              onClick={() => setEditTarget({ type: "field", field: "size" })}
+              t={t}
+            />
+            <Kv
+              label={t("company.founded")}
+              value={foundedText || null}
+              onClick={() => setEditTarget({ type: "field", field: "founded" })}
+              t={t}
+            />
+            <Kv
+              label={t("company.hq")}
+              value={location || null}
+              onClick={() => setEditTarget({ type: "field", field: "hq" })}
+              t={t}
+            />
           </div>
 
           {/* Locations */}
           <div className={s["pd-shead"]}>
             <h3 className={s["pd-h"]}>{t("company.locations")}</h3>
-            <button type="button" className={s["pd-add"]} onClick={() => setEditTarget({ type: "location", index: null })}>
+            <button
+              type="button"
+              className={s["pd-add"]}
+              onClick={() => setEditTarget({ type: "location", index: null })}
+            >
               <Ic name="plus" />
               {t("company.addLocation")}
             </button>
           </div>
           <div className={cn(s["pd-card"], s["pd-listcard"])}>
-            {extras.locations.length > 0 ? (
-              extras.locations.map((loc, i) => (
-                <div key={`${loc.city}-${i}`} className={cn(s["pd-item"], s["pd-coloc"])}>
+            {profile.locations.length > 0 ? (
+              profile.locations.map((loc, i) => (
+                <div key={loc.id} className={cn(s["pd-item"], s["pd-coloc"])}>
                   <div className={s["pd-item-main"]}>
                     <div className={s["pd-item-t"]}>{loc.city}</div>
-                    {loc.address ? <div className={s["pd-item-s"]}>{loc.address}</div> : null}
+                    {loc.address ? (
+                      <div className={s["pd-item-s"]}>{loc.address}</div>
+                    ) : null}
                   </div>
-                  <button type="button" className={s["pd-edit"]} onClick={() => setEditTarget({ type: "location", index: i })}>
+                  <button
+                    type="button"
+                    className={s["pd-edit"]}
+                    onClick={() =>
+                      setEditTarget({ type: "location", index: i })
+                    }
+                  >
                     <Ic name="pen" />
                     <span className={s["pd-edit-t"]}>{t("company.edit")}</span>
                   </button>
@@ -313,11 +388,17 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
             ) : (
               <div className={cn(s["pd-item"], s["pd-coloc"])}>
                 <div className={s["pd-item-main"]}>
-                  <div className={cn(s["pd-item-t"], s["pd-empty"])}>{t("company.notSpecified")}</div>
+                  <div className={cn(s["pd-item-t"], s["pd-empty"])}>
+                    {t("company.notSpecified")}
+                  </div>
                 </div>
               </div>
             )}
-            <button type="button" className={s["pd-card-edit"]} onClick={() => setEditTarget({ type: "location", index: null })}>
+            <button
+              type="button"
+              className={s["pd-card-edit"]}
+              onClick={() => setEditTarget({ type: "location", index: null })}
+            >
               {t("company.addLocation")}
             </button>
           </div>
@@ -339,7 +420,11 @@ export function EmployerCompanyScreen({ profile }: { profile: EmployerProfile })
       )}
 
       {editTarget ? (
-        <CompanyEditModal target={editTarget} profile={profile} onClose={() => setEditTarget(null)} />
+        <CompanyEditModal
+          target={editTarget}
+          profile={profile}
+          onClose={() => setEditTarget(null)}
+        />
       ) : null}
     </div>
   );
@@ -382,11 +467,18 @@ function ContactCard({
   t: TranslateFn;
 }) {
   return (
-    <button type="button" className={s["pd-cc"]} onClick={onClick} disabled={!onClick}>
+    <button
+      type="button"
+      className={s["pd-cc"]}
+      onClick={onClick}
+      disabled={!onClick}
+    >
       <Ic name={icon} />
       <span className={s["pd-cc-txt"]}>
         <span className={s["pd-cc-l"]}>{label}</span>
-        <span className={s["pd-cc-v"]}>{value || t("company.notSpecified")}</span>
+        <span className={s["pd-cc-v"]}>
+          {value || t("company.notSpecified")}
+        </span>
       </span>
     </button>
   );
@@ -406,7 +498,9 @@ function Kv({
     <div className={s["pd-kv"]}>
       <div className={s["pd-kv-main"]}>
         <div className={s["pd-kv-l"]}>{label}</div>
-        <div className={cn(s["pd-kv-v"], !value && s["pd-empty"])}>{value || t("company.notSpecified")}</div>
+        <div className={cn(s["pd-kv-v"], !value && s["pd-empty"])}>
+          {value || t("company.notSpecified")}
+        </div>
       </div>
       <button type="button" className={s["pd-edit"]} onClick={onClick}>
         <Ic name="pen" />

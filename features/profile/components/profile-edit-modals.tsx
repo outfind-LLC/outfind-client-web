@@ -5,8 +5,6 @@ import { toast } from "sonner";
 
 import { useI18n } from "@/providers/i18n-provider";
 import { DatePickerField } from "@/features/profile/components/date-picker";
-import { useProfileIdentity } from "@/features/profile/hooks/use-profile-identity";
-import { useProfileContacts } from "@/features/profile/hooks/use-profile-contacts";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/spinner";
@@ -37,7 +35,11 @@ import type { EditTarget } from "@/features/profile/types/edit-target";
 import s from "@/features/profile/styles/profile.module.css";
 
 function titleCase(v: string): string {
-  return v.toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return v
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 function categoryLabel(c: string): string {
   return c === "CE" ? "C+E" : c;
@@ -66,10 +68,30 @@ const WORK_FORMAT_KEY: Record<string, MessageKey> = {
 
 /** Citizenship / work-permit options — verbatim from the prototype's COUNTRIES list. */
 const COUNTRIES = [
-  "Uzbekistan", "Kazakhstan", "Kyrgyzstan", "Tajikistan", "Turkmenistan", "Russia",
-  "Azerbaijan", "Armenia", "Georgia", "Turkey", "United Arab Emirates", "Saudi Arabia",
-  "Qatar", "South Korea", "United Kingdom", "Germany", "Poland", "Czechia", "Lithuania",
-  "Latvia", "Estonia", "United States", "Canada", "Other",
+  "Uzbekistan",
+  "Kazakhstan",
+  "Kyrgyzstan",
+  "Tajikistan",
+  "Turkmenistan",
+  "Russia",
+  "Azerbaijan",
+  "Armenia",
+  "Georgia",
+  "Turkey",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Qatar",
+  "South Korea",
+  "United Kingdom",
+  "Germany",
+  "Poland",
+  "Czechia",
+  "Lithuania",
+  "Latvia",
+  "Estonia",
+  "United States",
+  "Canada",
+  "Other",
 ] as const;
 
 /** Renders the editor for the requested section (existing-CRUD sections only). */
@@ -84,13 +106,19 @@ export function ProfileEditModal({
 }) {
   switch (target.type) {
     case "identity":
-      return <IdentityEditor onClose={onClose} />;
+      return <IdentityEditor profile={profile} onClose={onClose} />;
     case "contact":
-      return <ContactEditor onClose={onClose} />;
+      return <ContactEditor profile={profile} onClose={onClose} />;
     case "education":
       return <EducationEditor item={target.item} onClose={onClose} />;
     case "language":
-      return <LanguageEditor item={target.item} profile={profile} onClose={onClose} />;
+      return (
+        <LanguageEditor
+          item={target.item}
+          profile={profile}
+          onClose={onClose}
+        />
+      );
     case "experience":
       return <WorkplaceEditor item={target.item} onClose={onClose} />;
     case "searchLocation":
@@ -147,7 +175,12 @@ function Modal({
       >
         <div className={s["pf-modal-head"]}>
           <div className={s["pf-modal-title"]}>{title}</div>
-          <button type="button" className={s["pf-modal-x"]} aria-label={t("profile.ariaClose")} onClick={onClose}>
+          <button
+            type="button"
+            className={s["pf-modal-x"]}
+            aria-label={t("profile.ariaClose")}
+            onClick={onClose}
+          >
             <Ic name="close" />
           </button>
         </div>
@@ -339,7 +372,13 @@ function DateField({
   );
 }
 
-function RemoveButton({ label, onRemove }: { label: string; onRemove: () => void }) {
+function RemoveButton({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
   return (
     <button type="button" className={s["pf-dangerbtn"]} onClick={onRemove}>
       <Ic name="trash" />
@@ -351,20 +390,40 @@ function RemoveButton({ label, onRemove }: { label: string; onRemove: () => void
 /* ---------------- editors ---------------- */
 /**
  * The "Details" identity modal (Surname / Name / Gender / Date of birth /
- * Citizenship / Work permit), opened from the profile-header edit button. These
- * fields are not on the backend `WorkerProfile` yet, so they persist via a local
- * seam (useProfileIdentity) and are documented in docs/api/profile.md.
+ * Citizenship / Work permit), opened from the profile-header edit button.
+ * Persisted server-side through `PATCH /worker/profile` — the backend
+ * `WorkerProfile` stores firstName/lastName/gender/dateOfBirth/citizenship/
+ * workPermit. The single-select citizenship/work-permit map to the backend's
+ * flexible `{ countries[] }` Json shape.
  */
-function IdentityEditor({ onClose }: { onClose: () => void }) {
+function IdentityEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
-  const { identity, update } = useProfileIdentity();
+  const update = useUpdateProfileInfo();
 
-  const [surname, setSurname] = useState(identity.surname);
-  const [firstName, setFirstName] = useState(identity.firstName);
-  const [gender, setGender] = useState(identity.gender);
-  const [birthdate, setBirthdate] = useState(toDateInput(identity.birthdate));
-  const [citizenship, setCitizenship] = useState(identity.citizenship);
-  const [workPermit, setWorkPermit] = useState(identity.workPermit);
+  const [surname, setSurname] = useState(profile.lastName ?? "");
+  const [firstName, setFirstName] = useState(profile.firstName ?? "");
+  const [gender, setGender] = useState<"male" | "female" | "">(
+    profile.gender === "MALE"
+      ? "male"
+      : profile.gender === "FEMALE"
+        ? "female"
+        : "",
+  );
+  const [birthdate, setBirthdate] = useState(toDateInput(profile.dateOfBirth));
+  const [citizenship, setCitizenship] = useState(
+    profile.citizenship?.primaryCountry ??
+      profile.citizenship?.countries?.[0] ??
+      "",
+  );
+  const [workPermit, setWorkPermit] = useState(
+    profile.workPermit?.countries?.[0] ?? "",
+  );
 
   const thisYear = new Date().getFullYear();
   const dobMin = `${thisYear - 90}-01-01`;
@@ -375,27 +434,45 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
     { value: "female", label: t("profile.idFemale") },
   ];
 
-  const save = () => {
-    update({
-      surname: surname.trim(),
-      firstName: firstName.trim(),
-      gender,
-      birthdate,
-      citizenship,
-      workPermit,
-    });
-    toast(t("profile.idSaved"));
-    onClose();
+  const save = async () => {
+    if (update.isPending) return;
+    try {
+      await update.mutateAsync({
+        firstName: firstName.trim() || null,
+        lastName: surname.trim() || null,
+        gender:
+          gender === "male" ? "MALE" : gender === "female" ? "FEMALE" : null,
+        dateOfBirth: birthdate || null,
+        citizenship: citizenship
+          ? { countries: [citizenship], primaryCountry: citizenship }
+          : null,
+        workPermit: workPermit ? { countries: [workPermit] } : null,
+      });
+      toast(t("profile.idSaved"));
+      onClose();
+    } catch (e) {
+      toast.error(errMsg(e, t));
+    }
   };
 
   return (
     <Modal
       title={t("profile.idTitle")}
       onClose={onClose}
-      footer={<Foot onSave={save} saving={false} t={t} />}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
     >
-      <TextField label={t("profile.idSurname")} value={surname} onChange={setSurname} placeholder={t("profile.idSurname")} />
-      <TextField label={t("profile.idName")} value={firstName} onChange={setFirstName} placeholder={t("profile.idName")} />
+      <TextField
+        label={t("profile.idSurname")}
+        value={surname}
+        onChange={setSurname}
+        placeholder={t("profile.idSurname")}
+      />
+      <TextField
+        label={t("profile.idName")}
+        value={firstName}
+        onChange={setFirstName}
+        placeholder={t("profile.idName")}
+      />
       <Field label={t("profile.idGender")}>
         <span className={s["pf-seg"]} role="radiogroup">
           {genderOptions.map((o) => (
@@ -421,42 +498,91 @@ function IdentityEditor({ onClose }: { onClose: () => void }) {
           max={dobMax}
         />
       </Field>
-      <SelectField label={t("profile.idCitizenship")} value={citizenship} onChange={setCitizenship} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
-      <SelectField label={t("profile.idWorkPermit")} value={workPermit} onChange={setWorkPermit} options={countryOptions} placeholder={t("profile.selectPlaceholder")} />
+      <SelectField
+        label={t("profile.idCitizenship")}
+        value={citizenship}
+        onChange={setCitizenship}
+        options={countryOptions}
+        placeholder={t("profile.selectPlaceholder")}
+      />
+      <SelectField
+        label={t("profile.idWorkPermit")}
+        value={workPermit}
+        onChange={setWorkPermit}
+        options={countryOptions}
+        placeholder={t("profile.selectPlaceholder")}
+      />
     </Modal>
   );
 }
 
 /**
- * Contact details (phone / email / telegram / whatsapp). Persisted via the local
- * seam (useProfileContacts) until an account-update endpoint ships — the user's
- * own values, not fabricated. See docs/api/profile.md §5.
+ * Contact details (phone / email / telegram / whatsapp) shown on the CV.
+ * Persisted server-side through `PATCH /worker/profile` (contactPhone /
+ * contactEmail / contactTelegram / contactWhatsapp). Empty fields clear to null.
  */
-function ContactEditor({ onClose }: { onClose: () => void }) {
+function ContactEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
-  const { contacts, update } = useProfileContacts();
-  const [phone, setPhone] = useState(contacts.phone);
-  const [email, setEmail] = useState(contacts.email);
-  const [telegram, setTelegram] = useState(contacts.telegram);
-  const [whatsapp, setWhatsapp] = useState(contacts.whatsapp);
+  const update = useUpdateProfileInfo();
+  const [phone, setPhone] = useState(profile.contactPhone ?? "");
+  const [email, setEmail] = useState(profile.contactEmail ?? "");
+  const [telegram, setTelegram] = useState(profile.contactTelegram ?? "");
+  const [whatsapp, setWhatsapp] = useState(profile.contactWhatsapp ?? "");
 
-  const save = () => {
-    update({
-      phone: phone.trim(),
-      email: email.trim(),
-      telegram: telegram.trim(),
-      whatsapp: whatsapp.trim(),
-    });
-    toast(t("profile.contactSaved"));
-    onClose();
+  const save = async () => {
+    if (update.isPending) return;
+    try {
+      await update.mutateAsync({
+        contactPhone: phone.trim() || null,
+        contactEmail: email.trim() || null,
+        contactTelegram: telegram.trim() || null,
+        contactWhatsapp: whatsapp.trim() || null,
+      });
+      toast(t("profile.contactSaved"));
+      onClose();
+    } catch (e) {
+      toast.error(errMsg(e, t));
+    }
   };
 
   return (
-    <Modal title={t("profile.contactEditTitle")} onClose={onClose} footer={<Foot onSave={save} saving={false} t={t} />}>
-      <TextField label={t("profile.phone")} value={phone} onChange={setPhone} placeholder={t("profile.phonePh")} type="tel" />
-      <TextField label={t("profile.email")} value={email} onChange={setEmail} placeholder={t("profile.emailPh")} type="email" />
-      <TextField label={t("profile.telegram")} value={telegram} onChange={setTelegram} placeholder={t("profile.telegramPh")} />
-      <TextField label={t("profile.whatsapp")} value={whatsapp} onChange={setWhatsapp} placeholder={t("profile.whatsappPh")} />
+    <Modal
+      title={t("profile.contactEditTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <TextField
+        label={t("profile.phone")}
+        value={phone}
+        onChange={setPhone}
+        placeholder={t("profile.phonePh")}
+        type="tel"
+      />
+      <TextField
+        label={t("profile.email")}
+        value={email}
+        onChange={setEmail}
+        placeholder={t("profile.emailPh")}
+        type="email"
+      />
+      <TextField
+        label={t("profile.telegram")}
+        value={telegram}
+        onChange={setTelegram}
+        placeholder={t("profile.telegramPh")}
+      />
+      <TextField
+        label={t("profile.whatsapp")}
+        value={whatsapp}
+        onChange={setWhatsapp}
+        placeholder={t("profile.whatsappPh")}
+      />
     </Modal>
   );
 }
@@ -473,18 +599,25 @@ function EducationEditor({
   const update = useUpdateEducation();
   const del = useDeleteEducation();
 
-  const initYear = item ? new Date(item.endDate ?? item.startDate).getFullYear() : null;
+  const initYear = item
+    ? new Date(item.endDate ?? item.startDate).getFullYear()
+    : null;
   const [org, setOrg] = useState(item?.institutionName ?? "");
   const [field, setField] = useState(item?.fieldOfStudy ?? "");
   const [year, setYear] = useState(initYear ? String(initYear) : "");
   const [level, setLevel] = useState(item?.educationLevel ?? "");
 
   const saving = create.isPending || update.isPending || del.isPending;
-  const levelOptions = Object.values(EDUCATION_LEVEL).map((v) => ({ value: v, label: titleCase(v) }));
+  const levelOptions = Object.values(EDUCATION_LEVEL).map((v) => ({
+    value: v,
+    label: titleCase(v),
+  }));
 
   const save = async () => {
     if (!org.trim() || saving) return;
-    const date = year.trim() ? `${year.trim()}-01-01` : new Date().toISOString().slice(0, 10);
+    const date = year.trim()
+      ? `${year.trim()}-01-01`
+      : new Date().toISOString().slice(0, 10);
     const dto = {
       institutionName: org.trim(),
       fieldOfStudy: field.trim() || null,
@@ -518,11 +651,35 @@ function EducationEditor({
       onClose={onClose}
       footer={<Foot onSave={save} saving={saving} t={t} />}
     >
-      <TextField label={t("profile.eduOrg")} value={org} onChange={setOrg} placeholder={t("profile.eduOrgPh")} />
-      <TextField label={t("profile.eduField")} value={field} onChange={setField} placeholder={t("profile.eduFieldPh")} />
-      <TextField label={t("profile.eduYear")} value={year} onChange={setYear} placeholder={t("profile.eduYearPh")} type="number" />
-      <SelectField label={t("profile.eduLevel")} value={level} onChange={setLevel} options={levelOptions} placeholder={t("profile.eduLevelPh")} />
-      {item ? <RemoveButton label={t("profile.eduRemove")} onRemove={remove} /> : null}
+      <TextField
+        label={t("profile.eduOrg")}
+        value={org}
+        onChange={setOrg}
+        placeholder={t("profile.eduOrgPh")}
+      />
+      <TextField
+        label={t("profile.eduField")}
+        value={field}
+        onChange={setField}
+        placeholder={t("profile.eduFieldPh")}
+      />
+      <TextField
+        label={t("profile.eduYear")}
+        value={year}
+        onChange={setYear}
+        placeholder={t("profile.eduYearPh")}
+        type="number"
+      />
+      <SelectField
+        label={t("profile.eduLevel")}
+        value={level}
+        onChange={setLevel}
+        options={levelOptions}
+        placeholder={t("profile.eduLevelPh")}
+      />
+      {item ? (
+        <RemoveButton label={t("profile.eduRemove")} onRemove={remove} />
+      ) : null}
     </Modal>
   );
 }
@@ -554,7 +711,8 @@ function LanguageEditor({
     try {
       await upsert.mutateAsync([{ language: language.trim(), proficiency }]);
       // Renamed an existing language → drop the old row.
-      if (item && item.language !== language.trim()) await del.mutateAsync([item.id]);
+      if (item && item.language !== language.trim())
+        await del.mutateAsync([item.id]);
       toast(t("profile.saved"));
       onClose();
     } catch (e) {
@@ -579,9 +737,22 @@ function LanguageEditor({
       onClose={onClose}
       footer={<Foot onSave={save} saving={saving} t={t} />}
     >
-      <TextField label={t("profile.langName")} value={language} onChange={setLanguage} placeholder={t("profile.langNamePh")} />
-      <SelectField label={t("profile.langLevel")} value={proficiency} onChange={setProficiency} options={levelOptions} placeholder={t("profile.langLevelPh")} />
-      {item ? <RemoveButton label={t("profile.langRemove")} onRemove={remove} /> : null}
+      <TextField
+        label={t("profile.langName")}
+        value={language}
+        onChange={setLanguage}
+        placeholder={t("profile.langNamePh")}
+      />
+      <SelectField
+        label={t("profile.langLevel")}
+        value={proficiency}
+        onChange={setProficiency}
+        options={levelOptions}
+        placeholder={t("profile.langLevelPh")}
+      />
+      {item ? (
+        <RemoveButton label={t("profile.langRemove")} onRemove={remove} />
+      ) : null}
     </Modal>
   );
 }
@@ -603,7 +774,9 @@ function WorkplaceEditor({
   const [employment, setEmployment] = useState(item?.employmentType ?? "");
   const [workFormat, setWorkFormat] = useState(item?.workFormat ?? "");
   const [domain, setDomain] = useState(item?.domain ?? "");
-  const [startDate, setStartDate] = useState(toDateInput(item?.startDate ?? null));
+  const [startDate, setStartDate] = useState(
+    toDateInput(item?.startDate ?? null),
+  );
   const [present, setPresent] = useState(item ? item.endDate === null : false);
   const [endDate, setEndDate] = useState(toDateInput(item?.endDate ?? null));
   const [bullets, setBullets] = useState(item?.description ?? "");
@@ -620,8 +793,18 @@ function WorkplaceEditor({
     value: v,
     label: t(WORK_FORMAT_KEY[v] ?? "profile.workOnsite"),
   }));
-  const domainOptions = Object.values(DOMAIN).map((v) => ({ value: v, label: titleCase(v) }));
-  const canSave = Boolean(company.trim() && role.trim() && employment && workFormat && domain && startDate);
+  const domainOptions = Object.values(DOMAIN).map((v) => ({
+    value: v,
+    label: titleCase(v),
+  }));
+  const canSave = Boolean(
+    company.trim() &&
+    role.trim() &&
+    employment &&
+    workFormat &&
+    domain &&
+    startDate,
+  );
 
   const save = async () => {
     if (!canSave || saving) return;
@@ -660,17 +843,50 @@ function WorkplaceEditor({
       title={item ? t("profile.wpEditTitle") : t("profile.wpAddTitle")}
       onClose={onClose}
       wide
-      footer={<Foot onSave={save} saving={saving || !canSave} t={t} label={item ? t("profile.save") : t("profile.add")} />}
+      footer={
+        <Foot
+          onSave={save}
+          saving={saving || !canSave}
+          t={t}
+          label={item ? t("profile.save") : t("profile.add")}
+        />
+      }
     >
       <div className={s["pf-row"]}>
-        <TextField label={t("profile.wpCompany")} value={company} onChange={setCompany} />
-        <TextField label={t("profile.wpRole")} value={role} onChange={setRole} />
+        <TextField
+          label={t("profile.wpCompany")}
+          value={company}
+          onChange={setCompany}
+        />
+        <TextField
+          label={t("profile.wpRole")}
+          value={role}
+          onChange={setRole}
+        />
       </div>
       <div className={s["pf-row"]}>
-        <SelectField label={t("profile.wpEmployment")} value={employment} onChange={setEmployment} options={empOptions} placeholder={t("profile.selectPlaceholder")} />
-        <SelectField label={t("profile.wpWorkFormat")} value={workFormat} onChange={setWorkFormat} options={workOptions} placeholder={t("profile.selectPlaceholder")} />
+        <SelectField
+          label={t("profile.wpEmployment")}
+          value={employment}
+          onChange={setEmployment}
+          options={empOptions}
+          placeholder={t("profile.selectPlaceholder")}
+        />
+        <SelectField
+          label={t("profile.wpWorkFormat")}
+          value={workFormat}
+          onChange={setWorkFormat}
+          options={workOptions}
+          placeholder={t("profile.selectPlaceholder")}
+        />
       </div>
-      <SelectField label={t("profile.wpDomain")} value={domain} onChange={setDomain} options={domainOptions} placeholder={t("profile.selectPlaceholder")} />
+      <SelectField
+        label={t("profile.wpDomain")}
+        value={domain}
+        onChange={setDomain}
+        options={domainOptions}
+        placeholder={t("profile.selectPlaceholder")}
+      />
       <DateField
         label={t("profile.wpStart")}
         value={startDate}
@@ -690,8 +906,15 @@ function WorkplaceEditor({
         onPresent={setPresent}
         presentLabel={t("profile.wpPresent")}
       />
-      <TextAreaField label={t("profile.wpBullets")} value={bullets} onChange={setBullets} placeholder={t("profile.wpBulletsPh")} />
-      {item ? <RemoveButton label={t("profile.wpRemove")} onRemove={remove} /> : null}
+      <TextAreaField
+        label={t("profile.wpBullets")}
+        value={bullets}
+        onChange={setBullets}
+        placeholder={t("profile.wpBulletsPh")}
+      />
+      {item ? (
+        <RemoveButton label={t("profile.wpRemove")} onRemove={remove} />
+      ) : null}
     </Modal>
   );
 }
@@ -703,7 +926,13 @@ function toDateInput(iso: string | null): string {
   return m ? m[1] : "";
 }
 
-function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; onClose: () => void }) {
+function SearchLocationEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
   const update = useUpdateProfileInfo();
   const [city, setCity] = useState(profile.currentCity ?? "");
@@ -712,7 +941,10 @@ function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; on
   const save = async () => {
     if (update.isPending) return;
     try {
-      await update.mutateAsync({ currentCity: city.trim() || null, currentCountry: country.trim() || null });
+      await update.mutateAsync({
+        currentCity: city.trim() || null,
+        currentCountry: country.trim() || null,
+      });
       toast(t("profile.saved"));
       onClose();
     } catch (e) {
@@ -721,21 +953,44 @@ function SearchLocationEditor({ profile, onClose }: { profile: WorkerProfile; on
   };
 
   return (
-    <Modal title={t("profile.fldLocTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
-      <TextField label={t("profile.fldCity")} value={city} onChange={setCity} placeholder={t("profile.fldCityPh")} />
-      <TextField label={t("profile.fldCountry")} value={country} onChange={setCountry} placeholder={t("profile.fldCountryPh")} />
+    <Modal
+      title={t("profile.fldLocTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <TextField
+        label={t("profile.fldCity")}
+        value={city}
+        onChange={setCity}
+        placeholder={t("profile.fldCityPh")}
+      />
+      <TextField
+        label={t("profile.fldCountry")}
+        value={country}
+        onChange={setCountry}
+        placeholder={t("profile.fldCountryPh")}
+      />
     </Modal>
   );
 }
 
-function SearchAreaEditor({ profile, onClose }: { profile: WorkerProfile; onClose: () => void }) {
+function SearchAreaEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
   const update = useUpdateProfileInfo();
   const [cities, setCities] = useState(profile.targetCities.join(", "));
 
   const save = async () => {
     if (update.isPending) return;
-    const list = cities.split(",").map((c) => c.trim()).filter(Boolean);
+    const list = cities
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
     try {
       await update.mutateAsync({ targetCities: list });
       toast(t("profile.saved"));
@@ -746,24 +1001,44 @@ function SearchAreaEditor({ profile, onClose }: { profile: WorkerProfile; onClos
   };
 
   return (
-    <Modal title={t("profile.fldAreaTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
-      <TextField label={t("profile.fldAreaTitle")} value={cities} onChange={setCities} placeholder={t("profile.fldAreaPh")} />
+    <Modal
+      title={t("profile.fldAreaTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
+      <TextField
+        label={t("profile.fldAreaTitle")}
+        value={cities}
+        onChange={setCities}
+        placeholder={t("profile.fldAreaPh")}
+      />
     </Modal>
   );
 }
 
-function DrivingEditor({ profile, onClose }: { profile: WorkerProfile; onClose: () => void }) {
+function DrivingEditor({
+  profile,
+  onClose,
+}: {
+  profile: WorkerProfile;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
   const update = useUpdateProfileInfo();
   const [selected, setSelected] = useState<string[]>(profile.drivingCategories);
 
   const toggle = (cat: string) =>
-    setSelected((cur) => (cur.includes(cat) ? cur.filter((c) => c !== cat) : [...cur, cat]));
+    setSelected((cur) =>
+      cur.includes(cat) ? cur.filter((c) => c !== cat) : [...cur, cat],
+    );
 
   const save = async () => {
     if (update.isPending) return;
     try {
-      await update.mutateAsync({ hasDrivingLicense: selected.length > 0, drivingCategories: selected });
+      await update.mutateAsync({
+        hasDrivingLicense: selected.length > 0,
+        drivingCategories: selected,
+      });
       toast(t("profile.saved"));
       onClose();
     } catch (e) {
@@ -772,7 +1047,11 @@ function DrivingEditor({ profile, onClose }: { profile: WorkerProfile; onClose: 
   };
 
   return (
-    <Modal title={t("profile.drvTitle")} onClose={onClose} footer={<Foot onSave={save} saving={update.isPending} t={t} />}>
+    <Modal
+      title={t("profile.drvTitle")}
+      onClose={onClose}
+      footer={<Foot onSave={save} saving={update.isPending} t={t} />}
+    >
       <Field label={t("profile.drvCats")}>
         <span className={s["pf-seg"]}>
           {Object.values(DRIVING_LICENSE_CATEGORY).map((cat) => (

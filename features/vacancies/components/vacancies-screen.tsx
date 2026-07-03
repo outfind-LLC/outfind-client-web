@@ -71,7 +71,7 @@ export function VacanciesScreen() {
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
   const { user } = useSession();
   const profileSet = Boolean(user?.isEmployerProfileSet);
-  const { isApproved, isPending, approve } = useEmployerVerify();
+  const { isApproved, isPending } = useEmployerVerify();
   const { data, isLoading, isError } = useVacancies(undefined, profileSet);
 
   const [tab, setTab] = useState<"active" | "closed">("active");
@@ -164,11 +164,6 @@ export function VacanciesScreen() {
         <VerifyStatusModal
           kind="pending"
           onClose={() => setPendingModal(false)}
-          onApprove={() => {
-            approve();
-            setPendingModal(false);
-            toast.success(t("employerVerify.toastApproved"));
-          }}
         />
       ) : null}
     </div>

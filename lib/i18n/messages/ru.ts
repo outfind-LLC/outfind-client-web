@@ -214,6 +214,8 @@ export const ru: Messages = {
   },
   profile: {
     ariaOpenMenu: "Открыть меню",
+    headerSub: "Как вы выглядите в Peoplor.",
+    loadError: "Не удалось загрузить профиль. Попробуйте ещё раз.",
     accountSettings: "Настройки аккаунта",
     myResumes: "Мои резюме",
     createResume: "Создать резюме",

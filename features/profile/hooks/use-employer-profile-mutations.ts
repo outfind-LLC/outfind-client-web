@@ -55,6 +55,40 @@ export function useParseCompanyProfile() {
   });
 }
 
+/** Create an extra company location. Refreshes the profile so `locations` updates. */
+export function useCreateCompanyLocation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: { city: string; address: string }) =>
+      profileService.createCompanyLocation(dto),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: qk.employerProfile }),
+  });
+}
+
+/** Update an existing company location. */
+export function useUpdateCompanyLocation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: {
+      id: string;
+      dto: { city?: string; address?: string };
+    }) => profileService.updateCompanyLocation(vars.id, vars.dto),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: qk.employerProfile }),
+  });
+}
+
+/** Delete a company location. */
+export function useDeleteCompanyLocation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => profileService.deleteCompanyLocation(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: qk.employerProfile }),
+  });
+}
+
 /** Delete the company profile. Refreshes the session gate too. */
 export function useDeleteEmployerProfile() {
   const queryClient = useQueryClient();

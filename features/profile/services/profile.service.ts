@@ -1,5 +1,6 @@
 import { api } from "@/lib/api/client";
 import type {
+  CompanyLocationItem,
   CreateEmployerProfilePayload,
   EmployerProfile,
   UpdateEmployerProfilePayload,
@@ -21,6 +22,22 @@ export type UpdateJobSearchInfoInput = {
 };
 
 export type UpdateProfileInfoInput = {
+  // ── Identity (résumé header) ──
+  firstName?: string | null;
+  lastName?: string | null;
+  gender?: "MALE" | "FEMALE" | null;
+  dateOfBirth?: string | null;
+  citizenship?: { countries?: string[]; primaryCountry?: string | null } | null;
+  workPermit?: {
+    countries?: string[];
+    eligibleAbroad?: boolean;
+    note?: string | null;
+  } | null;
+  // ── Contact (shown on the CV) ──
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  contactTelegram?: string | null;
+  contactWhatsapp?: string | null;
   additionalProfessions?: string[];
   currentCountry?: string | null;
   currentCity?: string | null;
@@ -121,6 +138,28 @@ export const profileService = {
 
   async deleteEmployerProfile(): Promise<null> {
     return api.delete<null>("/employer/profile");
+  },
+
+  // ─── Company locations (extra sites, separate from HQ) ─────────────────────
+  async createCompanyLocation(dto: {
+    city: string;
+    address: string;
+  }): Promise<CompanyLocationItem> {
+    return api.post<CompanyLocationItem>("/employer/profile/locations", dto);
+  },
+
+  async updateCompanyLocation(
+    id: string,
+    dto: { city?: string; address?: string },
+  ): Promise<CompanyLocationItem> {
+    return api.patch<CompanyLocationItem>(
+      `/employer/profile/locations/${id}`,
+      dto,
+    );
+  },
+
+  async deleteCompanyLocation(id: string): Promise<null> {
+    return api.delete<null>(`/employer/profile/locations/${id}`);
   },
 
   async updateJobSearchInfo(
