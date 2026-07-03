@@ -17,6 +17,9 @@ import type { Vacancy } from "@/interfaces/vacancy.interface";
 import type { MessageKey } from "@/lib/i18n/translate";
 import type { TranslateFn } from "@/providers/i18n-provider";
 import { useVacancies } from "@/features/vacancies/hooks/use-vacancies";
+import { useEmployerVerify } from "@/features/vacancies/hooks/use-employer-verify";
+import { VacancyWizard } from "@/features/vacancies/components/vacancy-wizard";
+import { VerifyStatusModal } from "@/features/vacancies/components/verify-status-modal";
 import { Ic } from "@/features/profile/components/profile-icons";
 import { CompanyEditModal } from "@/features/profile/components/company-edit-modals";
 import type { CompanyEditTarget } from "@/features/profile/types/company-edit-target";
@@ -59,8 +62,9 @@ function vacancyEmployment(v: Vacancy, t: TranslateFn): string | null {
  * company-detail). Overview = company card → Company detail (header, stats,
  * About, Contact, Company details with per-field edits, Locations, Job posts).
  * All fields — including tagline / founded / locations — edit via the
- * employer-profile API; job posts are live vacancies; a Post-a-job modal creates
- * a vacancy. See `docs/api/company.md`.
+ * employer-profile API; job posts are live vacancies; "Post a job" opens the
+ * full-screen Vacancy Wizard (same flow as the Vacancies screen). See
+ * `docs/api/company.md`.
  */
 export function EmployerCompanyScreen({
   profile,
@@ -89,6 +93,16 @@ export function EmployerCompanyScreen({
     if (wantDetail) setView("detail");
   }
   const [editTarget, setEditTarget] = useState<CompanyEditTarget | null>(null);
+
+  // "Post a job" opens the SAME full-screen Vacancy Wizard as the Vacancies
+  // screen (the design's 5-step / 3-step flow) — never a simplified modal.
+  const { isApproved } = useEmployerVerify();
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [pendingModal, setPendingModal] = useState(false);
+  const postJob = () => {
+    if (isApproved) setWizardOpen(true);
+    else setPendingModal(true);
+  };
 
   const location = [profile.city, profile.country].filter(Boolean).join(", ");
   const verified =
@@ -138,7 +152,7 @@ export function EmployerCompanyScreen({
             type="button"
             className={cn(s["rz-btn"], s["rz-btn-primary"])}
             style={{ marginTop: 12 }}
-            onClick={() => setEditTarget({ type: "postJob" })}
+            onClick={postJob}
           >
             <Ic name="plus" />
             {t("company.postJob")}
@@ -213,7 +227,7 @@ export function EmployerCompanyScreen({
             <button
               type="button"
               className={cn(s["rz-btn"], s["rz-btn-secondary"])}
-              onClick={() => setEditTarget({ type: "postJob" })}
+              onClick={postJob}
             >
               <Ic name="plus" />
               {t("company.postJob")}
@@ -409,7 +423,7 @@ export function EmployerCompanyScreen({
             <button
               type="button"
               className={cn(s["rz-btn"], s["rz-btn-secondary"])}
-              onClick={() => setEditTarget({ type: "postJob" })}
+              onClick={postJob}
             >
               <Ic name="plus" />
               {t("company.postJob")}
@@ -424,6 +438,15 @@ export function EmployerCompanyScreen({
           target={editTarget}
           profile={profile}
           onClose={() => setEditTarget(null)}
+        />
+      ) : null}
+      {wizardOpen ? (
+        <VacancyWizard onClose={() => setWizardOpen(false)} />
+      ) : null}
+      {pendingModal ? (
+        <VerifyStatusModal
+          kind="pending"
+          onClose={() => setPendingModal(false)}
         />
       ) : null}
     </div>

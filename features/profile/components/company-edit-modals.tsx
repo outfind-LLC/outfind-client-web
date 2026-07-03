@@ -7,7 +7,6 @@ import { useI18n } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/spinner";
-import { VACANCY_TYPE, type VacancyType } from "@/interfaces/enums";
 import type {
   EmployerProfile,
   UpdateEmployerProfilePayload,
@@ -20,7 +19,6 @@ import {
   useUpdateCompanyLocation,
   useUpdateEmployerProfile,
 } from "@/features/profile/hooks/use-employer-profile-mutations";
-import { useCreateVacancy } from "@/features/vacancies/hooks/use-vacancies";
 import {
   COMPANY_INDUSTRY_KEYS,
   COMPANY_SIZE_KEYS,
@@ -34,14 +32,6 @@ import s from "@/features/profile/styles/profile.module.css";
 function errMsg(e: unknown, t: TranslateFn): string {
   return isApiClientError(e) ? e.message : t("company.saved");
 }
-
-const EMP_LABEL: Record<string, MessageKey> = {
-  FULL_TIME: "company.empFullTime",
-  PART_TIME: "company.empPartTime",
-  CONTRACT: "company.empContract",
-  SEASONAL: "company.empSeasonal",
-  INTERNSHIP: "company.empInternship",
-};
 
 /** Routes a {@link CompanyEditTarget} to the right editor (mirrors `ProfileEditModal`). */
 export function CompanyEditModal({
@@ -78,8 +68,6 @@ export function CompanyEditModal({
           onClose={onClose}
         />
       );
-    case "postJob":
-      return <PostJobEditor onClose={onClose} />;
     default:
       return null;
   }
@@ -587,122 +575,6 @@ function LocationEditor({
   );
 }
 
-function PostJobEditor({ onClose }: { onClose: () => void }) {
-  const { t, locale } = useI18n();
-  const create = useCreateVacancy();
-  const [title, setTitle] = useState("");
-  const [employment, setEmployment] = useState("");
-  const [domain, setDomain] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [remote, setRemote] = useState(false);
-  const [salary, setSalary] = useState("");
-  const [responsibilities, setResponsibilities] = useState("");
-
-  const empOptions = Object.values(VACANCY_TYPE).map((v) => ({
-    value: v,
-    label: t(EMP_LABEL[v] ?? "company.empFullTime"),
-  }));
-  const canSave = Boolean(title.trim() && country.trim());
-
-  const save = async () => {
-    if (!canSave || create.isPending) return;
-    const bullets = responsibilities
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    try {
-      await create.mutateAsync({
-        title: title.trim(),
-        country: country.trim(),
-        city: city.trim() || null,
-        type: employment ? (employment as VacancyType) : null,
-        isRemote: remote,
-        salaryRaw: salary.trim() || null,
-        vacancyDomain: domain.trim() || null,
-        responsibilities: bullets.length ? bullets : null,
-      });
-      toast(t("company.pjCreated"));
-      onClose();
-    } catch (e) {
-      toast.error(errMsg(e, t));
-    }
-  };
-
-  return (
-    <Modal
-      title={t("company.pjTitle")}
-      onClose={onClose}
-      wide
-      footer={
-        <Foot
-          onSave={save}
-          saving={create.isPending || !canSave}
-          loading={create.isPending}
-          label={t("company.pjCreate")}
-        />
-      }
-    >
-      <TextField
-        label={t("company.pjRole")}
-        value={title}
-        onChange={setTitle}
-        placeholder={t("company.pjRolePh")}
-      />
-      <div className={s["pf-row"]}>
-        <ComboSelect
-          label={t("company.pjEmployment")}
-          value={employment}
-          onChange={setEmployment}
-          options={empOptions}
-          placeholder={t("company.selectPlaceholder")}
-        />
-        <TextField
-          label={t("company.pjDomain")}
-          value={domain}
-          onChange={setDomain}
-          placeholder={t("company.industryPh")}
-        />
-      </div>
-      <div className={s["pf-row"]}>
-        <ComboSelect
-          label={t("company.pjCountry")}
-          value={country}
-          onChange={setCountry}
-          options={countryOptions(locale)}
-          placeholder={t("company.selectPlaceholder")}
-        />
-        <TextField
-          label={t("company.pjCity")}
-          value={city}
-          onChange={setCity}
-          placeholder={t("company.cityPh")}
-        />
-      </div>
-      <TextField
-        label={t("company.pjSalary")}
-        value={salary}
-        onChange={setSalary}
-        placeholder={t("company.pjSalaryPh")}
-      />
-      <label className={s["pf-check-wrap"]}>
-        <span className={s["pf-check-l"]}>{t("company.pjRemote")}</span>
-        <input
-          type="checkbox"
-          className={s["pf-check"]}
-          checked={remote}
-          onChange={(e) => setRemote(e.target.checked)}
-        />
-        <span className={s["pf-check-box"]}>
-          <Ic name="check" />
-        </span>
-      </label>
-      <TextAreaField
-        label={t("company.pjResponsibilities")}
-        value={responsibilities}
-        onChange={setResponsibilities}
-        placeholder={t("company.pjResponsibilitiesPh")}
-      />
-    </Modal>
-  );
-}
+// NOTE: the old simplified "Post a job" modal was removed — posting a job
+// always goes through the full-screen Vacancy Wizard (the design's 5-step /
+// 3-step flow), opened by the Company screen and the Vacancies screen alike.

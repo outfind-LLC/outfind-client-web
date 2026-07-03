@@ -61,11 +61,6 @@ const D: Record<string, [string, string, string]> = {
     "О вакансии\n\nОбязанности\n•  \n•  \n\nКого мы ищем\n•  \n•  \n\nПреимущества и бонусы\n•  \n•  ",
     "Vakansiya haqida\n\nVazifalar\n•  \n•  \n\nKimni qidiryapmiz\n•  \n•  \n\nImtiyoz va bonuslar\n•  \n•  ",
   ],
-  "s5.aiTpl": [
-    "Job Overview\nWe’re hiring a {role} to help us build products people love. You’ll join a friendly, fast-moving team.\n\nResponsibilities\n• Own and deliver projects end to end\n• Work closely with the team\n• Improve quality and processes\n\nWhat We’re Looking For\n• Relevant experience as a {role}\n• Strong communication skills\n• Ownership and attention to detail\n\nBenefits & Perks\n• Competitive pay\n• Flexible schedule\n• Learning & growth budget",
-    "О вакансии\nМы ищем «{role}», который поможет создавать продукты, что любят пользователи. Вас ждёт дружная и динамичная команда.\n\nОбязанности\n• Вести проекты от начала до результата\n• Тесно работать с командой\n• Улучшать качество и процессы\n\nКого мы ищем\n• Релевантный опыт в роли «{role}»\n• Сильные коммуникативные навыки\n• Ответственность и внимание к деталям\n\nПреимущества и бонусы\n• Конкурентная оплата\n• Гибкий график\n• Бюджет на обучение и развитие",
-    "Vakansiya haqida\nBiz foydalanuvchilar yoqtiradigan mahsulotlar yaratishga yordam beradigan «{role}» qidiryapmiz. Sizni do‘stona va faol jamoa kutmoqda.\n\nVazifalar\n• Loyihalarni boshidan oxirigacha olib borish\n• Jamoa bilan yaqin ishlash\n• Sifat va jarayonlarni yaxshilash\n\nKimni qidiryapmiz\n• «{role}» rolida tegishli tajriba\n• Kuchli muloqot ko‘nikmalari\n• Mas’uliyat va tafsilotlarga e’tibor\n\nImtiyoz va bonuslar\n• Raqobatbardosh maosh\n• Moslashuvchan grafik\n• O‘qish va rivojlanish budjeti",
-  ],
   "foot.step": ["Step {n} of {t}", "Шаг {n} из {t}", "{n}-bosqich / {t}"],
 
   // step names + meta
@@ -265,6 +260,7 @@ const D: Record<string, [string, string, string]> = {
     "O‘z so‘zlaringiz bilan kompaniyangiz nima qilishini va nomzod nima uchun javob berishini yozing.",
   ],
   "s5.ai.btn": ["Generate", "Сгенерировать", "Yaratish"],
+  "s5.ai.busy": ["Generating…", "Генерируем…", "Yaratilmoqda…"],
   "s5.vis": [
     "Vacancy visibility",
     "Видимость вакансии",
@@ -394,6 +390,16 @@ const D: Record<string, [string, string, string]> = {
     "Description generated",
     "Описание сгенерировано",
     "Tavsif yaratildi",
+  ],
+  "toast.aiError": [
+    "Couldn't generate the description — please try again",
+    "Не удалось сгенерировать описание — попробуйте ещё раз",
+    "Tavsifni yaratib bo‘lmadi — qayta urinib ko‘ring",
+  ],
+  "toast.aiNeedTitle": [
+    "Add a job title first — AI writes the description from it",
+    "Сначала укажите название вакансии — ИИ пишет описание на его основе",
+    "Avval vakansiya nomini kiriting — AI tavsifni shu asosda yozadi",
   ],
   "toast.published": [
     "Vacancy published",

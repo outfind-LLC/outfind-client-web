@@ -16,10 +16,14 @@ import { track } from "@/lib/analytics/client";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import {
   useCreateVacancy,
+  useGenerateVacancyDescription,
   useParseVacancy,
 } from "@/features/vacancies/hooks/use-vacancies";
 import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
-import type { ParsedVacancy } from "@/features/vacancies/services/vacancies.service";
+import type {
+  GenerateDescriptionInput,
+  ParsedVacancy,
+} from "@/features/vacancies/services/vacancies.service";
 import {
   BEN,
   findLabel,
@@ -289,6 +293,7 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
   const t = useMemo<WizardT>(() => makeWizardT(locale), [locale]);
   const tEn = useMemo<WizardT>(() => makeWizardT("en"), []);
   const createVacancy = useCreateVacancy();
+  const genDescription = useGenerateVacancyDescription();
 
   const [state, setState] = useState<WizardState>(loadState);
   const [published, setPublished] = useState(false);
@@ -411,7 +416,16 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
         name: "step.5",
         meta: "step.5m",
         done: (s) => !!(s.desc && s.city),
-        render: () => <Step5 s={state} t={t} locale={locale} update={update} />,
+        render: () => (
+          <Step5
+            s={state}
+            t={t}
+            locale={locale}
+            update={update}
+            onGenerate={generateDescription}
+            generating={genDescription.isPending}
+          />
+        ),
       },
       {
         name: "step.7",
@@ -449,7 +463,8 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       },
     ];
     return state.jobType === "daily" ? daily : regular;
-  }, [state, t, locale, update, lab, published]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, t, locale, update, lab, published, genDescription.isPending]);
 
   const total = steps.length;
   const isComplete = (i: number) => steps[i]?.done(state) ?? false;
@@ -495,28 +510,34 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [previewOpen]);
 
-  const buildPayload = (saveAsDraft: boolean): CreateVacancyPayload => {
-    const isDaily = state.jobType === "daily";
-    const country =
-      (state.country && findLabel(OPTS.country, state.country, "en", tEn)) ||
-      "Uzbekistan";
-    const benefits = [
-      ...(["fin", "health", "social"] as const).flatMap((g) =>
-        BEN[g]
-          .map((k, i) => (state.ben[g][`${k}_${i}`] ? t(k) : null))
-          .filter((x): x is string => Boolean(x)),
-      ),
-      ...INCL_KEYS.filter((k) => state.incl[k]).map((k) => t(k)),
-      ...(state.benExtra ? [state.benExtra.trim()] : []),
-    ];
-    // Language name + level pairs (stable EN labels; the backend derives the
-    // plain `languagesRequired` search array from these).
-    const languageRequirements = state.langs
+  /** Checked benefit/inclusion labels (shared by the payload + AI facts). */
+  const collectBenefits = (): string[] => [
+    ...(["fin", "health", "social"] as const).flatMap((g) =>
+      BEN[g]
+        .map((k, i) => (state.ben[g][`${k}_${i}`] ? t(k) : null))
+        .filter((x): x is string => Boolean(x)),
+    ),
+    ...INCL_KEYS.filter((k) => state.incl[k]).map((k) => t(k)),
+    ...(state.benExtra ? [state.benExtra.trim()] : []),
+  ];
+
+  /** Language name + level pairs as stable EN labels (payload + AI facts). */
+  const collectLanguages = () =>
+    state.langs
       .filter((l) => l.lang && l.level)
       .map((l) => ({
         language: findLabel(OPTS.lang, l.lang, "en", tEn) || l.lang,
         level: findLabel(OPTS.level, l.level, "en", tEn) || l.level,
       }));
+
+  const buildPayload = (saveAsDraft: boolean): CreateVacancyPayload => {
+    const isDaily = state.jobType === "daily";
+    const country =
+      (state.country && findLabel(OPTS.country, state.country, "en", tEn)) ||
+      "Uzbekistan";
+    const benefits = collectBenefits();
+    // The backend derives the plain `languagesRequired` search array from these.
+    const languageRequirements = collectLanguages();
     return {
       title: state.title.trim(),
       kind: isDaily ? VACANCY_KIND.DAILY : VACANCY_KIND.REGULAR,
@@ -578,6 +599,69 @@ export function VacancyWizard({ onClose }: { onClose: () => void }) {
       acceptResponses: state.resp,
       saveAsDraft,
     };
+  };
+
+  /** The wizard's collected facts as human-readable labels for the AI writer. */
+  const buildAiInput = (): GenerateDescriptionInput => {
+    const isDaily = state.jobType === "daily";
+    return {
+      title: state.title.trim(),
+      kind: isDaily ? "DAILY" : "REGULAR",
+      profession: state.prof
+        ? findLabel(OPTS.prof, state.prof, "en", tEn) || state.prof
+        : null,
+      category: state.cat
+        ? findLabel(OPTS.cat, state.cat, "en", tEn) || state.cat
+        : null,
+      country: state.country || null,
+      city: state.city || null,
+      workFormat: !isDaily && state.format ? tEn(`opt.${state.format}`) : null,
+      workArrangement: !isDaily && state.wf ? tEn(`wf.${state.wf}`) : null,
+      workSchedule: state.schedule
+        ? findLabel(OPTS.schedule, state.schedule, "en", tEn) || state.schedule
+        : null,
+      employmentType: state.empType
+        ? findLabel(OPTS.empType, state.empType, "en", tEn) || state.empType
+        : null,
+      experience: state.exp ? tEn(`exp.${state.exp}`) : null,
+      education: state.edu
+        ? findLabel(OPTS.edu, state.edu, "en", tEn) || null
+        : null,
+      teamSize: !isDaily && state.team > 0 ? state.team : null,
+      probationMonths: PROBATION_MAP[state.probation] ?? null,
+      paymentType: state.payType ? tEn(`pt.${state.payType}`) : null,
+      salaryMin: state.salFrom ? Number(state.salFrom) || null : null,
+      salaryMax: state.salTo ? Number(state.salTo) || null : null,
+      currency: state.currency ? state.currency.toUpperCase() : null,
+      paymentFrequency: state.freq
+        ? findLabel(OPTS.freq, state.freq, "en", tEn) || state.freq
+        : null,
+      skills: state.skills,
+      languages: collectLanguages(),
+      benefits: collectBenefits(),
+      workDate: isDaily && state.date ? state.date : null,
+      shiftHours: isDaily && state.hours.trim() ? state.hours.trim() : null,
+    };
+  };
+
+  // AI writes the description from the facts entered in the earlier steps; the
+  // employer reviews and edits the result before publishing.
+  const generateDescription = () => {
+    if (genDescription.isPending) return;
+    if (!state.title.trim()) {
+      toast.error(t("toast.aiNeedTitle"));
+      return;
+    }
+    genDescription.mutate(buildAiInput(), {
+      onSuccess: ({ description }) => {
+        update({ desc: description });
+        toast.success(t("toast.aiDone"));
+      },
+      onError: (error) =>
+        toast.error(
+          isApiClientError(error) ? error.message : t("toast.aiError"),
+        ),
+    });
   };
 
   const publish = () => {
@@ -1392,9 +1476,15 @@ function Step3({ s, t, locale, update }: StepProps) {
   );
 }
 
-function Step5({ s, t, locale, update }: StepProps) {
+function Step5({
+  s,
+  t,
+  locale,
+  update,
+  onGenerate,
+  generating,
+}: StepProps & { onGenerate: () => void; generating: boolean }) {
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiBusy, setAiBusy] = useState(false);
   const desc = s.desc || t("s5.tpl");
 
   // Seed the description with the structured template (matches the prototype) so
@@ -1404,19 +1494,6 @@ function Step5({ s, t, locale, update }: StepProps) {
     if (!hasDesc) update({ desc: t("s5.tpl") });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const generate = () => {
-    setAiOpen(true);
-    setAiBusy(true);
-    const sample = t("s5.aiTpl")
-      .split("{role}")
-      .join(s.title || t("step.1"));
-    window.setTimeout(() => {
-      update({ desc: sample });
-      setAiBusy(false);
-      toast.success(t("toast.aiDone"));
-    }, 1100);
-  };
 
   return (
     <div className={w.card}>
@@ -1474,15 +1551,15 @@ function Step5({ s, t, locale, update }: StepProps) {
           <button
             type="button"
             className={w["ai-btn"]}
-            onClick={generate}
-            disabled={aiBusy}
+            onClick={onGenerate}
+            disabled={generating}
           >
-            {aiBusy ? (
+            {generating ? (
               <span className={w.spin} />
             ) : (
               <WIco name="spark" sw={1.5} />
             )}
-            <span>{t("s5.ai.btn")}</span>
+            <span>{generating ? t("s5.ai.busy") : t("s5.ai.btn")}</span>
           </button>
         </div>
         {aiOpen ? (

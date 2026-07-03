@@ -3,7 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { qk } from "@/config/query-keys";
-import { vacanciesService } from "@/features/vacancies/services/vacancies.service";
+import {
+  vacanciesService,
+  type GenerateDescriptionInput,
+} from "@/features/vacancies/services/vacancies.service";
 import type {
   CreateVacancyPayload,
   UpdateVacancyPayload,
@@ -50,6 +53,17 @@ export function useCreateVacancy() {
 export function useParseVacancy() {
   return useMutation({
     mutationFn: (text: string) => vacanciesService.parseVacancy(text),
+  });
+}
+
+/**
+ * Employer: generate the vacancy description with AI from the wizard's
+ * structured facts. Returns editable text — nothing persists until save.
+ */
+export function useGenerateVacancyDescription() {
+  return useMutation({
+    mutationFn: (input: GenerateDescriptionInput) =>
+      vacanciesService.generateDescription(input),
   });
 }
 

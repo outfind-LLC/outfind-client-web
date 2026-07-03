@@ -7,5 +7,5 @@ export type CompanyEditTarget =
   | { type: "about" }
   | { type: "contact"; field: "phone" | "website" }
   | { type: "field"; field: "industry" | "size" | "founded" | "hq" }
-  | { type: "location"; index: number | null }
-  | { type: "postJob" };
+  | { type: "location"; index: number | null };
+// "Post a job" is NOT an edit target — it opens the full Vacancy Wizard.

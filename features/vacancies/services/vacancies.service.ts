@@ -31,6 +31,38 @@ export type ParsedVacancy = {
   description: string | null;
 };
 
+/**
+ * Body of `POST /employer/vacancies/generate-description` — the structured
+ * facts the wizard has collected, as plain human-readable labels. The AI writes
+ * the description from these; the employer reviews and edits before saving.
+ */
+export type GenerateDescriptionInput = {
+  title: string;
+  kind?: "REGULAR" | "DAILY";
+  profession?: string | null;
+  category?: string | null;
+  country?: string | null;
+  city?: string | null;
+  workFormat?: string | null;
+  workArrangement?: string | null;
+  workSchedule?: string | null;
+  employmentType?: string | null;
+  experience?: string | null;
+  education?: string | null;
+  teamSize?: number | null;
+  probationMonths?: number | null;
+  paymentType?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  currency?: string | null;
+  paymentFrequency?: string | null;
+  skills?: string[];
+  languages?: { language: string; level: string }[];
+  benefits?: string[];
+  workDate?: string | null;
+  shiftHours?: string | null;
+};
+
 /** Employer vacancies API service: full CRUD plus status lifecycle. */
 export const vacanciesService = {
   async listOwn(query: ListVacanciesQuery = {}): Promise<Vacancy[]> {
@@ -56,6 +88,19 @@ export const vacanciesService = {
    */
   async parseVacancy(text: string): Promise<ParsedVacancy> {
     return api.post<ParsedVacancy>("/employer/vacancies/parse", { text });
+  },
+
+  /**
+   * Generate the vacancy description with AI from the wizard's structured
+   * facts. Returns editable text; persists nothing.
+   */
+  async generateDescription(
+    input: GenerateDescriptionInput,
+  ): Promise<{ description: string }> {
+    return api.post<{ description: string }>(
+      "/employer/vacancies/generate-description",
+      input,
+    );
   },
 
   async update(id: string, payload: UpdateVacancyPayload): Promise<Vacancy> {
