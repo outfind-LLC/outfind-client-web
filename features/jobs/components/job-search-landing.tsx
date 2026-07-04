@@ -32,11 +32,11 @@ const MODES: {
   icon: IconName;
   labelKey: MessageKey;
 }[] = [
-  // CV builder is disabled until the full guided flow ships (collect missing
-  // profile data → AI-optimize in the worker's language → frontend templates,
-  // download & public /cv/<slug> page). Plan: CV_BUILDER.md — re-enable then.
-  // { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
-  { key: "assist", icon: "sparkle", labelKey: "chat.modeAssist" },
+  // CV builder currently starts a CV_BUILDER chat; the full guided flow
+  // (wizard → templates → download → public /cv/<slug>) is planned in
+  // CV_BUILDER.md and will take over this entry point when it ships.
+  { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
+  { key: "assist", icon: "zap", labelKey: "chat.modeAssist" },
   { key: "search", icon: "search", labelKey: "chat.modeSearch" },
   { key: "visa", icon: "docCheck", labelKey: "chat.modeVisa" },
 ];

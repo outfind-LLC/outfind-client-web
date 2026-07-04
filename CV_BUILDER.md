@@ -1,9 +1,9 @@
 # CV Builder — Implementation Plan
 
 > Status: **planned, not built**. The "CV builder" mode chip on the `/jobs`
-> landing is commented out (`features/jobs/components/job-search-landing.tsx`)
-> until this flow ships — re-enable it then and point it at the builder screen
-> instead of a plain chat thread.
+> landing (and its twin on the marketing home page) is LIVE and currently
+> starts a CV_BUILDER chat thread. When this flow ships, point the chip at the
+> builder screen instead (`features/jobs/components/job-search-landing.tsx`).
 >
 > Non-negotiables (apply to every step below):
 > - **Backend sends and stores DATA only** (structured JSON). No HTML, no PDF,

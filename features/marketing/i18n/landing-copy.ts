@@ -46,6 +46,11 @@ interface UiCopy {
   hireSoonTitle: string;
   hireSoonBody: string;
   hireSoonCta: string;
+  /** Hero mode chips (find side) — mirror the in-app /jobs landing modes. */
+  modeCv: string;
+  modeAssist: string;
+  modeSearch: string;
+  modeVisa: string;
   authTitle: string;
   authSub: string;
   authGoogle: string;
@@ -82,6 +87,10 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       hireSoonBody:
         "We're launching the job-seeker experience first. Our engineers are working tirelessly on the employer side — we'll update you very soon.",
       hireSoonCta: "Continue as a job seeker",
+      modeCv: "CV builder",
+      modeAssist: "AI assistance",
+      modeSearch: "Search jobs",
+      modeVisa: "Visa documentation",
       authTitle: "Create your free account",
       authSub:
         "Sign up to see your matches and let Peoplor apply for you — free for job seekers.",
@@ -127,6 +136,10 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       hireSoonBody:
         "Сначала мы запускаем платформу для соискателей. Наши инженеры без устали работают над стороной работодателя — совсем скоро всё будет готово.",
       hireSoonCta: "Продолжить как соискатель",
+      modeCv: "Создание резюме",
+      modeAssist: "ИИ-помощник",
+      modeSearch: "Поиск работы",
+      modeVisa: "Виза и документы",
       authTitle: "Создайте бесплатный аккаунт",
       authSub:
         "Зарегистрируйтесь, чтобы увидеть совпадения и поручить отклики Peoplor — бесплатно для соискателей.",
@@ -172,6 +185,10 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       hireSoonBody:
         "Avval ish izlovchilar uchun ishga tushiryapmiz. Muhandislarimiz ish beruvchilar tomoni ustida tinimsiz ishlamoqda — tez orada yangilik boʻladi.",
       hireSoonCta: "Ish izlovchi sifatida davom etish",
+      modeCv: "CV yaratish",
+      modeAssist: "AI yordamchisi",
+      modeSearch: "Ish qidirish",
+      modeVisa: "Viza hujjatlari",
       authTitle: "Bepul hisob yarating",
       authSub:
         "Mosliklarni koʻrish va arizalarni Peoplorʼga topshirish uchun roʻyxatdan oʻting — ish izlovchilar uchun bepul.",

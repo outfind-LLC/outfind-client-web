@@ -3,7 +3,14 @@
 import { useState } from "react";
 
 import { useLanding } from "@/features/marketing/context/landing-context";
-import { IconMic, IconSend } from "./icons";
+import {
+  IconDocCheck,
+  IconFileText,
+  IconMic,
+  IconSearch,
+  IconSend,
+  IconZap,
+} from "./icons";
 import { PeoplorMark } from "./peoplor-mark";
 import styles from "./landing.module.css";
 
@@ -59,19 +66,43 @@ export function Hero() {
           </button>
         </form>
 
-        <div className={styles.chips}>
-          {sideCopy.chips.map((chip, index) => (
-            <button
-              key={chip}
-              type="button"
-              className={styles.chip}
-              style={{ "--d": index + 1 } as React.CSSProperties}
-              onClick={() => submit(chip)}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
+        {side === "find" ? (
+          // Mode chips mirroring the in-app /jobs landing (CV / AI / Search /
+          // Visa). Tapping one opens sign-up — the modes live behind auth.
+          <div className={styles.chips}>
+            {[
+              { label: copy.ui.modeCv, Icon: IconFileText },
+              { label: copy.ui.modeAssist, Icon: IconZap },
+              { label: copy.ui.modeSearch, Icon: IconSearch },
+              { label: copy.ui.modeVisa, Icon: IconDocCheck },
+            ].map(({ label, Icon }, index) => (
+              <button
+                key={label}
+                type="button"
+                className={styles.chip}
+                style={{ "--d": index + 1 } as React.CSSProperties}
+                onClick={() => openAuth()}
+              >
+                <Icon />
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.chips}>
+            {sideCopy.chips.map((chip, index) => (
+              <button
+                key={chip}
+                type="button"
+                className={styles.chip}
+                style={{ "--d": index + 1 } as React.CSSProperties}
+                onClick={() => submit(chip)}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <p className={styles.heroSafety}>{sideCopy.safety}</p>

@@ -51,11 +51,78 @@ export function IconMic(props: IconProps) {
   );
 }
 
+export function IconFileText(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 3v4h4M9 12h6M9 16h6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function IconZap(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M13 2 4.09 12.69a1 1 0 0 0 .77 1.64H11l-1 7 8.91-10.69a1 1 0 0 0-.77-1.64H13z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function IconDocCheck(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 3v4h4M9 14l2 2 4-4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function IconSearch(props: IconProps) {
   return (
     <Svg {...props}>
-      <circle cx="11.5" cy="11.5" r="9.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M18.5 18.5L22 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle
+        cx="11.5"
+        cy="11.5"
+        r="9.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M18.5 18.5L22 22"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -63,8 +130,18 @@ export function IconSearch(props: IconProps) {
 export function IconBurger(props: IconProps) {
   return (
     <Svg {...props}>
-      <path d="M4 9h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M4 15h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M4 9h16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4 15h10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -72,7 +149,12 @@ export function IconBurger(props: IconProps) {
 export function IconClose(props: IconProps) {
   return (
     <Svg {...props}>
-      <path d="M19 5L5 19M5 5l14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M19 5L5 19M5 5l14 14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -171,7 +253,14 @@ export function IconUsers(props: IconProps) {
         strokeWidth="1.5"
         strokeLinecap="round"
       />
-      <ellipse cx="9" cy="17" rx="7" ry="4" stroke="currentColor" strokeWidth="1.5" />
+      <ellipse
+        cx="9"
+        cy="17"
+        rx="7"
+        ry="4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
       <path
         d="M18 14C19.7542 14.3847 21 15.3589 21 16.5C21 17.5293 19.9863 18.4229 18.5 18.8704"
         stroke="currentColor"
@@ -236,7 +325,12 @@ export function IconInfo(props: IconProps) {
   return (
     <Svg {...props}>
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M12 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M12 11v5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
       <circle cx="12" cy="7.8" r="1" fill="currentColor" />
     </Svg>
   );

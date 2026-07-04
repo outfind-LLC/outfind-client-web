@@ -501,6 +501,7 @@
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   padding: 9px 15px;
   border-radius: var(--radius-fill);
   white-space: nowrap;
@@ -517,6 +518,11 @@
 }
 .chip:hover {
   color: var(--text-primary);
+}
+.chip svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 900px) {
