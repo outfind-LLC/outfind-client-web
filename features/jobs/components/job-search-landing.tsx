@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
@@ -32,9 +33,8 @@ const MODES: {
   icon: IconName;
   labelKey: MessageKey;
 }[] = [
-  // CV builder currently starts a CV_BUILDER chat; the full guided flow
-  // (wizard → templates → download → public /cv/<slug>) is planned in
-  // CV_BUILDER.md and will take over this entry point when it ships.
+  // CV builder opens the guided builder screen (gate → AI → templates →
+  // download → public link) at /profile/cv.
   { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
   { key: "assist", icon: "zap", labelKey: "chat.modeAssist" },
   { key: "search", icon: "search", labelKey: "chat.modeSearch" },
@@ -42,8 +42,10 @@ const MODES: {
 ];
 
 /** Chat specialist behind each conversational mode. */
-const MODE_SPECIALIST: Record<Exclude<LandingMode, "search">, AiSpecialist> = {
-  cv: AI_SPECIALIST.CV_BUILDER,
+const MODE_SPECIALIST: Record<
+  Exclude<LandingMode, "search" | "cv">,
+  AiSpecialist
+> = {
   assist: AI_SPECIALIST.CAREER_ASSISTANT,
   visa: AI_SPECIALIST.RELOCATION_GUIDE,
 };
@@ -69,6 +71,7 @@ const MODE_PLACEHOLDER: Record<LandingMode, MessageKey> = {
  */
 export function JobSearchLanding() {
   const t = useT();
+  const router = useRouter();
   const { user, isWorker } = useSession();
   const profileQuery = useWorkerProfile(Boolean(isWorker));
   const startConversation = useStartConversation(routes.jobsThread);
@@ -96,11 +99,16 @@ export function JobSearchLanding() {
   };
 
   const send = (text: string) => {
-    if (mode === "search") openSearch(text);
+    if (mode === "search" || mode === "cv") openSearch(text);
     else startChat(MODE_SPECIALIST[mode], text);
   };
 
   const pickMode = (next: LandingMode) => {
+    // CV builder is a guided screen, not a chat — navigate straight to it.
+    if (next === "cv") {
+      router.push(routes.profileCv);
+      return;
+    }
     setMode(next);
     // Search is one-tap: choosing it opens the search form right away.
     if (next === "search") openSearch(null);

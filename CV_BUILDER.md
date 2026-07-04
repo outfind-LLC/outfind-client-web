@@ -1,9 +1,14 @@
 # CV Builder — Implementation Plan
 
-> Status: **planned, not built**. The "CV builder" mode chip on the `/jobs`
-> landing (and its twin on the marketing home page) is LIVE and currently
-> starts a CV_BUILDER chat thread. When this flow ships, point the chip at the
-> builder screen instead (`features/jobs/components/job-search-landing.tsx`).
+> Status: **BUILT (P1 + P2), 2026-07-04.** The `/jobs` "CV builder" chip now
+> opens the builder screen at `/profile/cv`: missing-info gate → AI generation
+> in the worker's preferred language (`POST /cv/generate`, persisted in the
+> `cvs` table) → Classic/Modern/Compact templates → print-to-PDF download →
+> public toggle serving `peoplor.uz/cv/<slug>` from the data-only
+> `GET /cv/public/:slug`. Remaining ideas live in **Phase 3** below
+> (`@react-pdf/renderer` file download, translations via `CvTranslation`,
+> share buttons, analytics events, inline content editing via `PATCH /cv/mine
+> { content }` — the endpoint already exists).
 >
 > Non-negotiables (apply to every step below):
 > - **Backend sends and stores DATA only** (structured JSON). No HTML, no PDF,
