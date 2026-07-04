@@ -33,6 +33,8 @@ export function SideToggle({
       >
         {icons && <IconUsers />}
         <span>{copy.ui.navHire}</span>
+        {/* Employer sign-up is closed for the worker-first MVP. */}
+        <span className={styles.segSoon}>{copy.ui.soonBadge}</span>
       </button>
     </div>
   );

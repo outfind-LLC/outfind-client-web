@@ -1,26 +1,17 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { BriefcaseBusiness, Loader2, MapPin, Search } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import {
   useStartJobSearch,
   type JobSearchParams,
 } from "@/features/jobs/hooks/use-start-job-search";
+import { Ic } from "@/features/dashboard/components/app-icons";
 import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
-import { Button } from "@/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/dialog";
-import { Input } from "@/ui/input";
-import { Label } from "@/ui/label";
+import { cn } from "@/lib/utils";
+import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 interface JobSearchModalProps {
   open: boolean;
@@ -31,10 +22,10 @@ interface JobSearchModalProps {
 }
 
 /**
- * The Job Search entry modal: pick a profession and a city. Submitting seeds a
- * Job Finder conversation and routes to its thread. The form is mounted only
- * while open so it always re-seeds from the latest defaults — no state syncing
- * in effects.
+ * The Job Search entry modal — the app's own modal shell (same design as the
+ * Account/Help modals): pick a profession and a city, submit to seed a Job
+ * Finder conversation and route to its thread. The form is mounted only while
+ * open so it always re-seeds from the latest defaults.
  */
 export function JobSearchModal({
   open,
@@ -43,28 +34,57 @@ export function JobSearchModal({
   defaultCity = "",
 }: JobSearchModalProps) {
   const t = useT();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span className="bg-brand/10 text-brand flex size-8 items-center justify-center rounded-lg">
-              <Search className="size-4" />
-            </span>
-            {t("chat.searchTitle")}
-          </DialogTitle>
-          <DialogDescription>{t("chat.searchDesc")}</DialogDescription>
-        </DialogHeader>
+  const close = () => onOpenChange(false);
 
-        {open ? (
-          <JobSearchForm
-            defaultProfession={defaultProfession}
-            defaultCity={defaultCity}
-            onClose={() => onOpenChange(false)}
-          />
-        ) : null}
-      </DialogContent>
-    </Dialog>
+  // Escape closes; body scroll locks while open (matches the shared modals).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className={s["modal-scrim"]}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <div
+        className={s.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("chat.searchTitle")}
+      >
+        <div className={s["modal-head"]}>
+          <div className={s["modal-title"]}>{t("chat.searchTitle")}</div>
+          <button
+            type="button"
+            className={s["modal-close"]}
+            aria-label={t("chat.cancel")}
+            onClick={close}
+          >
+            <Ic name="close" />
+          </button>
+        </div>
+        <JobSearchForm
+          defaultProfession={defaultProfession}
+          defaultCity={defaultCity}
+          onClose={close}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -97,12 +117,13 @@ function JobSearchForm({
   };
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="job-profession">{t("chat.professionLabel")}</Label>
-        <div className="relative">
-          <BriefcaseBusiness className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
+    <form onSubmit={submit}>
+      <div className={s["modal-body"]}>
+        <p className={s["modal-note"]}>{t("chat.searchDesc")}</p>
+
+        <div className={s.field}>
+          <label htmlFor="job-profession">{t("chat.professionLabel")}</label>
+          <input
             id="job-profession"
             value={profession}
             onChange={(event) => setProfession(event.target.value)}
@@ -110,45 +131,39 @@ function JobSearchForm({
             autoFocus
             autoComplete="off"
             maxLength={100}
-            className="pl-9"
           />
         </div>
-      </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="job-city">{t("chat.cityLabel")}</Label>
-        <div className="relative">
-          <MapPin className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
+        <div className={s.field}>
+          <label htmlFor="job-city">{t("chat.cityLabel")}</label>
+          <input
             id="job-city"
             value={city}
             onChange={(event) => setCity(event.target.value)}
             placeholder={t("chat.cityPlaceholder")}
             autoComplete="off"
             maxLength={100}
-            className="pl-9"
           />
         </div>
       </div>
 
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
+      <div className={s["modal-foot"]}>
+        <button
+          type="button"
+          className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+          onClick={onClose}
+        >
           {t("chat.cancel")}
-        </Button>
-        <Button type="submit" variant="brand" disabled={!canSubmit}>
-          {isPending ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              {t("chat.starting")}
-            </>
-          ) : (
-            <>
-              <Search className="size-4" />
-              {t("chat.searchJobs")}
-            </>
-          )}
-        </Button>
-      </DialogFooter>
+        </button>
+        <button
+          type="submit"
+          className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+          disabled={!canSubmit}
+        >
+          <Ic name="search" />
+          {isPending ? t("chat.starting") : t("chat.searchJobs")}
+        </button>
+      </div>
     </form>
   );
 }

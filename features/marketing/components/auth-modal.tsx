@@ -11,6 +11,7 @@ import type { TelegramWidgetPayload } from "@/features/auth/services/auth.servic
 import { consumePostLoginRedirect } from "@/features/auth/lib/post-login-redirect";
 import { useTelegramLogin } from "@/features/auth/hooks/use-auth-mutations";
 import { useLanding } from "@/features/marketing/context/landing-context";
+import { ACCOUNT_TYPE } from "@/interfaces/enums";
 import { routes } from "@/config/routes";
 import { env } from "@/lib/env";
 import { isApiClientError } from "@/lib/api/error";
@@ -35,8 +36,12 @@ interface TelegramAuthApi {
  * official widget's in-page popup, then completes through the backend SPA login.
  */
 export function AuthModal() {
-  const { authOpen, authPrompt, closeAuth, accountType, copy } = useLanding();
+  const { authOpen, authPrompt, closeAuth, accountType, copy, setSide } =
+    useLanding();
   const ui = copy.ui;
+  // Worker-first MVP: employer sign-up is closed — the hire side gets a
+  // "coming soon" notice instead of the SSO buttons (nothing else changes).
+  const hiringSoon = accountType === ACCOUNT_TYPE.EMPLOYER;
   const router = useRouter();
   const telegramLogin = useTelegramLogin();
 
@@ -75,7 +80,8 @@ export function AuthModal() {
       telegramLogin.mutate(
         { payload: user, accountType },
         {
-          onSuccess: () => router.replace(consumePostLoginRedirect(routes.chat)),
+          onSuccess: () =>
+            router.replace(consumePostLoginRedirect(routes.chat)),
           onError: (error) =>
             toast.error(
               isApiClientError(error)
@@ -114,40 +120,60 @@ export function AuthModal() {
           <PeoplorMark />
         </span>
 
-        <h3 className={styles.authTitle}>{ui.authTitle}</h3>
-        <p className={styles.authSub}>{ui.authSub}</p>
+        <h3 className={styles.authTitle}>
+          {hiringSoon ? ui.hireSoonTitle : ui.authTitle}
+        </h3>
+        <p className={styles.authSub}>
+          {hiringSoon ? ui.hireSoonBody : ui.authSub}
+        </p>
 
-        {authPrompt ? (
+        {!hiringSoon && authPrompt ? (
           <div className={styles.authPrompt}>
             <IconSearch />
             <span>&ldquo;{authPrompt}&rdquo;</span>
           </div>
         ) : null}
 
-        <div className={styles.authActions}>
-          <a
-            className={styles.authSso}
-            href={authService.googleAuthUrl(accountType)}
-          >
-            <GoogleIcon />
-            {ui.authGoogle}
-          </a>
-          <button
-            type="button"
-            className={styles.authSso}
-            onClick={onTelegram}
-            disabled={telegramLogin.isPending}
-          >
-            <TelegramIcon className="text-[#229ED9]" />
-            {ui.authTelegram}
-          </button>
-        </div>
+        {hiringSoon ? (
+          <div className={styles.authActions}>
+            <span className={styles.authSoonBadge}>{ui.soonBadge}</span>
+            <button
+              type="button"
+              className={styles.authSso}
+              onClick={() => setSide("find")}
+            >
+              <IconSearch />
+              {ui.hireSoonCta}
+            </button>
+          </div>
+        ) : (
+          <div className={styles.authActions}>
+            <a
+              className={styles.authSso}
+              href={authService.googleAuthUrl(accountType)}
+            >
+              <GoogleIcon />
+              {ui.authGoogle}
+            </a>
+            <button
+              type="button"
+              className={styles.authSso}
+              onClick={onTelegram}
+              disabled={telegramLogin.isPending}
+            >
+              <TelegramIcon className="text-[#229ED9]" />
+              {ui.authTelegram}
+            </button>
+          </div>
+        )}
 
-        <p
-          className={styles.authFine}
-          // Localised legal copy contains Terms / Privacy anchors.
-          dangerouslySetInnerHTML={{ __html: ui.authFine }}
-        />
+        {!hiringSoon ? (
+          <p
+            className={styles.authFine}
+            // Localised legal copy contains Terms / Privacy anchors.
+            dangerouslySetInnerHTML={{ __html: ui.authFine }}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -40,6 +40,12 @@ interface UiCopy {
   navPricing: string;
   navSignin: string;
   langLabel: string;
+  /** Small tag on the Hire-talent toggle while employer sign-up is closed. */
+  soonBadge: string;
+  /** Auth-modal notice shown instead of sign-in on the hire side (MVP). */
+  hireSoonTitle: string;
+  hireSoonBody: string;
+  hireSoonCta: string;
   authTitle: string;
   authSub: string;
   authGoogle: string;
@@ -71,6 +77,11 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navPricing: "Pricing",
       navSignin: "Sign in",
       langLabel: "Language",
+      soonBadge: "Coming soon",
+      hireSoonTitle: "Hiring on Peoplor is coming soon",
+      hireSoonBody:
+        "We're launching the job-seeker experience first. Employer sign-up opens shortly — check back soon.",
+      hireSoonCta: "Continue as a job seeker",
       authTitle: "Create your free account",
       authSub:
         "Sign up to see your matches and let Peoplor apply for you — free for job seekers.",
@@ -111,6 +122,11 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navPricing: "Цены",
       navSignin: "Войти",
       langLabel: "Язык",
+      soonBadge: "Скоро",
+      hireSoonTitle: "Найм на Peoplor скоро откроется",
+      hireSoonBody:
+        "Сначала мы запускаем платформу для соискателей. Регистрация работодателей откроется совсем скоро.",
+      hireSoonCta: "Продолжить как соискатель",
       authTitle: "Создайте бесплатный аккаунт",
       authSub:
         "Зарегистрируйтесь, чтобы увидеть совпадения и поручить отклики Peoplor — бесплатно для соискателей.",
@@ -151,6 +167,11 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navPricing: "Narxlar",
       navSignin: "Kirish",
       langLabel: "Til",
+      soonBadge: "Tez orada",
+      hireSoonTitle: "Peoplorʼda xodim yollash tez orada",
+      hireSoonBody:
+        "Avval ish izlovchilar uchun ishga tushiryapmiz. Ish beruvchilar roʻyxatdan oʻtishi tez orada ochiladi.",
+      hireSoonCta: "Ish izlovchi sifatida davom etish",
       authTitle: "Bepul hisob yarating",
       authSub:
         "Mosliklarni koʻrish va arizalarni Peoplorʼga topshirish uchun roʻyxatdan oʻting — ish izlovchilar uchun bepul.",
