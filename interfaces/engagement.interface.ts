@@ -20,6 +20,22 @@ export interface BookmarkVacancyPreview {
   salaryRaw: string | null;
   type: VacancyType | null;
   isRemote: boolean;
+  // Source + apply so a saved sourced job renders like its search result.
+  isPlatform: boolean;
+  applyUrl: string | null;
+  source: string | null;
+  description: string | null;
+  responsibilities: string[];
+  requirements: string[];
+  skills: string[];
+  contact: {
+    email: string | null;
+    phone: string | null;
+    whatsapp: string | null;
+    telegram: string | null;
+    website: string | null;
+    contactForm: string | null;
+  };
 }
 
 export interface Bookmark {

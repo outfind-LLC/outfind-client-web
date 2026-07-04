@@ -13,7 +13,6 @@ import { toast } from "sonner";
 
 import {
   useApplications,
-  useApplyToVacancy,
   useEmployerApplications,
 } from "@/features/applications/hooks/use-applications";
 import {
@@ -300,15 +299,20 @@ function jobFromBookmark(
     company: v.companyName,
     location: [v.city, v.country].filter(Boolean).join(", ") || null,
     salary,
-    skills: [],
+    skills: v.skills ?? [],
     isRemote: v.isRemote,
     jobType: null,
-    description: null,
-    requirements: [],
-    responsibilities: [],
-    contact: { ...EMPTY_CONTACT },
+    description: v.description,
+    requirements: v.requirements ?? [],
+    responsibilities: v.responsibilities ?? [],
+    contact: { ...EMPTY_CONTACT, ...v.contact },
     matchScore: null,
     postedAt: null,
+    // Carry source so a saved SOURCED job opens the external detail (apply link
+    // / contacts / board) instead of the in-app "Apply with my CV" flow.
+    isPlatform: v.isPlatform,
+    applyUrl: v.applyUrl,
+    source: v.source,
   };
 }
 function jobFromThread(thread: Thread): JobCardData {
@@ -461,12 +465,6 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
   const open = openId ? (threads.find((th) => th.id === openId) ?? null) : null;
   const loading = employer ? employerApps.isLoading : workerApps.isLoading;
 
-  const openThread = (id: string) => {
-    setTab("applied");
-    setOpenId(id);
-    setSub("thread");
-  };
-
   if (open) {
     if (employer && sub === "detail") {
       return (
@@ -518,34 +516,38 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
           <MIc name="menu" />
         </button>
         <div className={s["sv-title"]}>
-          {employer ? t("nav.chat") : t("applications.title")}
+          {employer ? t("nav.chat") : t("applications.tabSaved")}
         </div>
       </header>
 
-      <div className={s["sv-tabs"]}>
-        <button
-          type="button"
-          className={cn(s["sv-tab"], tab === "applied" && s.on)}
-          onClick={() => setTab("applied")}
-        >
-          {employer
-            ? t("candidates.tabConversations")
-            : t("applications.tabApplied")}
-          {totalUnread > 0 ? (
-            <span className={s["sv-tabbadge"]}>{totalUnread}</span>
-          ) : null}
-        </button>
-        <button
-          type="button"
-          className={cn(s["sv-tab"], tab === "saved" && s.on)}
-          onClick={() => setTab("saved")}
-        >
-          {employer ? t("candidates.tabShortlist") : t("applications.tabSaved")}
-        </button>
-      </div>
+      {/* Workers see only Saved for now — Applied is employer-conversation-based
+          and doesn't apply to sourced jobs. Employer keeps both tabs. */}
+      {employer ? (
+        <div className={s["sv-tabs"]}>
+          <button
+            type="button"
+            className={cn(s["sv-tab"], tab === "applied" && s.on)}
+            onClick={() => setTab("applied")}
+          >
+            {t("candidates.tabConversations")}
+            {totalUnread > 0 ? (
+              <span className={s["sv-tabbadge"]}>{totalUnread}</span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            className={cn(s["sv-tab"], tab === "saved" && s.on)}
+            onClick={() => setTab("saved")}
+          >
+            {t("candidates.tabShortlist")}
+          </button>
+        </div>
+      ) : null}
 
       <div className={s["sv-scroll"]}>
-        {tab === "applied" ? (
+        {!employer ? (
+          <SavedTab employer={false} bookmarks={bookmarks.data ?? []} />
+        ) : tab === "applied" ? (
           <AppliedTab
             threads={threads}
             loading={loading}
@@ -555,11 +557,7 @@ export function MessengerScreen({ scope }: { scope: ConversationScope }) {
             employer={employer}
           />
         ) : (
-          <SavedTab
-            employer={employer}
-            bookmarks={bookmarks.data ?? []}
-            onOpenThread={openThread}
-          />
+          <SavedTab employer={employer} bookmarks={bookmarks.data ?? []} />
         )}
       </div>
     </div>
@@ -735,14 +733,11 @@ function AppliedTab({
 function SavedTab({
   employer,
   bookmarks,
-  onOpenThread,
 }: {
   employer: boolean;
   bookmarks: Bookmark[];
-  onOpenThread: (applicationId: string) => void;
 }) {
   const { t, locale } = useI18n();
-  const apply = useApplyToVacancy();
   const removeBookmark = useRemoveBookmark();
   const openDetail = useJobDetailPanelStore((st) => st.openDetail);
   const openCandidate = useCandidateDetailStore((st) => st.openCandidate);
@@ -847,27 +842,21 @@ function SavedTab({
     );
   }
 
+  // Saved jobs open the job detail (these can be sourced jobs with no employer
+  // conversation) — not a chat thread. Platform vacancies still support in-app
+  // apply from the detail sheet itself.
   const onView = (b: Bookmark) => {
     const salary = formatBookmarkSalary(b.vacancy, t, locale);
-    openDetail(jobFromBookmark(b.vacancy, salary), b.vacancyId);
+    // Only platform vacancies load the in-app detail; sourced jobs open the
+    // external sheet from the saved data (apply link / contacts / board).
+    openDetail(
+      jobFromBookmark(b.vacancy, salary),
+      b.vacancy.isPlatform ? b.vacancyId : null,
+    );
   };
   const onUnsave = (b: Bookmark) => {
     removeBookmark.mutate(b.vacancyId);
     toast(t("applications.toastRemoved"));
-  };
-  const onApply = (b: Bookmark) => {
-    if (apply.isPending) return;
-    apply.mutate(
-      { vacancyId: b.vacancyId },
-      {
-        onSuccess: (created) => {
-          removeBookmark.mutate(b.vacancyId);
-          toast.success(t("applications.toastAppSent"));
-          onOpenThread(created.id);
-        },
-        onError: () => toast.error(t("applications.errorApply")),
-      },
-    );
   };
 
   return (
@@ -878,7 +867,19 @@ function SavedTab({
         const salary = formatBookmarkSalary(v, t, locale);
         const tags = savedTags(v, t);
         return (
-          <div key={b.id} className={s["sv-job"]}>
+          <div
+            key={b.id}
+            className={s["sv-job"]}
+            role="button"
+            tabIndex={0}
+            onClick={() => onView(b)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onView(b);
+              }
+            }}
+          >
             <div className={s["sv-job-top"]}>
               <span
                 className={s["sv-av"]}
@@ -901,7 +902,10 @@ function SavedTab({
                 type="button"
                 className={s["sv-job-save"]}
                 aria-label={t("applications.removeSaved")}
-                onClick={() => onUnsave(b)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnsave(b);
+                }}
               >
                 <MIc name="bookmark" />
               </button>
@@ -918,23 +922,6 @@ function SavedTab({
                   {tag}
                 </span>
               ))}
-            </div>
-            <div className={s["sv-job-actions"]}>
-              <button
-                type="button"
-                className={cn(s["sv-btn"], s["sv-btn-ghost"])}
-                onClick={() => onView(b)}
-              >
-                {t("applications.viewJob")}
-              </button>
-              <button
-                type="button"
-                className={cn(s["sv-btn"], s["sv-btn-primary"])}
-                onClick={() => onApply(b)}
-                disabled={apply.isPending}
-              >
-                {t("applications.applyMessage")}
-              </button>
             </div>
           </div>
         );
