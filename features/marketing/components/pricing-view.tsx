@@ -13,9 +13,19 @@ import { IconArrowLeft, IconInfo, IconPlanCheck } from "./icons";
 import { SideToggle } from "./side-toggle";
 import styles from "./landing.module.css";
 
-function PlanCard({ plan, onChoose }: { plan: PricingPlan; onChoose: () => void }) {
+function PlanCard({
+  plan,
+  onChoose,
+}: {
+  plan: PricingPlan;
+  onChoose: () => void;
+}) {
   return (
-    <div className={plan.featured ? `${styles.plan} ${styles.featured}` : styles.plan}>
+    <div
+      className={
+        plan.featured ? `${styles.plan} ${styles.featured}` : styles.plan
+      }
+    >
       {plan.tag ? <span className={styles.tag}>{plan.tag}</span> : null}
       <div className={styles.pname}>{plan.name}</div>
       <div className={styles.pdesc}>{plan.desc}</div>
@@ -43,14 +53,24 @@ function PlanCard({ plan, onChoose }: { plan: PricingPlan; onChoose: () => void 
   );
 }
 
+/**
+ * Worker-first MVP: employer pricing is hidden behind a "coming soon" notice.
+ * Flip to true to restore the full hire plans below — nothing was deleted.
+ */
+const HIRING_PRICING_OPEN = false;
+
 /** Pricing page — find/hire plans, ported pixel-for-pixel from the prototype. */
 export function PricingView() {
-  const { side, openAuth } = useLanding();
+  const { side, openAuth, copy } = useLanding();
 
   return (
     <section className={styles.secPad}>
       <div className={styles.wrap}>
-        <Link href={routes.home} className={styles.pageBack} aria-label="Go back">
+        <Link
+          href={routes.home}
+          className={styles.pageBack}
+          aria-label="Go back"
+        >
           <IconArrowLeft />
         </Link>
 
@@ -81,6 +101,12 @@ export function PricingView() {
               ))}
             </div>
           </div>
+        ) : !HIRING_PRICING_OPEN ? (
+          <div className={styles.hireSoon}>
+            <span className={styles.authSoonBadge}>{copy.ui.soonBadge}</span>
+            <h3>{copy.ui.hireSoonTitle}</h3>
+            <p>{copy.ui.hireSoonBody}</p>
+          </div>
         ) : (
           <div>
             <div className={styles.priceGroupHead}>
@@ -107,7 +133,9 @@ export function PricingView() {
                     />
                   ))}
                 </div>
-                {group.note ? <p className={styles.paygNote}>{group.note}</p> : null}
+                {group.note ? (
+                  <p className={styles.paygNote}>{group.note}</p>
+                ) : null}
               </div>
             ))}
           </div>

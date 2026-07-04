@@ -80,7 +80,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       soonBadge: "Coming soon",
       hireSoonTitle: "Hiring on Peoplor is coming soon",
       hireSoonBody:
-        "We're launching the job-seeker experience first. Employer sign-up opens shortly — check back soon.",
+        "We're launching the job-seeker experience first. Our engineers are working tirelessly on the employer side — we'll update you very soon.",
       hireSoonCta: "Continue as a job seeker",
       authTitle: "Create your free account",
       authSub:
@@ -125,7 +125,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       soonBadge: "Скоро",
       hireSoonTitle: "Найм на Peoplor скоро откроется",
       hireSoonBody:
-        "Сначала мы запускаем платформу для соискателей. Регистрация работодателей откроется совсем скоро.",
+        "Сначала мы запускаем платформу для соискателей. Наши инженеры без устали работают над стороной работодателя — совсем скоро всё будет готово.",
       hireSoonCta: "Продолжить как соискатель",
       authTitle: "Создайте бесплатный аккаунт",
       authSub:
@@ -170,7 +170,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       soonBadge: "Tez orada",
       hireSoonTitle: "Peoplorʼda xodim yollash tez orada",
       hireSoonBody:
-        "Avval ish izlovchilar uchun ishga tushiryapmiz. Ish beruvchilar roʻyxatdan oʻtishi tez orada ochiladi.",
+        "Avval ish izlovchilar uchun ishga tushiryapmiz. Muhandislarimiz ish beruvchilar tomoni ustida tinimsiz ishlamoqda — tez orada yangilik boʻladi.",
       hireSoonCta: "Ish izlovchi sifatida davom etish",
       authTitle: "Bepul hisob yarating",
       authSub:

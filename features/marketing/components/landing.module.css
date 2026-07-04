@@ -792,6 +792,40 @@
   gap: 10px;
   margin: 22px 0 0;
 }
+/* Hire-side "coming soon" panel (pricing page, worker-first MVP) */
+.hireSoon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 56px 20px 32px;
+}
+.hireSoon h3 {
+  margin: 0;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.hireSoon p {
+  margin: 0;
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+@media (max-width: 560px) {
+  .hireSoon {
+    padding: 40px 16px 24px;
+  }
+  .hireSoon h3 {
+    font-size: 20px;
+  }
+}
+
 /* Centered "coming soon" pill in the auth modal's hire-side notice */
 .authSoonBadge {
   align-self: center;
