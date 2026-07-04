@@ -38,6 +38,12 @@ export interface JobCardData {
   matchScore: number | null;
   /** ISO posting date → the card's "Posted {when}" line (null when unknown). */
   postedAt: string | null;
+  /** Original posting / apply URL for sourced jobs (deep-link Apply). */
+  applyUrl?: string | null;
+  /** Source board label for sourced jobs (e.g. "LinkedIn"). */
+  source?: string | null;
+  /** True for Peoplor-posted jobs (one-tap in-app apply); false for sourced. */
+  isPlatform?: boolean;
 }
 
 /** A platform vacancy, as returned by the `findJobs` tool. */
@@ -56,6 +62,9 @@ interface InternalVacancyOutput {
   contact: Partial<JobContact> | null;
   matchScore?: number | null;
   postedAt: string | null;
+  isPlatform?: boolean;
+  applyUrl?: string | null;
+  source?: string | null;
 }
 
 /** A broadened web result, as returned by the `findMoreJobs` tool. */
@@ -73,6 +82,8 @@ interface ExternalJobOutput {
   contact: Partial<JobContact> | null;
   matchScore?: number | null;
   postedAt?: string | null;
+  applyUrl?: string | null;
+  sourceBoard?: string | null;
 }
 
 const EMPTY_CONTACT: JobContact = {
@@ -89,7 +100,9 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 /** Coerce a possibly-partial contact payload into the full, null-filled shape. */
-function normaliseContact(raw: Partial<JobContact> | null | undefined): JobContact {
+function normaliseContact(
+  raw: Partial<JobContact> | null | undefined,
+): JobContact {
   if (!raw) return EMPTY_CONTACT;
   return {
     email: raw.email ?? null,
@@ -117,6 +130,9 @@ function normaliseInternal(item: InternalVacancyOutput): JobCardData {
     contact: normaliseContact(item.contact),
     matchScore: item.matchScore ?? null,
     postedAt: item.postedAt ?? null,
+    isPlatform: item.isPlatform ?? true,
+    applyUrl: item.applyUrl ?? null,
+    source: item.source ?? null,
   };
 }
 
@@ -136,6 +152,9 @@ function normaliseExternal(item: ExternalJobOutput): JobCardData {
     contact: normaliseContact(item.contact),
     matchScore: item.matchScore ?? null,
     postedAt: item.postedAt ?? null,
+    isPlatform: false,
+    applyUrl: item.applyUrl ?? null,
+    source: item.sourceBoard ?? null,
   };
 }
 

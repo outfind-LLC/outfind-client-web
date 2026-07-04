@@ -42,6 +42,32 @@ export interface Reaction {
   updatedAt: string;
 }
 
+/** Body for `POST /worker/jobs/save-external` — a live-web job to persist + save. */
+export interface SaveExternalJobPayload {
+  title: string;
+  company?: string | null;
+  location?: string | null;
+  country?: string | null;
+  city?: string | null;
+  applyUrl?: string | null;
+  source?: string | null;
+  salary?: string | null;
+  jobType?: string | null;
+  isRemote?: boolean;
+  description?: string | null;
+  skills?: string[];
+  responsibilities?: string[];
+  requirements?: string[];
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+    whatsapp?: string | null;
+    telegram?: string | null;
+    website?: string | null;
+    contactForm?: string | null;
+  };
+}
+
 /** A comment on a vacancy (backend `CommentView`). `userId` identifies the
  * author so the client can offer delete on the caller's own comments. */
 export interface VacancyComment {

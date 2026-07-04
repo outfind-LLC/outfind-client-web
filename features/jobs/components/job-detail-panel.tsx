@@ -86,7 +86,10 @@ function JobDetailSheet({
   const { data: full } = useVacancyDetail(vacancyId ?? "", needsFetch);
   const job = full ? enrichJobWithVacancy(initialJob, full) : initialJob;
 
-  return vacancyId ? (
+  // In-app apply only for Peoplor-posted jobs; sourced jobs (from boards /
+  // company pages) deep-link to their original posting via the external sheet.
+  const platform = job.isPlatform ?? true;
+  return vacancyId && platform ? (
     <InternalSheet
       job={job}
       vacancyId={vacancyId}
@@ -180,13 +183,21 @@ function ExternalSheet({
   const t = useT();
   const { email, phone } = job.contact;
   const fallbackHref = primaryContactHref(job.contact);
+  // Board / company-page jobs deep-link to their original posting.
+  const applyHref = job.applyUrl ?? null;
 
   const applySection = (
     <div className={s["jd-sec"]}>
       <h3>{t("chat.jdHowApply")}</h3>
       <p>
-        {t("chat.jdOnlineApply")}
-        {hasAnyContact(job.contact) ? t("chat.jdOnlineContacts") : ""}
+        {applyHref
+          ? job.source
+            ? t("chat.jdApplyVia", { source: job.source })
+            : t("chat.jdApplyOriginal")
+          : t("chat.jdOnlineApply")}
+        {!applyHref && hasAnyContact(job.contact)
+          ? t("chat.jdOnlineContacts")
+          : ""}
       </p>
       {hasAnyContact(job.contact) ? (
         <div className={s["jd-contact"]} style={{ marginTop: 13 }}>
@@ -224,7 +235,16 @@ function ExternalSheet({
           {t("chat.email")}
         </a>
       ) : null}
-      {phone ? (
+      {applyHref ? (
+        <a
+          className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+          href={applyHref}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("chat.applyExternal")}
+        </a>
+      ) : phone ? (
         <a
           className={cn(s.btn, s["btn-primary"], s["btn-md"])}
           href={`tel:${phone}`}

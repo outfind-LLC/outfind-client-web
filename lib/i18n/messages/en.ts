@@ -141,6 +141,7 @@ export const en = {
     candidateCount: "{n} candidates",
     candidateCountOne: "1 candidate",
     rankedByFit: "ranked by fit",
+    showMoreMatches: "Show {n} more matches",
     jobSearchUnavailable:
       "Job search is temporarily unavailable. Please try again in a moment.",
     working: "Working",
@@ -162,6 +163,10 @@ export const en = {
       "This role was posted on Peoplor, so you can apply in one tap — we'll send your CV tailored to this job.",
     jdOnlineApply:
       "Peoplor found this role online, so you apply with the employer directly.",
+    jdApplyOriginal:
+      "Peoplor found this role online — tap Apply to open the original posting.",
+    jdApplyVia:
+      "Peoplor found this role on {source} — tap Apply to open the original posting.",
     jdOnlineContacts: " Here are their contact details:",
     jdOnlineNote:
       "Peoplor can't apply on your behalf for roles found online. Always verify the employer and never pay for a job or share documents before you're sure.",
@@ -199,6 +204,7 @@ export const en = {
     assistantPlaceholder: "Ask anything…",
     employerPlaceholder: "Describe who you need…",
     startConvError: "Couldn't start the conversation",
+    saveError: "Couldn't save the job. Please try again.",
     chipTruckDriver: "Truck driver",
     chipWarehouse: "Warehouse work",
     chipCourier: "Delivery courier",

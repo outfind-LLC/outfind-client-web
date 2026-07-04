@@ -968,6 +968,31 @@
   font-size: 13px;
   color: var(--text-secondary);
 }
+/* "Show N more matches" expander under a consolidated match list */
+.jobs-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  margin-top: 2px;
+  padding: 9px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-accent);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-fill);
+  transition: background var(--dur-base) var(--ease-standard);
+}
+.jobs-more:hover {
+  background: var(--accent-50);
+}
+.jobs-more .ic {
+  width: 16px;
+  height: 16px;
+}
 .jcard {
   border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
@@ -1017,6 +1042,38 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
+}
+/* Save (bookmark) toggle on a job card */
+.jc-save {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  color: var(--icon-secondary);
+  cursor: pointer;
+  transition:
+    background var(--dur-base) var(--ease-standard),
+    color var(--dur-base) var(--ease-standard);
+}
+.jc-save:hover {
+  background: var(--bg-secondary-hover);
+  color: var(--icon-primary);
+}
+.jc-save .ic {
+  width: 18px;
+  height: 18px;
+}
+.jc-save-on {
+  color: var(--accent-brand);
+}
+.jc-save-on:hover {
+  color: var(--accent-brand);
 }
 .jc-logo {
   width: 42px;

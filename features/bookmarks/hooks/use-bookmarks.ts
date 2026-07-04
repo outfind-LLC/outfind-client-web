@@ -7,6 +7,7 @@ import { bookmarksService } from "@/features/bookmarks/services/bookmarks.servic
 import type {
   Bookmark,
   BookmarkPayload,
+  SaveExternalJobPayload,
 } from "@/interfaces/engagement.interface";
 
 /** Worker: list saved vacancies. */
@@ -32,6 +33,16 @@ export function useRemoveBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (vacancyId: string) => bookmarksService.remove(vacancyId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.bookmarks }),
+  });
+}
+
+/** Worker: save a live-web job (persists it, then bookmarks the new row). */
+export function useSaveExternalJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: SaveExternalJobPayload) =>
+      bookmarksService.saveExternal(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.bookmarks }),
   });
 }

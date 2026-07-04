@@ -35,8 +35,15 @@ export function useStartConversation(
   const queuePending = useComposerStore((s) => s.queuePending);
 
   return useMutation({
-    mutationFn: (vars: { message: string; specialist?: AiSpecialist }) =>
-      chatService.createConversation({ specialist: vars.specialist }),
+    mutationFn: (vars: {
+      message: string;
+      specialist?: AiSpecialist;
+      title?: string;
+    }) =>
+      chatService.createConversation({
+        specialist: vars.specialist,
+        title: vars.title,
+      }),
     onSuccess: (conversation, vars) => {
       queuePending(conversation.id, vars.message);
       queryClient.invalidateQueries({ queryKey: qk.conversations() });

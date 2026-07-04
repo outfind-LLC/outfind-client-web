@@ -134,6 +134,7 @@ export const uz: Messages = {
     candidateCount: "{n} ta nomzod",
     candidateCountOne: "1 ta nomzod",
     rankedByFit: "moslik bo‘yicha",
+    showMoreMatches: "Yana {n} tasini ko‘rsatish",
     jobSearchUnavailable:
       "Ish qidiruvi vaqtincha mavjud emas. Bir oz vaqtdan keyin urinib ko‘ring.",
     working: "Ishlanmoqda",
@@ -153,6 +154,10 @@ export const uz: Messages = {
       "Bu ish Peoplor’da joylangan, shuning uchun bir bosishda ariza bera olasiz — rezyumengizni shu ishga moslab yuboramiz.",
     jdOnlineApply:
       "Peoplor bu ishni internetdan topdi, shuning uchun ish beruvchiga to‘g‘ridan-to‘g‘ri ariza berasiz.",
+    jdApplyOriginal:
+      "Peoplor bu ishni internetdan topdi — asl e’lonni ochish uchun «Ariza berish»ni bosing.",
+    jdApplyVia:
+      "Peoplor bu ishni {source} da topdi — asl e’lonni ochish uchun «Ariza berish»ni bosing.",
     jdOnlineContacts: " Mana ularning aloqa ma’lumotlari:",
     jdOnlineNote:
       "Peoplor internetdan topilgan ishlarga siz uchun ariza bera olmaydi. Har doim ish beruvchini tekshiring, ish uchun pul to‘lamang va ishonch hosil qilmaguningizcha hujjat ulashmang.",
@@ -189,6 +194,7 @@ export const uz: Messages = {
     assistantPlaceholder: "Istalgan narsani so‘rang…",
     employerPlaceholder: "Kim kerakligini yozing…",
     startConvError: "Suhbatni boshlab bo‘lmadi",
+    saveError: "Vakansiyani saqlab bo‘lmadi. Qayta urinib ko‘ring.",
     chipTruckDriver: "Yuk mashina haydovchisi",
     chipWarehouse: "Ombor ishi",
     chipCourier: "Yetkazib beruvchi kuryer",
