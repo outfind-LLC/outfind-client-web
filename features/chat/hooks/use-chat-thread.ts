@@ -6,12 +6,10 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 
 import { env } from "@/lib/env";
 import { useComposerStore } from "@/features/chat/store/composer.store";
-import type { AiSpecialist } from "@/interfaces/enums";
 
 interface SendBody {
   conversationId: string;
   message: string;
-  specialist?: AiSpecialist;
   /** AI Job Search structured inputs (required by the Job Finder specialist). */
   profession?: string;
   city?: string;
@@ -36,9 +34,11 @@ function lastUserText(messages: UIMessage[]): string {
 
 /**
  * Streaming chat for a single conversation. Wraps `useChat` with a transport
- * that rewrites the request to the backend's `{ conversationId, message,
- * specialist? }` contract and stamps a fresh `Idempotency-Key` per send. The AI
- * model is chosen server-side (by use case × plan tier), never sent by the client.
+ * that rewrites the request to the backend's `{ conversationId, message }`
+ * contract and stamps a fresh `Idempotency-Key` per send. The specialist is
+ * fixed at conversation creation and resolved server-side from the thread —
+ * never re-sent per turn — and the AI model is likewise chosen server-side
+ * (by use case × plan tier).
  */
 export function useChatThread(
   conversationId: string,
@@ -50,16 +50,13 @@ export function useChatThread(
         api: `${env.NEXT_PUBLIC_API_URL}/chat`,
         credentials: "include",
         prepareSendMessagesRequest: ({ messages }) => {
-          // Read the latest selection at send time (outside React render).
-          const { specialist, jobSearch } = useComposerStore.getState();
           const body: SendBody = {
             conversationId,
             message: lastUserText(messages),
           };
-          if (specialist) body.specialist = specialist;
           // The Job Finder is structured: replay this conversation's profession
           // and city so the backend can run (and re-run) the search on each turn.
-          const search = jobSearch[conversationId];
+          const search = useComposerStore.getState().jobSearch[conversationId];
           if (search) {
             body.profession = search.profession;
             body.city = search.city;

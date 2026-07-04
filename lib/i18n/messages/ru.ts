@@ -204,6 +204,11 @@ export const ru: Messages = {
     chipWarehouseStaff: "Складские работники",
     chipDeliveryCouriers: "Курьеры доставки",
     chipCleaners: "Уборщики",
+    modeVisa: "Виза и документы",
+    modeSearch: "Поиск работы",
+    modeAssist: "ИИ-помощник",
+    visaPlaceholder: "Спросите о визах, разрешениях на работу и документах…",
+    assistPlaceholder: "Спросите о чём угодно…",
     searchTitle: "Найдите следующую работу",
     searchDesc:
       "Расскажите, что ищете. Мы ищем вакансии по всему интернету и подбираем лучшие совпадения.",

@@ -9,7 +9,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { getDefaultSpecialist } from "@/features/chat/constants/specialists";
+import {
+  getDefaultSpecialist,
+  getSpecialists,
+} from "@/features/chat/constants/specialists";
 import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { VoiceRecorder } from "@/features/chat/components/voice-recorder";
@@ -78,9 +81,15 @@ export function ChatComposer({
     onError: (code) => toast.error(dictationError(code, t)),
   });
 
-  // Seed the store's specialist once for this audience if unset.
+  // Seed the store's specialist for this audience — and RESEED whenever the
+  // stored one belongs to the other side (stale after a worker↔employer account
+  // switch in the same session), so a new conversation can never be created
+  // with a cross-audience specialist (backend rejects those with 403).
   useEffect(() => {
-    if (!storeSpecialist) setSpecialist(getDefaultSpecialist(accountType));
+    const valid = getSpecialists(accountType).some(
+      (option) => option.value === storeSpecialist,
+    );
+    if (!valid) setSpecialist(getDefaultSpecialist(accountType));
   }, [storeSpecialist, accountType, setSpecialist]);
 
   // Auto-grow the textarea to fit content, capped.

@@ -213,6 +213,12 @@ export const en = {
     chipWarehouseStaff: "Warehouse staff",
     chipDeliveryCouriers: "Delivery couriers",
     chipCleaners: "Cleaners",
+    // Job-search landing modes
+    modeVisa: "Visa documentation",
+    modeSearch: "Search jobs",
+    modeAssist: "AI assistance",
+    visaPlaceholder: "Ask about visas, work permits and documents…",
+    assistPlaceholder: "Ask me anything…",
     // Job-search modal
     searchTitle: "Find your next job",
     searchDesc:

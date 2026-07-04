@@ -203,6 +203,11 @@ export const uz: Messages = {
     chipWarehouseStaff: "Ombor xodimlari",
     chipDeliveryCouriers: "Yetkazib beruvchilar",
     chipCleaners: "Farroshlar",
+    modeVisa: "Viza hujjatlari",
+    modeSearch: "Ish qidirish",
+    modeAssist: "AI yordamchisi",
+    visaPlaceholder: "Viza, ishga ruxsat va hujjatlar haqida so‘rang…",
+    assistPlaceholder: "Istalgan savolingizni yozing…",
     searchTitle: "Keyingi ishingizni toping",
     searchDesc:
       "Nima qidirayotganingizni ayting. Biz butun internetdan ishlarni qidirib, eng mos variantlarni saralaymiz.",
