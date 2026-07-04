@@ -56,11 +56,6 @@ const D: Record<string, [string, string, string]> = {
     "Например: 09:00–18:00",
     "Masalan: 09:00–18:00",
   ],
-  "s5.tpl": [
-    "Job Overview\n\nResponsibilities\n•  \n•  \n\nWhat We’re Looking For\n•  \n•  \n\nBenefits & Perks\n•  \n•  ",
-    "О вакансии\n\nОбязанности\n•  \n•  \n\nКого мы ищем\n•  \n•  \n\nПреимущества и бонусы\n•  \n•  ",
-    "Vakansiya haqida\n\nVazifalar\n•  \n•  \n\nKimni qidiryapmiz\n•  \n•  \n\nImtiyoz va bonuslar\n•  \n•  ",
-  ],
   "foot.step": ["Step {n} of {t}", "Шаг {n} из {t}", "{n}-bosqich / {t}"],
 
   // step names + meta

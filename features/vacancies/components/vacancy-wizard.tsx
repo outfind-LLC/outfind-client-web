@@ -199,13 +199,26 @@ const DEFAULT_STATE: WizardState = {
 
 const PV_KEY = "pv_state";
 
+// Earlier builds seeded the description with this scaffold; a stored draft may
+// still hold it untouched — drop it so the field starts empty (edits are kept).
+const LEGACY_DESC_TEMPLATES = [
+  "Job Overview\n\nResponsibilities\n•  \n•  \n\nWhat We’re Looking For\n•  \n•  \n\nBenefits & Perks\n•  \n•  ",
+  "О вакансии\n\nОбязанности\n•  \n•  \n\nКого мы ищем\n•  \n•  \n\nПреимущества и бонусы\n•  \n•  ",
+  "Vakansiya haqida\n\nVazifalar\n•  \n•  \n\nKimni qidiryapmiz\n•  \n•  \n\nImtiyoz va bonuslar\n•  \n•  ",
+];
+
 function loadState(): WizardState {
   if (typeof window === "undefined") return DEFAULT_STATE;
   try {
     const raw = window.localStorage.getItem(PV_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw) as Partial<WizardState>;
-    return { ...DEFAULT_STATE, ...parsed };
+    if (parsed.desc && LEGACY_DESC_TEMPLATES.includes(parsed.desc)) {
+      parsed.desc = "";
+    }
+    // Typed fields survive a reload, but the wizard always opens on the
+    // design's default tab — Regular job.
+    return { ...DEFAULT_STATE, ...parsed, jobType: "regular" };
   } catch {
     return DEFAULT_STATE;
   }
@@ -1485,15 +1498,6 @@ function Step5({
   generating,
 }: StepProps & { onGenerate: () => void; generating: boolean }) {
   const [aiOpen, setAiOpen] = useState(false);
-  const desc = s.desc || t("s5.tpl");
-
-  // Seed the description with the structured template (matches the prototype) so
-  // the step counts as filled — a state write, so it runs in an effect.
-  const hasDesc = Boolean(s.desc);
-  useEffect(() => {
-    if (!hasDesc) update({ desc: t("s5.tpl") });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className={w.card}>
@@ -1575,12 +1579,12 @@ function Step5({
           <textarea
             className={w.ta}
             style={{ minHeight: 240 }}
-            value={desc}
+            value={s.desc}
             maxLength={3000}
             placeholder={t("s5.descPh")}
             onChange={(e) => update({ desc: e.target.value })}
           />
-          <div className={w["ta-count"]}>{desc.length}/3000</div>
+          <div className={w["ta-count"]}>{s.desc.length}/3000</div>
         </div>
       </div>
 
