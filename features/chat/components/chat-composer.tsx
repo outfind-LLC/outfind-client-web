@@ -34,7 +34,12 @@ interface ChatComposerProps {
   showFoot?: boolean;
 }
 
-const MAX_TEXTAREA_HEIGHT = 160;
+const MAX_TEXTAREA_HEIGHT = 200;
+/** Hard cap on one message — mirrors the backend's CHAT_LIMITS.MAX_MESSAGE_LENGTH
+ * (MVP value; raise both together when longer turns are wanted). */
+const MAX_MESSAGE_LENGTH = 1200;
+/** The counter turns amber once the message is this far into the cap. */
+const COUNTER_WARN_AT = Math.floor(MAX_MESSAGE_LENGTH * 0.9);
 
 /** Friendly message for a Web Speech API error code. */
 function dictationError(code: string, t: TranslateFn): string {
@@ -77,7 +82,9 @@ export function ChatComposer({
 
   const speech = useSpeechRecognition({
     onTranscript: (transcript) =>
-      setInput(`${dictationBaseRef.current}${transcript}`),
+      setInput(
+        `${dictationBaseRef.current}${transcript}`.slice(0, MAX_MESSAGE_LENGTH),
+      ),
     onError: (code) => toast.error(dictationError(code, t)),
   });
 
@@ -160,10 +167,13 @@ export function ChatComposer({
         <textarea
           ref={textareaRef}
           value={input}
-          onChange={(event) => setInput(event.target.value)}
+          onChange={(event) =>
+            setInput(event.target.value.slice(0, MAX_MESSAGE_LENGTH))
+          }
           onKeyDown={onKeyDown}
           autoFocus={autoFocus}
           rows={1}
+          maxLength={MAX_MESSAGE_LENGTH}
           placeholder={resolvedPlaceholder}
           aria-label={resolvedPlaceholder}
         />
@@ -202,6 +212,21 @@ export function ChatComposer({
             onCancel={() => stopRecording(false)}
             onConfirm={() => stopRecording(true)}
           />
+        ) : null}
+
+        {!recording && input.length > 0 ? (
+          // Badge on the pill's top-right: live countdown of characters LEFT.
+          <div
+            className={cn(
+              s["composer-count"],
+              input.length >= COUNTER_WARN_AT && s.warn,
+              input.length >= MAX_MESSAGE_LENGTH && s.limit,
+            )}
+            aria-live="polite"
+          >
+            {(MAX_MESSAGE_LENGTH - input.length).toLocaleString()} /{" "}
+            {MAX_MESSAGE_LENGTH.toLocaleString()}
+          </div>
         ) : null}
       </form>
 

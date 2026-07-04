@@ -1354,15 +1354,20 @@
 }
 
 .composer {
+  position: relative; /* anchors the floating character-count badge */
   width: 100%;
   max-width: 760px;
   margin: 0 auto;
   display: flex;
-  align-items: center;
+  /* Bottom-anchored so the mic/send stay in place while the input grows. */
+  align-items: flex-end;
   gap: 6px;
   padding: 7px 8px 7px 22px;
   border: 0.5px solid var(--border-default);
-  border-radius: var(--radius-fill);
+  /* Fixed radius, NOT the 9999px stadium: at one line it looks identical, but
+     when the input grows the corners stay 28px so multi-line text can't paint
+     outside the rounded background (Claude-style rounded rectangle). */
+  border-radius: 28px;
   background: var(--bg-primary);
   box-shadow: 0 0 18px rgba(15, 15, 16, 0.07);
   transition:
@@ -1388,10 +1393,83 @@
   line-height: 1.5;
   color: var(--text-primary);
   padding: 9px 0;
-  max-height: 160px;
+  /* Grows with content (JS-synced), then scrolls — keep in step with
+     MAX_TEXTAREA_HEIGHT in chat-composer.tsx. */
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .composer textarea::placeholder {
   color: var(--text-tertiary);
+}
+.composer textarea::-webkit-scrollbar {
+  width: 8px;
+}
+.composer textarea::-webkit-scrollbar-thumb {
+  background: var(--gray-200);
+  border-radius: 8px;
+}
+.composer textarea::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+}
+/* character-count badge — floats on the pill's top-right and counts DOWN the
+   characters left; amber near the cap, red at it. pointer-events off so it can
+   never block taps on any screen size. */
+.composer-count {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(15, 15, 16, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: countIn 0.25s var(--ease-out) both;
+  transition:
+    color var(--dur-base) var(--ease-standard),
+    background var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard);
+}
+@keyframes countIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.composer-count.warn {
+  color: var(--warning);
+  border-color: var(--warning);
+  background: var(--warning-50);
+}
+.composer-count.limit {
+  color: var(--error);
+  border-color: var(--error);
+  background: var(--error-50);
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-count {
+    animation: none;
+  }
+}
+@media (max-width: 560px) {
+  .composer-count {
+    right: 12px;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    top: -11px;
+  }
 }
 .composer .mic {
   width: 36px;
