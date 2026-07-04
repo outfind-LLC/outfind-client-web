@@ -104,6 +104,10 @@ import inbox from "./inbox";
 import rocket from "./rocket";
 import fileText from "./file-text";
 
+// Chat response actions
+import thumbUp from "./thumb-up";
+import thumbDown from "./thumb-down";
+
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
  * default-exported `IconDef`) and registering it here. Names are unique per
@@ -113,26 +117,105 @@ import fileText from "./file-text";
  */
 const DEFS = {
   // dashboard / app-shell
-  panel, plus, bookmark, docCheck, user, briefcase, users, messages, search,
-  company, route, zap, settings, help, logout, menu, close, mic, arrowUp,
-  chevronDown, checkThin, checkBold, globe, type: type_, clock, calendar, pin,
-  phone, mail, verified, stop,
+  panel,
+  plus,
+  bookmark,
+  docCheck,
+  user,
+  briefcase,
+  users,
+  messages,
+  search,
+  company,
+  route,
+  zap,
+  settings,
+  help,
+  logout,
+  menu,
+  close,
+  mic,
+  arrowUp,
+  chevronDown,
+  checkThin,
+  checkBold,
+  globe,
+  type: type_,
+  clock,
+  calendar,
+  pin,
+  phone,
+  mail,
+  verified,
+  stop,
   // messenger
-  back, phoneClassic, check, checks, plusBold, bookmarkCard, externalLink,
-  wallet, menuShort, chat, eye, dotsVertical, verifiedSeal,
+  back,
+  phoneClassic,
+  check,
+  checks,
+  plusBold,
+  bookmarkCard,
+  externalLink,
+  wallet,
+  menuShort,
+  chat,
+  eye,
+  dotsVertical,
+  verifiedSeal,
   // profile
-  userRound, chevronRight, dotsHorizontal, backThin, closeThin, file, eyeOff,
-  pen, copy, download, share, trash, phoneClassicThin, mailRound,
-  companyTallThin, print, checkStrong, telegram, whatsapp,
+  userRound,
+  chevronRight,
+  dotsHorizontal,
+  backThin,
+  closeThin,
+  file,
+  eyeOff,
+  pen,
+  copy,
+  download,
+  share,
+  trash,
+  phoneClassicThin,
+  mailRound,
+  companyTallThin,
+  print,
+  checkStrong,
+  telegram,
+  whatsapp,
   // settings
-  gear, bell, briefcaseAlt, shield, userSmall, lock, chevronRightBold,
-  chevronDownRound, closeMed, key, verifiedOutline, logoutAlt, sun, moon, desktop,
+  gear,
+  bell,
+  briefcaseAlt,
+  shield,
+  userSmall,
+  lock,
+  chevronRightBold,
+  chevronDownRound,
+  closeMed,
+  key,
+  verifiedOutline,
+  logoutAlt,
+  sun,
+  moon,
+  desktop,
   // employer / company
-  companyTall, pencil, alert, usersRound,
+  companyTall,
+  pencil,
+  alert,
+  usersRound,
   // career & migration / global hiring
-  arrowRight, sparkle, docLines, docPlain, sealCheck,
+  arrowRight,
+  sparkle,
+  docLines,
+  docPlain,
+  sealCheck,
   // vacancies
-  inbox, rocket, fileText,
+  inbox,
+  rocket,
+  fileText,
+  // chat response actions
+  thumbUp,
+  thumbDown,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;
@@ -148,5 +231,8 @@ function toMask(def: IconDef): string {
 
 /** name → `url("data:image/svg+xml,…")`, ready for `style={{ "--i": ICONS[name] }}`. */
 export const ICONS = Object.fromEntries(
-  (Object.entries(DEFS) as [IconName, IconDef][]).map(([name, def]) => [name, toMask(def)]),
+  (Object.entries(DEFS) as [IconName, IconDef][]).map(([name, def]) => [
+    name,
+    toMask(def),
+  ]),
 ) as Record<IconName, string>;

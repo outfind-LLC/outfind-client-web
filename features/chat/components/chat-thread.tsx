@@ -15,7 +15,12 @@ import { toUIMessages } from "@/features/chat/lib/map-messages";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { playEventSound } from "@/features/settings/lib/play-sound";
 import { useSession } from "@/features/auth/hooks/use-session";
-import type { AccountType } from "@/interfaces/enums";
+import { useT } from "@/providers/i18n-provider";
+import {
+  AI_SPECIALIST,
+  type AccountType,
+  type AiSpecialist,
+} from "@/interfaces/enums";
 import { ChatComposer } from "./chat-composer";
 import { MessageList } from "./message-list";
 import type { ChatSurface } from "./message-bubble";
@@ -64,6 +69,8 @@ export function ChatThread({
       accountType={user.accountType}
       initialMessages={toUIMessages(data ?? [])}
       surface={surface}
+      // The thread's specialist, read off its history (any message carries it).
+      specialist={data?.find((m) => m.specialist)?.specialist ?? null}
     />
   );
 }
@@ -73,6 +80,7 @@ interface ChatRuntimeProps {
   accountType: AccountType;
   initialMessages: UIMessage[];
   surface: ChatSurface;
+  specialist: AiSpecialist | null;
 }
 
 function ChatRuntime({
@@ -80,7 +88,9 @@ function ChatRuntime({
   accountType,
   initialMessages,
   surface,
+  specialist,
 }: ChatRuntimeProps) {
+  const t = useT();
   const chat = useChatThread(conversationId, initialMessages);
   const takePending = useComposerStore((s) => s.takePending);
   const autoSent = useRef(false);
@@ -112,6 +122,17 @@ function ChatRuntime({
 
   const busy = chat.status === "submitted" || chat.status === "streaming";
 
+  // Localized composer hint, matched to what this thread actually is.
+  const placeholder =
+    specialist === AI_SPECIALIST.JOB_FINDER ||
+    (!specialist && surface === "jobs")
+      ? t("chat.jobsThreadPlaceholder")
+      : specialist === AI_SPECIALIST.RELOCATION_GUIDE
+        ? t("chat.visaPlaceholder")
+        : specialist === AI_SPECIALIST.CV_BUILDER
+          ? t("chat.cvPlaceholder")
+          : t("chat.assistPlaceholder");
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <MessageList
@@ -125,7 +146,7 @@ function ChatRuntime({
         onSend={(text) => void chat.sendMessage({ text })}
         onStop={() => void chat.stop()}
         autoFocus
-        placeholder={surface === "jobs" ? "Search jobs…" : "Ask anything…"}
+        placeholder={placeholder}
       />
     </div>
   );

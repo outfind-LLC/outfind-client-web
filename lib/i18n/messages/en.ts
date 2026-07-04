@@ -214,11 +214,21 @@ export const en = {
     chipDeliveryCouriers: "Delivery couriers",
     chipCleaners: "Cleaners",
     // Job-search landing modes
+    modeCv: "CV builder",
     modeVisa: "Visa documentation",
     modeSearch: "Search jobs",
     modeAssist: "AI assistance",
     visaPlaceholder: "Ask about visas, work permits and documents…",
     assistPlaceholder: "Ask me anything…",
+    cvPlaceholder: "Tell me about your experience — I'll build your CV…",
+    jobsThreadPlaceholder: "Search jobs…",
+    // Assistant response actions
+    copyAction: "Copy",
+    copiedAction: "Copied",
+    goodResponse: "Good response",
+    badResponse: "Bad response",
+    feedbackError: "Couldn't save your feedback",
+    copyError: "Couldn't copy to clipboard",
     // Job-search modal
     searchTitle: "Find your next job",
     searchDesc:

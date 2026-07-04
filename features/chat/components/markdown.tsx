@@ -15,7 +15,9 @@ const COMPONENTS: Components = {
     <h2 className="mt-4 mb-2 text-base font-semibold first:mt-0">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-3 mb-1.5 text-sm font-semibold first:mt-0">{children}</h3>
+    <h3 className="mt-3 mb-1.5 text-[15px] font-semibold first:mt-0">
+      {children}
+    </h3>
   ),
   ul: ({ children }) => (
     <ul className="my-2 ml-5 list-disc space-y-1">{children}</ul>
@@ -78,10 +80,12 @@ interface MarkdownProps {
   className?: string;
 }
 
-/** Renders assistant text as GitHub-flavoured markdown. */
+/** Renders assistant text as GitHub-flavoured markdown. Inherits the chat's
+ * font size/family from the surrounding bubble so assistant text matches the
+ * rest of the app (no hard-coded Tailwind size). */
 export function Markdown({ content, className }: MarkdownProps) {
   return (
-    <div className={cn("min-w-0 space-y-2 text-sm break-words", className)}>
+    <div className={cn("min-w-0 space-y-2 break-words", className)}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={COMPONENTS}>
         {content}
       </ReactMarkdown>

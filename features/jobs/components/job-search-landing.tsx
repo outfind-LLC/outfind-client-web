@@ -24,35 +24,45 @@ import {
 } from "@/interfaces/enums";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
-/** The landing's three entry points (the row under the composer). */
-type LandingMode = "visa" | "search" | "assist";
+/** The landing's four entry points (the row under the composer). */
+type LandingMode = "cv" | "assist" | "search" | "visa";
 
 const MODES: {
   key: LandingMode;
   icon: IconName;
   labelKey: MessageKey;
 }[] = [
-  { key: "visa", icon: "docCheck", labelKey: "chat.modeVisa" },
-  { key: "search", icon: "search", labelKey: "chat.modeSearch" },
+  { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
   { key: "assist", icon: "sparkle", labelKey: "chat.modeAssist" },
+  { key: "search", icon: "search", labelKey: "chat.modeSearch" },
+  { key: "visa", icon: "docCheck", labelKey: "chat.modeVisa" },
 ];
 
 /** Chat specialist behind each conversational mode. */
 const MODE_SPECIALIST: Record<Exclude<LandingMode, "search">, AiSpecialist> = {
-  visa: AI_SPECIALIST.RELOCATION_GUIDE,
+  cv: AI_SPECIALIST.CV_BUILDER,
   assist: AI_SPECIALIST.CAREER_ASSISTANT,
+  visa: AI_SPECIALIST.RELOCATION_GUIDE,
+};
+
+/** Composer hint per mode. */
+const MODE_PLACEHOLDER: Record<LandingMode, MessageKey> = {
+  cv: "chat.cvPlaceholder",
+  assist: "chat.assistPlaceholder",
+  search: "chat.composerPlaceholder",
+  visa: "chat.visaPlaceholder",
 };
 
 /**
  * Job Search "New job" landing — the animated brand mark, the lead question,
- * the composer, and three modes at the bottom: Visa documentation, Search jobs
- * (default), and AI assistance.
+ * the composer, and four modes at the bottom: CV builder, AI assistance,
+ * Search jobs (default), and Visa documentation.
  *
  * Search jobs keeps the structured flow: free text seeds the profession into
  * the search modal, which confirms the city before the JOB_FINDER thread opens.
- * Visa documentation and AI assistance are conversational — the typed question
- * starts a thread with that specialist (RELOCATION_GUIDE / CAREER_ASSISTANT),
- * which replies in the user's own language.
+ * The other three are conversational — the typed question starts a thread with
+ * that specialist (CV_BUILDER / CAREER_ASSISTANT / RELOCATION_GUIDE), which
+ * replies in the user's own language.
  */
 export function JobSearchLanding() {
   const t = useT();
@@ -93,12 +103,7 @@ export function JobSearchLanding() {
     if (next === "search") openSearch(null);
   };
 
-  const placeholder =
-    mode === "visa"
-      ? t("chat.visaPlaceholder")
-      : mode === "assist"
-        ? t("chat.assistPlaceholder")
-        : t("chat.composerPlaceholder");
+  const placeholder = t(MODE_PLACEHOLDER[mode]);
 
   return (
     <div className={s.landing}>

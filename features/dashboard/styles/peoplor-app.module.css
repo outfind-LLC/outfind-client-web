@@ -750,6 +750,41 @@
 .bubble strong {
   font-weight: 700;
 }
+/* copy / like / dislike row under a completed assistant reply */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 4px 0 0 -6px;
+}
+.msg-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  color: var(--icon-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background var(--dur-base) var(--ease-standard),
+    color var(--dur-base) var(--ease-standard);
+}
+.msg-actions button:hover {
+  background: var(--bg-secondary-hover);
+  color: var(--icon-primary);
+}
+.msg-actions button[aria-pressed="true"] {
+  color: var(--accent-600);
+  background: var(--accent-50);
+}
+.msg-actions .ic {
+  width: 16px;
+  height: 16px;
+}
 .bubble .cursor {
   display: inline-block;
   width: 2px;
@@ -1567,6 +1602,22 @@
   border-color: var(--accent-brand);
   color: var(--text-accent);
   background: var(--accent-50);
+}
+/* Mobile: keep all four mode chips comfortably tappable on small screens. */
+@media (max-width: 560px) {
+  .landing .hero-chips {
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .landing .hero-chips button {
+    font-size: 13px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .landing .hero-chips button .ic {
+    width: 15px;
+    height: 15px;
+  }
 }
 /* Mirror the empty-state: no sticky gradient bar, and no extra padding around the
    composer (the outer `.landing` now supplies the 10/22 the prototype uses). */

@@ -45,6 +45,9 @@ export const ICONS = {
   mail: REG.mail,
   verified: REG.verified,
   stop: REG.stop,
+  copy: REG.copy,
+  thumbUp: REG.thumbUp,
+  thumbDown: REG.thumbDown,
 } as const;
 
 export type IconName = keyof typeof ICONS;

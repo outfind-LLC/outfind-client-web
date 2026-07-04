@@ -11,7 +11,9 @@ import { extractJobs, isJobSearchTool } from "@/features/chat/types/job";
 import { ChatMark } from "@/features/dashboard/components/app-icons";
 import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
+import type { ReactionType } from "@/interfaces/enums";
 import { Markdown } from "./markdown";
+import { MessageActions } from "./message-actions";
 import { ToolPart } from "./tool-part";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
@@ -62,6 +64,14 @@ function hasResultCards(message: UIMessage): boolean {
     }
   }
   return false;
+}
+
+/** The caller's saved reaction, carried in metadata on REST-loaded messages. */
+function initialReaction(message: UIMessage): ReactionType | null {
+  const meta = message.metadata as
+    | { reaction?: ReactionType | null }
+    | undefined;
+  return meta?.reaction ?? null;
 }
 
 /** Final answer text or rendered cards — reasoning never counts as visible. */
@@ -158,6 +168,14 @@ export function MessageBubble({ message, streaming }: MessageBubbleProps) {
           <div className={cn(s.bubble, s.assistant)}>
             <Typing />
           </div>
+        ) : null}
+
+        {!streaming && (answer || cardsPresent) ? (
+          <MessageActions
+            messageId={message.id}
+            text={answer}
+            initialReaction={initialReaction(message)}
+          />
         ) : null}
       </div>
     </div>
