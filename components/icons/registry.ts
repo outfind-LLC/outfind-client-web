@@ -15,6 +15,7 @@ import route from "./route";
 import zap from "./zap";
 import brain from "./brain";
 import passport from "./passport";
+import star from "./star";
 import settings from "./settings";
 import help from "./help";
 import logout from "./logout";
@@ -136,6 +137,7 @@ const DEFS = {
   zap,
   brain,
   passport,
+  star,
   settings,
   help,
   logout,

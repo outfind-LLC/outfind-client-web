@@ -38,6 +38,30 @@ export const en = {
     point2: "The documents to prepare and how to get them",
     point3: "Timeline, costs and every application step",
   },
+  feedback: {
+    title: "Feedback",
+    heroTitle: "You're our priority",
+    heroDesc:
+      "Our engineers are working tirelessly to build a product you'll love. Tell us how we're doing — and what you'd like us to build next.",
+    rateLabel: "How would you rate Peoplor?",
+    rate1: "Poor",
+    rate2: "Fair",
+    rate3: "Good",
+    rate4: "Great",
+    rate5: "Love it",
+    commentLabel: "What's on your mind?",
+    commentPlaceholder: "Tell us what you like, or what we could do better…",
+    featureLabel: "Suggest a feature",
+    featureHint: "What should we build next for you?",
+    featurePlaceholder:
+      "e.g. interview practice, salary insights, saved searches…",
+    submit: "Send feedback",
+    thanksTitle: "Thank you! 🙏",
+    thanksDesc:
+      "Your feedback goes straight to our team. We're building Peoplor around you.",
+    sendMore: "Send more feedback",
+    error: "Couldn't send your feedback. Please try again.",
+  },
   sidebar: {
     recent: "Recent",
     noSearches: "No searches yet",
@@ -48,6 +72,7 @@ export const en = {
     account: "Account",
     settings: "Settings",
     help: "Help",
+    feedback: "Share feedback",
     logout: "Logout",
     ariaClose: "Close",
     accName: "Full name",

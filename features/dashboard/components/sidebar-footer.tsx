@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { Ic, LangCaret, LangGlobe, LangTick } from "./app-icons";
 import {
+  FeedbackModal,
   HelpModal,
   LogoutModal,
   UpgradeModal,
@@ -62,9 +63,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
 
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modal, setModal] = useState<null | "help" | "logout" | "upgrade">(
-    null,
-  );
+  const [modal, setModal] = useState<
+    null | "help" | "logout" | "upgrade" | "feedback"
+  >(null);
   const footRef = useRef<HTMLDivElement>(null);
 
   // Close both popovers on outside click / Escape.
@@ -105,7 +106,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     setMenuOpen(false);
     setMobileOpen(false);
   };
-  const openModal = (name: "help" | "logout" | "upgrade") => {
+  const openModal = (name: "help" | "logout" | "upgrade" | "feedback") => {
     setMenuOpen(false);
     setModal(name);
   };
@@ -189,6 +190,14 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
           <Ic name="help" />
           <span>{t("accountMenu.help")}</span>
         </button>
+        <button
+          type="button"
+          className={s["pm-item"]}
+          onClick={() => openModal("feedback")}
+        >
+          <Ic name="star" />
+          <span>{t("accountMenu.feedback")}</span>
+        </button>
         <div className={s["pm-sep"]} />
         <button
           type="button"
@@ -223,6 +232,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
         <UpgradeModal onClose={() => setModal(null)} />
       ) : null}
       {modal === "help" ? <HelpModal onClose={() => setModal(null)} /> : null}
+      {modal === "feedback" ? (
+        <FeedbackModal onClose={() => setModal(null)} />
+      ) : null}
       {modal === "logout" ? (
         <LogoutModal
           onClose={() => setModal(null)}

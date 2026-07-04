@@ -24,6 +24,7 @@ export const qk = {
   candidateProfile: (applicationId: string) =>
     ["application", applicationId, "candidate"] as const,
   bookmarks: ["bookmarks"] as const,
+  myFeedback: ["feedback", "mine"] as const,
   vacancyComments: (vacancyId: string) =>
     ["vacancy", vacancyId, "comments"] as const,
 

@@ -32,6 +32,31 @@ export const uz: Messages = {
     point2: "Qanday hujjatlar tayyorlash va ularni qanday olish",
     point3: "Muddatlar, xarajatlar va har bir ariza bosqichi",
   },
+  feedback: {
+    title: "Fikr-mulohaza",
+    heroTitle: "Siz bizning ustuvorligimizsiz",
+    heroDesc:
+      "Muhandislarimiz sizga yoqadigan mahsulot yaratish uchun tinimsiz ishlamoqda. Bizga qanday ishlayotganimizni va keyin nima qurishimiz kerakligini ayting.",
+    rateLabel: "Peoplor'ni qanday baholaysiz?",
+    rate1: "Yomon",
+    rate2: "O‘rtacha",
+    rate3: "Yaxshi",
+    rate4: "Ajoyib",
+    rate5: "Juda zo‘r",
+    commentLabel: "Fikringiz qanday?",
+    commentPlaceholder:
+      "Nima yoqishini yoki nimani yaxshilashimiz mumkinligini ayting…",
+    featureLabel: "Funksiya taklif qiling",
+    featureHint: "Siz uchun keyin nima qurishimiz kerak?",
+    featurePlaceholder:
+      "masalan: suhbatga tayyorgarlik, maosh tahlili, saqlangan qidiruvlar…",
+    submit: "Fikr yuborish",
+    thanksTitle: "Rahmat! 🙏",
+    thanksDesc:
+      "Fikringiz to‘g‘ridan-to‘g‘ri jamoamizga boradi. Biz Peoplor'ni siz uchun quramiz.",
+    sendMore: "Yana fikr yuborish",
+    error: "Fikringizni yuborib bo‘lmadi. Qayta urinib ko‘ring.",
+  },
   sidebar: {
     recent: "So‘nggi",
     noSearches: "Hozircha qidiruv yo‘q",
@@ -42,6 +67,7 @@ export const uz: Messages = {
     account: "Hisob",
     settings: "Sozlamalar",
     help: "Yordam",
+    feedback: "Fikr bildirish",
     logout: "Chiqish",
     ariaClose: "Yopish",
     accName: "To‘liq ism",

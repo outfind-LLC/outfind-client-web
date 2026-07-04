@@ -14,6 +14,7 @@ import { LOCALE_LABELS, LOCALES, type Locale } from "@/lib/i18n/config";
 import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import { Ic } from "@/features/dashboard/components/app-icons";
+import { useSubmitFeedback } from "@/features/feedback/hooks/use-feedback";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
@@ -325,6 +326,166 @@ export function LogoutModal({
     >
       <div className={s["modal-confirm"]}>
         <p className={s["modal-confirm-t"]}>{t("accountMenu.logoutConfirm")}</p>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---------------- Feedback ---------------- */
+/**
+ * Worker feedback modal (opened from the account menu) — a real-world star
+ * rating + a comment + a feature suggestion, in the app's shared modal shell.
+ * At least one of the three is required to send. Shows a thank-you state on
+ * success. See `features/feedback/`.
+ */
+export function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  const submit = useSubmitFeedback();
+
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
+  const [feature, setFeature] = useState("");
+  const [done, setDone] = useState(false);
+
+  const hints = [
+    t("feedback.rate1"),
+    t("feedback.rate2"),
+    t("feedback.rate3"),
+    t("feedback.rate4"),
+    t("feedback.rate5"),
+  ];
+  const active = hover || rating;
+  const canSubmit =
+    rating > 0 || comment.trim().length > 0 || feature.trim().length > 0;
+
+  const onSubmit = () => {
+    if (!canSubmit || submit.isPending) return;
+    submit.mutate(
+      {
+        rating: rating > 0 ? rating : null,
+        comment: comment.trim() || null,
+        featureRequest: feature.trim() || null,
+      },
+      {
+        onSuccess: () => setDone(true),
+        onError: () => toast.error(t("feedback.error")),
+      },
+    );
+  };
+
+  if (done) {
+    return (
+      <Modal
+        title={t("feedback.title")}
+        onClose={onClose}
+        footer={
+          <>
+            <button
+              type="button"
+              className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+              onClick={() => {
+                setDone(false);
+                setRating(0);
+                setComment("");
+                setFeature("");
+              }}
+            >
+              {t("feedback.sendMore")}
+            </button>
+            <button
+              type="button"
+              className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+              onClick={onClose}
+            >
+              {t("accountMenu.ariaClose")}
+            </button>
+          </>
+        }
+      >
+        <div className={s["fb-thanks"]}>
+          <span className={s["fb-thanks-ic"]}>
+            <Ic name="checkBold" />
+          </span>
+          <p className={s["fb-thanks-t"]}>{t("feedback.thanksTitle")}</p>
+          <p className={s["fb-thanks-d"]}>{t("feedback.thanksDesc")}</p>
+        </div>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal
+      title={t("feedback.title")}
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
+            onClick={onClose}
+          >
+            {t("accountMenu.accCancel")}
+          </button>
+          <button
+            type="button"
+            className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+            onClick={onSubmit}
+            disabled={!canSubmit || submit.isPending}
+          >
+            {t("feedback.submit")}
+          </button>
+        </>
+      }
+    >
+      <p className={s["modal-note"]}>{t("feedback.heroDesc")}</p>
+
+      <div className={s.field}>
+        <label style={{ textAlign: "center" }}>{t("feedback.rateLabel")}</label>
+        <div className={s.rate}>
+          <div className={s["rate-stars"]} role="radiogroup">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={rating === n}
+                aria-label={hints[n - 1]}
+                className={cn(s["rate-star"], n <= active && s.on)}
+                onMouseEnter={() => setHover(n)}
+                onMouseLeave={() => setHover(0)}
+                onFocus={() => setHover(n)}
+                onBlur={() => setHover(0)}
+                onClick={() => setRating(n)}
+              >
+                <Ic name="star" />
+              </button>
+            ))}
+          </div>
+          <span className={s["rate-hint"]}>
+            {rating > 0 ? hints[rating - 1] : ""}
+          </span>
+        </div>
+      </div>
+
+      <div className={s.field}>
+        <label>{t("feedback.commentLabel")}</label>
+        <textarea
+          value={comment}
+          maxLength={2000}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={t("feedback.commentPlaceholder")}
+        />
+      </div>
+
+      <div className={s.field}>
+        <label>{t("feedback.featureLabel")}</label>
+        <textarea
+          value={feature}
+          maxLength={2000}
+          onChange={(e) => setFeature(e.target.value)}
+          placeholder={t("feedback.featurePlaceholder")}
+        />
       </div>
     </Modal>
   );
