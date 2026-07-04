@@ -1,7 +1,6 @@
 import { api } from "@/lib/api/client";
 import type {
   CreateResumePayload,
-  ResumeSummary,
   ResumeView,
   UpdateResumePayload,
 } from "@/interfaces/resume.interface";
@@ -11,8 +10,9 @@ import type {
  * worker profile (in the worker's preferred app language); rendering is ours.
  */
 export const resumeService = {
-  list(): Promise<ResumeSummary[]> {
-    return api.get<ResumeSummary[]>("/cv");
+  /** Full resumes (with document + style) so the manager can render thumbnails. */
+  list(): Promise<ResumeView[]> {
+    return api.get<ResumeView[]>("/cv");
   },
   get(id: string): Promise<ResumeView> {
     return api.get<ResumeView>(`/cv/${id}`);

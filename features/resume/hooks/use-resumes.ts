@@ -6,14 +6,13 @@ import { qk } from "@/config/query-keys";
 import { resumeService } from "@/features/resume/services/resume.service";
 import type {
   CreateResumePayload,
-  ResumeSummary,
   ResumeView,
   UpdateResumePayload,
 } from "@/interfaces/resume.interface";
 
-/** The worker's resume list (manager). */
+/** The worker's resume list (manager) — full resumes so cards can preview. */
 export function useResumes(enabled = true) {
-  return useQuery<ResumeSummary[]>({
+  return useQuery<ResumeView[]>({
     queryKey: qk.resumes,
     queryFn: () => resumeService.list(),
     enabled,

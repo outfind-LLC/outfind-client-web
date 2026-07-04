@@ -257,6 +257,7 @@ export const uz: Messages = {
     resumeName: "Rezyume nomi",
     tabEdit: "Tahrir",
     tabDesign: "Dizayn",
+    tabOptions: "Sozlamalar",
     tabPreview: "Ko‘rish",
     generate: "Profildan to‘ldirish",
     generating: "To‘ldirilmoqda…",
@@ -347,6 +348,7 @@ export const uz: Messages = {
     publicDesc:
       "Havolaga ega har kim bu rezyumeni ko‘ra oladi. Email va telefon siz ko‘rsatmaguncha yashirin qoladi.",
     publicToggle: "Bu rezyumeni ochiq qilish",
+    publicBadge: "Ochiq",
     showContacts: "Kontaktlarimni ko‘rsatish",
     copyLink: "Havolani nusxalash",
     copied: "Havola nusxalandi",
@@ -359,6 +361,7 @@ export const uz: Messages = {
     accountSettings: "Hisob sozlamalari",
     myResumes: "Mening rezyumelarim",
     createResume: "Rezyume yaratish",
+    openBuilder: "Rezyume yaratish",
     emptyTitle: "Hali rezyume yo‘q",
     emptyDesc:
       "Ish beruvchilar sizni topishi va bir bosishda ariza berishingiz uchun rezyume yarating.",

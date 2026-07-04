@@ -16,7 +16,6 @@ import {
 import {
   conversationHref,
   tabForConversation,
-  tabForPath,
 } from "@/features/chat/lib/conversation-route";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useT } from "@/providers/i18n-provider";
@@ -47,14 +46,12 @@ const SIDEBAR_CHAT_LIMIT = 50;
 const MAX_TITLE_LENGTH = 120;
 
 /**
- * Recent conversations for the active tab, rendered as the prototype's plain
- * `.conv` rows under the "Recent" heading. Pinned chats float to the top. The
- * history is contextual: Job Search shows past searches, the AI Assistant shows
- * everything else (partitioned client-side — there's no server specialist filter).
+ * Recent conversations under the "Recent" heading, rendered as the prototype's
+ * plain `.conv` rows. Shows ALL of the user's chats consistently — job searches
+ * and assistant chats together — regardless of the current tab; each row routes
+ * itself to the right surface via `conversationHref`. Pinned chats float to top.
  */
 export function SidebarChats() {
-  const pathname = usePathname();
-  const tab = tabForPath(pathname);
   const t = useT();
   const { data, isLoading } = useConversations({ limit: SIDEBAR_CHAT_LIMIT });
 
@@ -68,9 +65,7 @@ export function SidebarChats() {
     );
   }
 
-  const conversations = (data ?? []).filter(
-    (c) => tabForConversation(c) === tab,
-  );
+  const conversations = data ?? [];
   const ordered = [
     ...conversations.filter((c) => c.isPinned),
     ...conversations.filter((c) => !c.isPinned),
@@ -79,7 +74,7 @@ export function SidebarChats() {
   if (ordered.length === 0) {
     return (
       <p className="text-muted-foreground px-2.5 py-1.5 text-sm">
-        {tab === "jobs" ? t("sidebar.noSearches") : t("sidebar.noChats")}
+        {t("sidebar.noChats")}
       </p>
     );
   }
@@ -134,13 +129,17 @@ function ChatRow({ conversation }: { conversation: Conversation }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Chat options"
-          className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 opacity-0 outline-none transition-opacity group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+          className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 opacity-0 transition-opacity outline-none group-hover/chat:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreVertical className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="bottom" className="w-44">
           <DropdownMenuItem onSelect={togglePin} className="gap-2">
-            {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+            {pinned ? (
+              <PinOff className="size-4" />
+            ) : (
+              <Pin className="size-4" />
+            )}
             {pinned ? "Unpin" : "Pin"}
           </DropdownMenuItem>
           <DropdownMenuItem

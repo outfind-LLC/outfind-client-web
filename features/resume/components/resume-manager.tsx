@@ -20,7 +20,8 @@ import { formatRelativeTime } from "@/lib/format";
 import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
-import type { ResumeSummary } from "@/interfaces/resume.interface";
+import type { ResumeView } from "@/interfaces/resume.interface";
+import { ResumeRender } from "@/features/resume/templates/resume-render";
 import { Ic } from "./resume-ui";
 import s from "@/features/resume/styles/resume.module.css";
 
@@ -135,7 +136,7 @@ function ResumeCard({
   resume,
   t,
 }: {
-  resume: ResumeSummary;
+  resume: ResumeView;
   t: ReturnType<typeof useT>;
 }) {
   const router = useRouter();
@@ -170,14 +171,11 @@ function ResumeCard({
         onClick={open}
       >
         {resume.isPublic ? (
-          <span className={s.rpublic}>{t("cv.open")}</span>
+          <span className={s.rpublic}>{t("cv.publicBadge")}</span>
         ) : null}
-        <span
-          className={s.createIc}
-          style={{ position: "absolute", top: 14, left: 14 }}
-        >
-          <Ic name="fileText" />
-        </span>
+        <div className={s.rthumbInner}>
+          <ResumeRender document={resume.document} style={resume.style} />
+        </div>
       </button>
       <div className={s.rmeta}>
         <div className={s.rinfo}>

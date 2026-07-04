@@ -20,6 +20,7 @@ import type {
 } from "@/interfaces/resume.interface";
 import { EditPanel } from "./edit-panel";
 import { DesignPanel } from "./design-panel";
+import { OptionsPanel } from "./options-panel";
 import { PreviewPanel } from "./preview-panel";
 import { Ic } from "./resume-ui";
 import s from "@/features/resume/styles/resume.module.css";
@@ -29,6 +30,7 @@ interface Meta {
   slug: string | null;
   showContacts: boolean;
 }
+type Tab = "edit" | "design" | "options";
 
 const snap = (r: {
   name: string;
@@ -36,10 +38,18 @@ const snap = (r: {
   style: StyleConfig;
 }) => JSON.stringify({ name: r.name, document: r.document, style: r.style });
 
+const TABS: { key: Tab; label: MsgKey; icon: "pen" | "sparkle" | "gear" }[] = [
+  { key: "edit", label: "cv.tabEdit", icon: "pen" },
+  { key: "design", label: "cv.tabDesign", icon: "sparkle" },
+  { key: "options", label: "cv.tabOptions", icon: "gear" },
+];
+type MsgKey = "cv.tabEdit" | "cv.tabDesign" | "cv.tabOptions";
+
 /**
- * The resume editor — one screen, mobile-first. Desktop: a left-aligned split
- * (Edit/Design form on the left, live preview on the right). Mobile: a single
- * pane with a bottom tab bar (Edit / Design / Preview). Edits autosave.
+ * The resume editor — mobile-first. Header carries the resume name at the very
+ * top. Content is three tabs: Edit / Design / Options. Desktop shows the tabs
+ * on the left with a live preview on the right; mobile switches panes via a
+ * bottom tab bar (with a Preview entry). Edits autosave.
  */
 export function ResumeEditor({ id }: { id: string }) {
   const t = useT();
@@ -55,15 +65,15 @@ export function ResumeEditor({ id }: { id: string }) {
     slug: null,
     showContacts: false,
   });
-  const [panel, setPanel] = useState<"edit" | "design">("edit");
+  const [tab, setTab] = useState<Tab>("edit");
   const [view, setView] = useState<"form" | "preview">("form");
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">(
     "saved",
   );
+  const [downloading, setDownloading] = useState(false);
 
   const baseline = useRef<string | null>(null);
 
-  // Hydrate local state once from the server.
   useEffect(() => {
     if (!query.data || baseline.current !== null) return;
     setDoc(query.data.document);
@@ -77,7 +87,6 @@ export function ResumeEditor({ id }: { id: string }) {
     baseline.current = snap(query.data);
   }, [query.data]);
 
-  // Debounced autosave whenever content/style/name change.
   useEffect(() => {
     if (!doc || !style || baseline.current === null) return;
     const current = snap({ name, document: doc, style });
@@ -156,7 +165,20 @@ export function ResumeEditor({ id }: { id: string }) {
     });
   };
 
-  // Sharing toggles persist immediately (independent of the content autosave).
+  const download = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const { downloadResumePdf } =
+        await import("@/features/resume/lib/resume-pdf");
+      await downloadResumePdf(doc, style, name);
+    } catch {
+      toast.error(t("cv.downloadError"));
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const patchMeta = (patch: { isPublic?: boolean; showContacts?: boolean }) =>
     update.mutate(patch, {
       onSuccess: (saved) =>
@@ -171,7 +193,47 @@ export function ResumeEditor({ id }: { id: string }) {
         ),
     });
 
-  const tier = ats.score >= 80 ? "atsHi" : ats.score >= 55 ? "atsMid" : "atsLo";
+  const goTab = (next: Tab) => {
+    setTab(next);
+    setView("form");
+  };
+
+  const paneContent = (
+    <div className={s.paneBody}>
+      {tab === "edit" ? (
+        <>
+          <button
+            type="button"
+            className={cn(s.btn, s.btnGhost, s.fillBtn)}
+            disabled={generate.isPending}
+            onClick={runGenerate}
+          >
+            {generate.isPending ? (
+              <span className={s.spin} />
+            ) : (
+              <Ic name="zap" />
+            )}
+            {generate.isPending ? t("cv.generating") : t("cv.generate")}
+          </button>
+          <EditPanel document={doc} t={t} onChange={setDoc} />
+        </>
+      ) : tab === "design" ? (
+        <DesignPanel document={doc} style={style} t={t} onChange={setStyle} />
+      ) : (
+        <OptionsPanel
+          style={style}
+          ats={ats}
+          meta={meta}
+          t={t}
+          onSetStyle={(patch) => setStyle({ ...style, ...patch })}
+          onTogglePublic={() => patchMeta({ isPublic: !meta.isPublic })}
+          onToggleContacts={() =>
+            patchMeta({ showContacts: !meta.showContacts })
+          }
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className={s.screen}>
@@ -197,97 +259,49 @@ export function ResumeEditor({ id }: { id: string }) {
               ? t("cv.saveError")
               : t("cv.saved")}
         </span>
-        <button
-          type="button"
-          className={cn(s.atsChip, s[tier])}
-          onClick={() => setView("preview")}
-        >
-          <span className={s.atsDot} style={{ background: "currentColor" }} />
-          {ats.score}
-        </button>
-        <button
-          type="button"
-          className={s.iconBtn}
-          aria-label={t("cv.generate")}
-          disabled={generate.isPending}
-          onClick={runGenerate}
-        >
-          {generate.isPending ? <span className={s.spin} /> : <Ic name="zap" />}
-        </button>
       </header>
 
       <div className={s.split} data-view={view}>
         <div className={s.pane}>
-          <div className={s.paneTabs}>
-            <button
-              type="button"
-              aria-pressed={panel === "edit"}
-              onClick={() => setPanel("edit")}
-            >
-              {t("cv.tabEdit")}
-            </button>
-            <button
-              type="button"
-              aria-pressed={panel === "design"}
-              onClick={() => setPanel("design")}
-            >
-              {t("cv.tabDesign")}
-            </button>
+          <div className={s.paneTabs} role="tablist">
+            {TABS.map((tb) => (
+              <button
+                key={tb.key}
+                type="button"
+                role="tab"
+                aria-pressed={tab === tb.key}
+                onClick={() => setTab(tb.key)}
+              >
+                {t(tb.label)}
+              </button>
+            ))}
           </div>
-          <div className={s.paneBody}>
-            {panel === "edit" ? (
-              <EditPanel document={doc} t={t} onChange={setDoc} />
-            ) : (
-              <DesignPanel
-                document={doc}
-                style={style}
-                t={t}
-                onChange={setStyle}
-              />
-            )}
-          </div>
+          {paneContent}
         </div>
 
         <div className={s.previewCol}>
           <PreviewPanel
             document={doc}
             style={style}
-            name={name}
-            ats={ats}
-            meta={meta}
+            downloading={downloading}
             t={t}
-            onSetStyle={(patch) => setStyle({ ...style, ...patch })}
-            onTogglePublic={() => patchMeta({ isPublic: !meta.isPublic })}
-            onToggleContacts={() =>
-              patchMeta({ showContacts: !meta.showContacts })
-            }
+            onDownload={() => void download()}
           />
         </div>
       </div>
 
       <nav className={s.bottomNav}>
-        <button
-          type="button"
-          aria-pressed={view === "form" && panel === "edit"}
-          onClick={() => {
-            setPanel("edit");
-            setView("form");
-          }}
-        >
-          <Ic name="pen" />
-          {t("cv.tabEdit")}
-        </button>
-        <button
-          type="button"
-          aria-pressed={view === "form" && panel === "design"}
-          onClick={() => {
-            setPanel("design");
-            setView("form");
-          }}
-        >
-          <Ic name="sparkle" />
-          {t("cv.tabDesign")}
-        </button>
+        {TABS.map((tb) => (
+          <button
+            key={tb.key}
+            type="button"
+            aria-pressed={view === "form" && tab === tb.key}
+            onClick={() => goTab(tb.key)}
+          >
+            <Ic name={tb.icon} />
+            {t(tb.label)}
+          </button>
+        ))}
         <button
           type="button"
           aria-pressed={view === "preview"}

@@ -50,7 +50,12 @@ export function DashboardTopbar() {
   const pathname = usePathname();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
-  if (FULL_BLEED.has(pathname)) return null;
+  // Full-bleed screens own their header (the resume editor at /profile/cv/<id>
+  // is a nested route, so match by prefix too — otherwise an empty shared bar
+  // stacks above it and pushes its title down).
+  if (FULL_BLEED.has(pathname) || pathname.startsWith("/profile/cv/")) {
+    return null;
+  }
 
   return (
     <header className={s.topbar} id="topbar">

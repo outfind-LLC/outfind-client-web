@@ -258,6 +258,7 @@ export const ru: Messages = {
     resumeName: "Название резюме",
     tabEdit: "Правка",
     tabDesign: "Дизайн",
+    tabOptions: "Опции",
     tabPreview: "Просмотр",
     generate: "Заполнить из профиля",
     generating: "Заполняем…",
@@ -348,6 +349,7 @@ export const ru: Messages = {
     publicDesc:
       "Резюме увидит любой, у кого есть ссылка. Email и телефон скрыты, пока вы их не покажете.",
     publicToggle: "Сделать резюме публичным",
+    publicBadge: "Публичное",
     showContacts: "Показывать мои контакты",
     copyLink: "Скопировать ссылку",
     copied: "Ссылка скопирована",
@@ -360,6 +362,7 @@ export const ru: Messages = {
     accountSettings: "Настройки аккаунта",
     myResumes: "Мои резюме",
     createResume: "Создать резюме",
+    openBuilder: "Конструктор резюме",
     emptyTitle: "Резюме ещё нет",
     emptyDesc:
       "Создайте резюме, чтобы работодатели находили вас, а вы могли откликаться в один тап.",

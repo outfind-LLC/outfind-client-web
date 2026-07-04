@@ -272,6 +272,7 @@ export const en = {
     resumeName: "Resume name",
     tabEdit: "Edit",
     tabDesign: "Design",
+    tabOptions: "Options",
     tabPreview: "Preview",
     generate: "Fill from profile",
     generating: "Filling…",
@@ -368,6 +369,7 @@ export const en = {
     publicDesc:
       "Anyone with the link can view this resume. Your email and phone stay hidden unless you show them.",
     publicToggle: "Make this resume public",
+    publicBadge: "Public",
     showContacts: "Show my contact details",
     copyLink: "Copy link",
     copied: "Link copied",
@@ -380,6 +382,7 @@ export const en = {
     accountSettings: "Account settings",
     myResumes: "My resumes",
     createResume: "Create resume",
+    openBuilder: "Resume builder",
     emptyTitle: "No resume yet",
     emptyDesc:
       "Create your resume so employers can find you and you can apply in one tap.",

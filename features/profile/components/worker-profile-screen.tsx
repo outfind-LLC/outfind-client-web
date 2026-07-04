@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState, type MouseEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { routes } from "@/config/routes";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useI18n } from "@/providers/i18n-provider";
 import { formatRelativeTime } from "@/lib/format";
@@ -33,11 +35,21 @@ interface MenuState {
  * overview is derived (the mock seam) until `/worker/profile/resumes` ships. Edit
  * affordances are present and call a toast — the edit modals are the next phase.
  */
-export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile; user: SessionUser }) {
+export function WorkerProfileScreen({
+  profile,
+  user,
+}: {
+  profile: WorkerProfile;
+  user: SessionUser;
+}) {
   const { t, locale } = useI18n();
+  const router = useRouter();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
-  const resume = useMemo(() => deriveResume(profile, t, locale), [profile, t, locale]);
+  const resume = useMemo(
+    () => deriveResume(profile, t, locale),
+    [profile, t, locale],
+  );
   // The sidebar account-menu header deep-links here with `?view=detail` to open
   // the résumé editor directly. Sync it in render (not an effect) so it also works
   // when navigating from another page or re-clicking while already here.
@@ -56,8 +68,12 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
 
   const avatarUrl = profile.photoUrl ?? user.avatarUrl;
-  const sub = user.email ?? (user.telegramUsername ? `@${user.telegramUsername}` : "");
-  const editSoon = () => toast(t("profile.toastEdit"));
+  const sub =
+    user.email ?? (user.telegramUsername ? `@${user.telegramUsername}` : "");
+  const openBuilder = () => {
+    setMenu(null);
+    router.push(routes.profileCv);
+  };
   const handleEdit = (target: EditTarget) => {
     if (target.type === "soon") toast(t("profile.toastEdit"));
     else setEditTarget(target);
@@ -106,7 +122,11 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
       </header>
 
       {view === "detail" ? (
-        <WorkerProfileDetail profile={profile} user={user} onEdit={handleEdit} />
+        <WorkerProfileDetail
+          profile={profile}
+          user={user}
+          onEdit={handleEdit}
+        />
       ) : (
         <div className={s.page}>
           {/* Account card → detail view */}
@@ -137,6 +157,13 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
 
           <div className={s["rz-head"]}>
             <h2>{t("profile.myResumes")}</h2>
+            <Link
+              href={routes.profileCv}
+              className={cn(s["rz-btn"], s["rz-btn-primary"])}
+            >
+              <Ic name="file" />
+              {t("profile.openBuilder")}
+            </Link>
           </div>
 
           {resume ? (
@@ -155,14 +182,28 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
                 </button>
               </div>
               <div className={s["rz-resume-date"]}>
-                {t("profile.updatedAgo", { when: formatRelativeTime(resume.updatedAt) })}
+                {t("profile.updatedAgo", {
+                  when: formatRelativeTime(resume.updatedAt),
+                })}
               </div>
               <div className={s["rz-facts"]}>
-                <Fact k={t("profile.factSpec")} v={resume.specialization} t={t} />
+                <Fact
+                  k={t("profile.factSpec")}
+                  v={resume.specialization}
+                  t={t}
+                />
                 <Fact k={t("profile.factSalary")} v={resume.salary} t={t} />
-                <Fact k={t("profile.factEmployment")} v={resume.employment} t={t} />
+                <Fact
+                  k={t("profile.factEmployment")}
+                  v={resume.employment}
+                  t={t}
+                />
                 <Fact k={t("profile.factLocation")} v={resume.location} t={t} />
-                <Fact k={t("profile.factExperience")} v={resume.experience} t={t} />
+                <Fact
+                  k={t("profile.factExperience")}
+                  v={resume.experience}
+                  t={t}
+                />
               </div>
             </div>
           ) : (
@@ -173,10 +214,13 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
                 </span>
                 <div className={s["rz-empty-t"]}>{t("profile.emptyTitle")}</div>
                 <div className={s["rz-empty-d"]}>{t("profile.emptyDesc")}</div>
-                <button type="button" className={cn(s["rz-btn"], s["rz-btn-primary"])} onClick={editSoon}>
+                <Link
+                  href={routes.profileCv}
+                  className={cn(s["rz-btn"], s["rz-btn-primary"])}
+                >
                   <Ic name="plus" />
                   {t("profile.createResume")}
-                </button>
+                </Link>
               </div>
             </div>
           )}
@@ -185,8 +229,16 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
 
       {menu && resume ? (
         <>
-          <div className={s["rz-scrim"]} onClick={() => setMenu(null)} aria-hidden="true" />
-          <div className={s["rz-popmenu"]} role="menu" style={{ top: menu.top, left: menu.left }}>
+          <div
+            className={s["rz-scrim"]}
+            onClick={() => setMenu(null)}
+            aria-hidden="true"
+          />
+          <div
+            className={s["rz-popmenu"]}
+            role="menu"
+            style={{ top: menu.top, left: menu.left }}
+          >
             <PopItem
               icon="eye"
               label={t("profile.popPreview")}
@@ -195,27 +247,57 @@ export function WorkerProfileScreen({ profile, user }: { profile: WorkerProfile;
                 setPreview(true);
               }}
             />
-            <PopItem icon="pen" label={t("profile.popEdit")} onClick={() => act("profile.toastEdit")} />
-            <PopItem icon="copy" label={t("profile.popDuplicate")} onClick={() => act("profile.toastDuplicate")} />
-            <PopItem icon="download" label={t("profile.popDownload")} onClick={() => act("profile.toastDownload")} />
-            <PopItem icon="share" label={t("profile.popShare")} onClick={() => act("profile.toastShare")} />
+            <PopItem
+              icon="pen"
+              label={t("profile.popEdit")}
+              onClick={openBuilder}
+            />
+            <PopItem
+              icon="copy"
+              label={t("profile.popDuplicate")}
+              onClick={() => act("profile.toastDuplicate")}
+            />
+            <PopItem
+              icon="download"
+              label={t("profile.popDownload")}
+              onClick={() => act("profile.toastDownload")}
+            />
+            <PopItem
+              icon="share"
+              label={t("profile.popShare")}
+              onClick={() => act("profile.toastShare")}
+            />
             <PopItem
               icon={visible ? "eyeOff" : "eye"}
               label={visible ? t("profile.popHide") : t("profile.popShow")}
               onClick={toggleVisibility}
             />
             <div className={s["rz-popsep"]} />
-            <PopItem icon="trash" label={t("profile.popDelete")} danger onClick={() => act("profile.toastDelete")} />
+            <PopItem
+              icon="trash"
+              label={t("profile.popDelete")}
+              danger
+              onClick={() => act("profile.toastDelete")}
+            />
           </div>
         </>
       ) : null}
 
       {preview && resume ? (
-        <EmployerPreview profile={profile} user={user} resume={resume} onClose={() => setPreview(false)} />
+        <EmployerPreview
+          profile={profile}
+          user={user}
+          resume={resume}
+          onClose={() => setPreview(false)}
+        />
       ) : null}
 
       {editTarget && editTarget.type !== "soon" ? (
-        <ProfileEditModal target={editTarget} profile={profile} onClose={() => setEditTarget(null)} />
+        <ProfileEditModal
+          target={editTarget}
+          profile={profile}
+          onClose={() => setEditTarget(null)}
+        />
       ) : null}
     </div>
   );
@@ -242,7 +324,12 @@ function PopItem({
   danger?: boolean;
 }) {
   return (
-    <button type="button" role="menuitem" className={cn(s["rz-popitem"], danger && s.danger)} onClick={onClick}>
+    <button
+      type="button"
+      role="menuitem"
+      className={cn(s["rz-popitem"], danger && s.danger)}
+      onClick={onClick}
+    >
       <Ic name={icon} />
       {label}
     </button>
