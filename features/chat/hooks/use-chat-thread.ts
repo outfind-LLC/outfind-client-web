@@ -6,6 +6,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 
 import { env } from "@/lib/env";
 import { useComposerStore } from "@/features/chat/store/composer.store";
+import { readStoredLocale } from "@/lib/i18n/store";
 
 interface SendBody {
   conversationId: string;
@@ -63,7 +64,11 @@ export function useChatThread(
           }
           return {
             body,
-            headers: { "Idempotency-Key": crypto.randomUUID() },
+            headers: {
+              "Idempotency-Key": crypto.randomUUID(),
+              // Reply in the user's UI language (browser-detected by default).
+              "X-App-Language": readStoredLocale(),
+            },
           };
         },
       }),

@@ -37,3 +37,22 @@ export function isLocale(value: unknown): value is Locale {
     typeof value === "string" && (LOCALES as readonly string[]).includes(value)
   );
 }
+
+/**
+ * Best-effort language from the browser (`navigator.languages`), mapped to a
+ * supported locale by primary subtag ("ru-RU" → "ru"). Falls back to the default
+ * (English) when the browser language isn't Uzbek, Russian or English — or when
+ * `navigator` is unavailable (SSR).
+ */
+export function detectBrowserLocale(): Locale {
+  if (typeof navigator === "undefined") return DEFAULT_LOCALE;
+  const candidates =
+    navigator.languages && navigator.languages.length > 0
+      ? navigator.languages
+      : [navigator.language];
+  for (const tag of candidates) {
+    const primary = tag?.toLowerCase().split(/[-_]/)[0];
+    if (isLocale(primary)) return primary;
+  }
+  return DEFAULT_LOCALE;
+}

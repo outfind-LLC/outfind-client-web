@@ -6,6 +6,7 @@
  */
 import {
   DEFAULT_LOCALE,
+  detectBrowserLocale,
   isLocale,
   LANG_EVENT,
   LANG_STORAGE_KEY,
@@ -21,6 +22,12 @@ export function subscribeLocale(onStoreChange: () => void): () => void {
   };
 }
 
+/**
+ * The active locale on this device: an explicit saved preference if present,
+ * otherwise the browser's language (English when it isn't uz/ru/en). Used both
+ * by the i18n provider (getSnapshot) and by non-React callers that need the
+ * current language for the `X-App-Language` request header.
+ */
 export function readStoredLocale(): Locale {
   try {
     const saved = localStorage.getItem(LANG_STORAGE_KEY);
@@ -28,7 +35,7 @@ export function readStoredLocale(): Locale {
   } catch {
     // Ignore storage failures (private mode, disabled storage, etc.).
   }
-  return DEFAULT_LOCALE;
+  return detectBrowserLocale();
 }
 
 /** Server (and first-paint) snapshot — always the default to match SSR output. */

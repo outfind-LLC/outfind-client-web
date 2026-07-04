@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { readStoredLocale } from "@/lib/i18n/store";
 import { parseEnvelope } from "./parse";
 
 /**
@@ -42,6 +43,9 @@ function buildInit({ body, headers, ...rest }: RequestOptions): RequestInit {
     ...rest,
     credentials: "include",
     headers: {
+      // The active UI language (browser-detected by default) so the backend can
+      // localise all communication — AI replies, emails, error messages.
+      "X-App-Language": readStoredLocale(),
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
       ...headers,
     },
