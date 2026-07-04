@@ -108,6 +108,9 @@ import fileText from "./file-text";
 import thumbUp from "./thumb-up";
 import thumbDown from "./thumb-down";
 
+// Resume builder
+import chevronUp from "./chevron-up";
+
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
  * default-exported `IconDef`) and registering it here. Names are unique per
@@ -216,6 +219,8 @@ const DEFS = {
   // chat response actions
   thumbUp,
   thumbDown,
+  // resume builder
+  chevronUp,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

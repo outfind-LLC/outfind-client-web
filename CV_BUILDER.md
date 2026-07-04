@@ -1,14 +1,46 @@
-# CV Builder — Implementation Plan
+# CV / Resume Builder — Implementation Plan
 
-> Status: **BUILT (P1 + P2), 2026-07-04.** The `/jobs` "CV builder" chip now
-> opens the builder screen at `/profile/cv`: missing-info gate → AI generation
-> in the worker's preferred language (`POST /cv/generate`, persisted in the
-> `cvs` table) → Classic/Modern/Compact templates → print-to-PDF download →
-> public toggle serving `peoplor.uz/cv/<slug>` from the data-only
-> `GET /cv/public/:slug`. Remaining ideas live in **Phase 3** below
-> (`@react-pdf/renderer` file download, translations via `CvTranslation`,
-> share buttons, analytics events, inline content editing via `PATCH /cv/mine
-> { content }` — the endpoint already exists).
+> Status: **FULL EDITOR BUILT, 2026-07-04.** Rebuilt from the simple single-CV
+> flow into a multi-resume, mobile-first editor.
+>
+> **Shipped:**
+> - **Multi-resume** manager at `/profile/cv` (create blank / from-profile,
+>   open, rename, duplicate, delete). Editor at `/profile/cv/[id]`.
+> - **Flexible section model** (backend `cv` module): `basics` + an ordered,
+>   discriminated `sections[]` union covering experience, education, skills,
+>   projects, certifications, languages, awards, references, custom — plus
+>   social/portfolio links. Data only; `styleJson` holds the StyleConfig.
+> - **Inline editing** of every field; add/remove/duplicate/reorder sections
+>   AND items (up/down buttons); show/hide sections; autosave (debounced PATCH).
+> - **Template gallery** — 6 live-preview presets (modern, creative, executive,
+>   minimal, ATS-friendly, academic) applied instantly.
+> - **Styling** — fonts, font size, primary/accent color, line & section
+>   spacing, margins, header style, single/two-column, icons & photo toggles.
+> - **Live preview** — the resume sheet is the hero (zoom, A4/Letter, dark
+>   canvas; wrapper measured so the scaled sheet reserves correct height); ATS +
+>   share sit compactly below. One `ResumeRender` drives preview + public page.
+> - **Simple-but-powerful design panel** — templates + accent color + layout by
+>   default; fonts/size/spacing/margins/header/colors/toggles hidden behind
+>   "More options".
+> - **ATS score** — deterministic client-side 0–100 with pass/fail checks and
+>   recommendations, live on every edit; a header chip surfaces it.
+> - **Real PDF export** — `@react-pdf/renderer` (`features/resume/lib/resume-pdf.tsx`,
+>   lazy-imported) generates a genuine, selectable, ATS-parseable PDF FILE named
+>   `<FullName>_CV.pdf`. Roboto + PT Serif fetched from a CDN (Latin+Cyrillic for
+>   RU/UZ) with a Helvetica/Times fallback so a download never throws. NOT a
+>   screenshot/print.
+> - **Public share** — `peoplor.uz/cv/<slug>` from data-only
+>   `GET /cv/public/:slug`; contacts gated behind a toggle.
+> - Mobile: bottom tab bar (Edit / Design / Preview), large touch targets,
+>   left-aligned desktop split (form + sticky preview). App tokens only.
+>
+> **Phase 3 (not built):** DOCX export, drag-and-drop reordering with animation,
+> undo/redo history, keyboard shortcuts, offline support, onboarding tour, richer
+> AI (rewrite bullets / action verbs / grammar / tailor-to-JD), profile-photo
+> upload, full trilingual item-field placeholders (section chrome is localized;
+> deep field placeholders are still English). NOTE: the PDF font URLs
+> (`@expo-google-fonts` via jsDelivr in `resume-pdf.tsx`) are the one runtime
+> dependency to verify in the browser — swap them if the CDN path changes.
 >
 > Non-negotiables (apply to every step below):
 > - **Backend sends and stores DATA only** (structured JSON). No HTML, no PDF,

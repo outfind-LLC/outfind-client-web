@@ -1,6 +1,6 @@
-import { CvBuilderScreen } from "@/features/cv/components/cv-builder-screen";
+import { ResumeManager } from "@/features/resume/components/resume-manager";
 
-/** CV builder — gate → AI generation → templates → download → public link. */
+/** Resume manager — create, open, rename, duplicate, delete resumes. */
 export default function ProfileCvPage() {
-  return <CvBuilderScreen />;
+  return <ResumeManager />;
 }

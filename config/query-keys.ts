@@ -35,7 +35,8 @@ export const qk = {
   shortlist: ["employer", "shortlist"] as const,
 
   workerProfile: ["profile", "worker"] as const,
-  myCv: ["cv", "mine"] as const,
+  resumes: ["resumes"] as const,
+  resume: (id: string) => ["resume", id] as const,
   employerProfile: ["profile", "employer"] as const,
   userSettings: ["settings", "me"] as const,
 

@@ -21,7 +21,10 @@ export const routes = {
   applications: "/applications",
   bookmarks: "/bookmarks",
   profile: "/profile",
+  /** Resume manager (list of the worker's resumes). */
   profileCv: "/profile/cv",
+  /** Resume editor for one resume. */
+  resumeEditor: (id: string) => `/profile/cv/${id}`,
   /** Career & migration — worker only. */
   career: "/career",
 

@@ -1,0 +1,258 @@
+/* ==========================================================================
+   Resume sheet — a pure rendering of resume DATA + StyleConfig. This is USER
+   content (the person picks its colors/fonts), so it has its own self-contained
+   light "paper" palette rather than the app tokens. The app chrome around it
+   uses app tokens. One renderer drives the editor preview, the public page,
+   and print, so what you see is exactly what ships.
+   ========================================================================== */
+
+.sheet {
+  --r-ink: #0f172a;
+  --r-accent: #2f8f5b;
+  --r-body: #33333b;
+  --r-muted: #6b7280;
+  --r-line: #e5e7eb;
+  --r-gap: 22px;
+
+  width: 794px; /* ~A4 @96dpi */
+  max-width: 100%;
+  margin: 0 auto;
+  background: #ffffff;
+  color: var(--r-body);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.sheet[data-page="letter"] {
+  width: 816px;
+}
+.sheet[data-margin="sm"] {
+  padding: 26px 30px;
+}
+.sheet[data-margin="md"] {
+  padding: 40px 44px;
+}
+.sheet[data-margin="lg"] {
+  padding: 54px 60px;
+}
+
+/* header */
+.header {
+  margin-bottom: var(--r-gap);
+}
+.sheet[data-header="center"] .header {
+  text-align: center;
+}
+.sheet[data-header="banner"] .header {
+  background: var(--r-accent);
+  color: #fff;
+  margin: calc(-1 * 40px) calc(-1 * 44px) var(--r-gap);
+  padding: 30px 44px;
+  border-radius: 0;
+}
+.sheet[data-header="banner"][data-margin="sm"] .header {
+  margin: -26px -30px var(--r-gap);
+  padding: 24px 30px;
+}
+.sheet[data-header="banner"][data-margin="lg"] .header {
+  margin: -54px -60px var(--r-gap);
+  padding: 40px 60px;
+}
+.headTop {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.sheet[data-header="center"] .headTop {
+  flex-direction: column;
+  gap: 10px;
+}
+.avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.name {
+  margin: 0;
+  font-size: 1.75em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--r-ink);
+}
+.sheet[data-header="banner"] .name {
+  color: #fff;
+}
+.headline {
+  margin: 3px 0 0;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--r-accent);
+}
+.sheet[data-header="banner"] .headline {
+  color: rgba(255, 255, 255, 0.9);
+}
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+  font-size: 0.85em;
+  color: var(--r-muted);
+}
+.sheet[data-header="center"] .contacts {
+  justify-content: center;
+}
+.sheet[data-header="banner"] .contacts {
+  color: rgba(255, 255, 255, 0.9);
+}
+.contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.contact svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+/* layout */
+.body {
+  display: block;
+}
+.sheet[data-layout="two-column"] .body {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 0 32px;
+}
+@media (max-width: 560px) {
+  .sheet[data-layout="two-column"] .body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* section */
+.section {
+  margin-top: var(--r-gap);
+}
+.section:first-child {
+  margin-top: 0;
+}
+.secTitle {
+  margin: 0 0 10px;
+  font-size: 0.78em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--r-accent);
+  border-bottom: 1.5px solid var(--r-line);
+  padding-bottom: 5px;
+}
+.sheet[data-template="minimal"] .secTitle,
+.sheet[data-template="ats"] .secTitle {
+  color: var(--r-ink);
+}
+.sheet[data-template="executive"] .secTitle,
+.sheet[data-template="academic"] .secTitle {
+  border-bottom-color: var(--r-ink);
+  color: var(--r-ink);
+}
+
+.item {
+  margin-bottom: 13px;
+}
+.item:last-child {
+  margin-bottom: 0;
+}
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 10px;
+}
+.itemTitle {
+  font-weight: 700;
+  color: var(--r-ink);
+}
+.itemWhere {
+  color: var(--r-body);
+}
+.itemDates {
+  margin-left: auto;
+  font-size: 0.82em;
+  color: var(--r-muted);
+  white-space: nowrap;
+}
+.itemDesc {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+.bullets {
+  margin: 5px 0 0;
+  padding-left: 17px;
+}
+.bullets li {
+  margin-bottom: 3px;
+}
+.summary {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.tag {
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--r-accent) 12%, #fff);
+  color: var(--r-ink);
+  font-size: 0.86em;
+  font-weight: 600;
+}
+.sheet[data-template="ats"] .tag,
+.sheet[data-template="minimal"] .tag {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+.sheet[data-template="ats"] .tag::after,
+.sheet[data-template="minimal"] .tag::after {
+  content: "·";
+  margin-left: 7px;
+  color: var(--r-muted);
+}
+.sheet[data-template="ats"] .tag:last-child::after,
+.sheet[data-template="minimal"] .tag:last-child::after {
+  content: "";
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rowSub {
+  color: var(--r-muted);
+  font-size: 0.88em;
+}
+.link {
+  color: var(--r-accent);
+  text-decoration: none;
+}
+
+.empty {
+  color: var(--r-muted);
+  font-style: italic;
+  font-size: 0.9em;
+}
