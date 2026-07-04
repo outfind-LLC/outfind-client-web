@@ -27,6 +27,8 @@ export const routes = {
   resumeEditor: (id: string) => `/profile/cv/${id}`,
   /** Career & migration — worker only. */
   career: "/career",
+  /** Visa & work-permit guidance — worker only. */
+  visa: "/visa",
 
   // Employer (employer-only routes — role-guarded by the (employer) group layout)
   /** Company profile — create/edit + detail. Replaces the old /profile/company. */
@@ -63,6 +65,7 @@ export const PROTECTED_PREFIXES = [
   "/bookmarks",
   "/profile",
   "/career",
+  "/visa",
   "/company",
   "/global-hiring",
   "/vacancies",

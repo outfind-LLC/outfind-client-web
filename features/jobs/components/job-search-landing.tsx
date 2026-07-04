@@ -36,7 +36,7 @@ const MODES: {
   // CV builder opens the guided builder screen (gate → AI → templates →
   // download → public link) at /profile/cv.
   { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
-  { key: "assist", icon: "zap", labelKey: "chat.modeAssist" },
+  { key: "assist", icon: "brain", labelKey: "chat.modeAssist" },
   { key: "search", icon: "search", labelKey: "chat.modeSearch" },
   { key: "visa", icon: "docCheck", labelKey: "chat.modeVisa" },
 ];

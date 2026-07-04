@@ -25,6 +25,8 @@ export const ICONS = {
   company: REG.company,
   route: REG.route,
   zap: REG.zap,
+  brain: REG.brain,
+  passport: REG.passport,
   settings: REG.settings,
   help: REG.help,
   logout: REG.logout,

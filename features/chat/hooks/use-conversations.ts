@@ -46,6 +46,17 @@ export function useStartConversation(
       }),
     onSuccess: (conversation, vars) => {
       queuePending(conversation.id, vars.message);
+      // Show the new conversation — with its title — in the sidebar instantly,
+      // rather than waiting for the list refetch (which is why the title used to
+      // only appear after a refresh). The invalidate then reconciles.
+      queryClient.setQueriesData<Conversation[]>(
+        { queryKey: qk.conversations() },
+        (old) => {
+          const list = old ?? [];
+          if (list.some((c) => c.id === conversation.id)) return list;
+          return [conversation, ...list];
+        },
+      );
       queryClient.invalidateQueries({ queryKey: qk.conversations() });
       router.push(buildHref(conversation.id));
     },

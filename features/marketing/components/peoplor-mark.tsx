@@ -13,7 +13,7 @@ interface PeoplorMarkProps {
 
 /**
  * Peoplor brand mark — the three-square "lego" glyph, extracted verbatim from
- * _Peoplor_Design/assets/Jobsterr-icon-logo.svg. Brand-coloured by default;
+ * _Peoplor_Design/assets/Peoplor-icon-logo.svg. Brand-coloured by default;
  * `mono` renders in currentColor for the animated hero treatment.
  */
 export function PeoplorMark({

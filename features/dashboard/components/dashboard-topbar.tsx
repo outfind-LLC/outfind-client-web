@@ -21,6 +21,7 @@ const FULL_BLEED = new Set([
   "/profile/cv",
   "/company",
   "/career",
+  "/visa",
   "/global-hiring",
   "/vacancies",
   "/vacancies/new",

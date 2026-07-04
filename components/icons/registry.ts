@@ -13,6 +13,8 @@ import search from "./search";
 import company from "./company";
 import route from "./route";
 import zap from "./zap";
+import brain from "./brain";
+import passport from "./passport";
 import settings from "./settings";
 import help from "./help";
 import logout from "./logout";
@@ -132,6 +134,8 @@ const DEFS = {
   company,
   route,
   zap,
+  brain,
+  passport,
   settings,
   help,
   logout,

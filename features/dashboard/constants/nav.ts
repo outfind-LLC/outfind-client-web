@@ -18,6 +18,7 @@ export interface NavItem {
  * Career & migration. */
 const WORKER_NAV: NavItem[] = [
   { labelKey: "nav.newJob", href: routes.jobs, icon: "plus", newChat: true },
+  { labelKey: "nav.visa", href: routes.visa, icon: "passport" },
   { labelKey: "nav.savedApplied", href: routes.applications, icon: "docCheck" },
   { labelKey: "nav.profile", href: routes.profile, icon: "user" },
   { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },
@@ -27,9 +28,19 @@ const WORKER_NAV: NavItem[] = [
  * Global hiring. Company moved off the rail: it's reached via the profile avatar
  * in the footer (the worker equivalent opens their résumé). */
 const EMPLOYER_NAV: NavItem[] = [
-  { labelKey: "nav.aiSearch", href: routes.assistant, icon: "search", newChat: true },
+  {
+    labelKey: "nav.aiSearch",
+    href: routes.assistant,
+    icon: "search",
+    newChat: true,
+  },
   { labelKey: "nav.chat", href: routes.candidates, icon: "messages" },
-  { labelKey: "nav.vacancies", href: routes.vacancies, icon: "fileText", exact: false },
+  {
+    labelKey: "nav.vacancies",
+    href: routes.vacancies,
+    icon: "fileText",
+    exact: false,
+  },
   { labelKey: "nav.globalHiring", href: routes.globalHiring, icon: "route" },
 ];
 

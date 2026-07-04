@@ -1374,10 +1374,23 @@
   white-space: nowrap;
   border-radius: var(--radius-fill);
   cursor: pointer;
-  transition: color var(--dur-base) var(--ease-standard);
+  transition:
+    color var(--dur-base) var(--ease-standard),
+    background var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard),
+    box-shadow var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
 }
 .hero-chips button:hover {
   color: var(--text-primary);
+  background: var(--bg-secondary);
+  border-color: var(--border-strong, var(--icon-secondary));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.08));
+  transform: translateY(-1px);
+}
+.hero-chips button:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 @keyframes chipIn {
   from {
@@ -1732,11 +1745,18 @@
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  background: var(--icon-secondary);
+  transition: background var(--dur-base) var(--ease-standard);
+}
+.landing .hero-chips button:hover .ic,
+.landing .hero-chips button[aria-pressed="true"] .ic {
+  background: var(--accent-brand);
 }
 .landing .hero-chips button[aria-pressed="true"] {
   border-color: var(--accent-brand);
   color: var(--text-accent);
   background: var(--accent-50);
+  box-shadow: none;
 }
 /* Mobile: keep all four mode chips comfortably tappable on small screens. */
 @media (max-width: 560px) {
