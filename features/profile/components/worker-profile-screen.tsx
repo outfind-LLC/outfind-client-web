@@ -161,7 +161,7 @@ export function WorkerProfileScreen({
               href={routes.profileCv}
               className={cn(s["rz-btn"], s["rz-btn-primary"])}
             >
-              <Ic name="file" />
+              <Ic name="resume" />
               {t("profile.openBuilder")}
             </Link>
           </div>
@@ -210,7 +210,7 @@ export function WorkerProfileScreen({
             <div className={s["rz-card"]}>
               <div className={s["rz-empty"]}>
                 <span className={s["rz-empty-ic"]}>
-                  <Ic name="file" />
+                  <Ic name="resume" />
                 </span>
                 <div className={s["rz-empty-t"]}>{t("profile.emptyTitle")}</div>
                 <div className={s["rz-empty-d"]}>{t("profile.emptyDesc")}</div>

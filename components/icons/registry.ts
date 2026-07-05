@@ -106,6 +106,7 @@ import sealCheck from "./seal-check";
 import inbox from "./inbox";
 import rocket from "./rocket";
 import fileText from "./file-text";
+import resume from "./resume";
 
 // Chat response actions
 import thumbUp from "./thumb-up";
@@ -241,6 +242,7 @@ const DEFS = {
   inbox,
   rocket,
   fileText,
+  resume,
   // chat response actions
   thumbUp,
   thumbDown,

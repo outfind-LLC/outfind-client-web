@@ -16,6 +16,7 @@ export const ICONS = {
   back: REG.backThin,
   close: REG.closeThin,
   file: REG.file,
+  resume: REG.resume,
   plus: REG.plusBold,
   eye: REG.eye,
   eyeOff: REG.eyeOff,

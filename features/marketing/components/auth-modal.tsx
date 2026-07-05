@@ -167,6 +167,8 @@ export function AuthModal() {
           </div>
         )}
 
+        {/* Terms / Privacy legal copy — hidden for now (commented out until the
+            legal pages are ready). Re-enable this block to restore it.
         {!hiringSoon ? (
           <p
             className={styles.authFine}
@@ -174,6 +176,7 @@ export function AuthModal() {
             dangerouslySetInnerHTML={{ __html: ui.authFine }}
           />
         ) : null}
+        */}
       </div>
     </div>
   );
