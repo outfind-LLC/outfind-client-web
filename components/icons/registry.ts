@@ -111,6 +111,9 @@ import fileText from "./file-text";
 import thumbUp from "./thumb-up";
 import thumbDown from "./thumb-down";
 
+// Topbar
+import notification from "./notification";
+
 // Resume builder
 import chevronUp from "./chevron-up";
 
@@ -237,6 +240,8 @@ const DEFS = {
   // chat response actions
   thumbUp,
   thumbDown,
+  // topbar
+  notification,
   // resume builder
   chevronUp,
   // visa guidance — profession glyphs

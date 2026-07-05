@@ -12,15 +12,13 @@ export interface NavItem {
   newChat?: boolean;
   /** Highlight only on exact match (e.g. a tab root shouldn't match its threads). */
   exact?: boolean;
-  /** Opens an overlay instead of navigating (e.g. the visa wizard modal). */
-  action?: "visa";
 }
 
 /** Worker sidebar — mirrors the prototype: New job · Saved & applied · Profile ·
  * Career & migration. */
 const WORKER_NAV: NavItem[] = [
   { labelKey: "nav.newJob", href: routes.jobs, icon: "plus", newChat: true },
-  { labelKey: "nav.visa", href: routes.visa, icon: "passport", action: "visa" },
+  { labelKey: "nav.visa", href: routes.visa, icon: "passport" },
   { labelKey: "nav.savedApplied", href: routes.applications, icon: "docCheck" },
   { labelKey: "nav.profile", href: routes.profile, icon: "user" },
   { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },

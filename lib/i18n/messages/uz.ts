@@ -20,7 +20,7 @@ export const uz: Messages = {
     company: "Kompaniya",
     careerMigration: "Karyera va migratsiya",
     globalHiring: "Global ishga olish",
-    visa: "Viza",
+    visa: "Viza hujjatlari",
   },
   visa: {
     title: "Viza",

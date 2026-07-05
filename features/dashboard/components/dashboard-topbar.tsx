@@ -70,6 +70,13 @@ export function DashboardTopbar() {
       </button>
       <div className={s["tb-title"]}>{titleForPath(pathname)}</div>
       <div className={s["tb-spacer"]} />
+      <button
+        type="button"
+        className={s["icon-btn"]}
+        aria-label="Notifications"
+      >
+        <Ic name="notification" />
+      </button>
     </header>
   );
 }

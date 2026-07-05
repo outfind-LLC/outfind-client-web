@@ -9,7 +9,6 @@ import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ChatComposer } from "@/features/chat/components/chat-composer";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
-import { useVisaModalStore } from "@/features/visa/store/visa-modal.store";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
 import {
   ChatMark,
@@ -76,7 +75,6 @@ export function JobSearchLanding() {
   const { user, isWorker } = useSession();
   const profileQuery = useWorkerProfile(Boolean(isWorker));
   const startConversation = useStartConversation(routes.jobsThread);
-  const openVisa = useVisaModalStore((st) => st.openModal);
 
   const [mode, setMode] = useState<LandingMode>("search");
   const [seedProfession, setSeedProfession] = useState<string | null>(null);
@@ -111,9 +109,10 @@ export function JobSearchLanding() {
       router.push(routes.profileCv);
       return;
     }
-    // Visa documentation opens the guided wizard modal (not a chat).
+    // Visa documents opens the full-screen /visa experience (checklist if a
+    // preference exists, otherwise the onboarding modal auto-opens there).
     if (next === "visa") {
-      openVisa();
+      router.push(routes.visa);
       return;
     }
     setMode(next);

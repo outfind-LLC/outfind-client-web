@@ -26,7 +26,7 @@ export const en = {
     company: "Company",
     careerMigration: "Career & migration",
     globalHiring: "Global hiring",
-    visa: "Visa guide",
+    visa: "Visa documents",
   },
   visa: {
     title: "Visa guide",

@@ -1,0 +1,23 @@
+/* Circular country flag — real SVG asset with an emoji fallback. Sizing is
+   passed inline so the same component serves list rows (~34px) and the smaller,
+   overlapping flags in the checklist header. */
+.flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-fill);
+  overflow: hidden;
+  background: var(--bg-secondary);
+  line-height: 1;
+}
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.emoji {
+  display: block;
+  line-height: 1;
+}

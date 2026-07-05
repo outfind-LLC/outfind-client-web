@@ -33,6 +33,7 @@
     padding: 24px;
   }
   .sheet {
+    max-width: 560px;
     max-height: 88vh;
     border-radius: var(--radius-3xl);
     animation: pop 200ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
