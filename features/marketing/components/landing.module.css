@@ -720,6 +720,22 @@
 .authOverlay[data-open="true"] .authModal {
   transform: none;
 }
+/* Mobile: dock the sign-in modal to the bottom as a slide-up sheet. */
+@media (max-width: 560px) {
+  .authOverlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .authModal {
+    max-width: none;
+    border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
+    padding: 30px 22px calc(env(safe-area-inset-bottom, 0px) + 26px);
+    transform: translateY(100%);
+  }
+  .authOverlay[data-open="true"] .authModal {
+    transform: translateY(0);
+  }
+}
 .authClose {
   position: absolute;
   top: 14px;

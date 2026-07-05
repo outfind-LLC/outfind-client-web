@@ -249,11 +249,25 @@
 }
 
 @media (max-width: 560px) {
+  /* Stack the banner: icon + text on the first row, full-width button below.
+     Without forcing the button to flex-basis:100% it would never wrap (the text
+     shrinks to min-width:0 first), crushing the copy to one word per line. */
   .banner {
     flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px 14px;
+  }
+  .bannerMain {
+    flex: 1 1 60%;
   }
   .bannerBtn {
-    margin-left: 54px;
+    flex: 1 0 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+  /* Let the route show in full ("Kyrgyzstan → Germany") instead of truncating. */
+  .route {
+    white-space: normal;
   }
 }
 

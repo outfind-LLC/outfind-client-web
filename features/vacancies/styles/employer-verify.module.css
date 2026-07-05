@@ -83,6 +83,28 @@
   max-width: 420px;
 }
 
+/* Mobile: dock to the bottom as a slide-up sheet (was a centered card). */
+@media (max-width: 560px) {
+  .ev-scrim {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .ev-modal,
+  .ev-modal-sm {
+    max-width: none;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+  }
+  .ev-scrim.show .ev-modal,
+  .ev-scrim.show .ev-modal-sm {
+    transform: translateY(0);
+  }
+  .ev-scroll {
+    padding: 26px 18px 8px;
+  }
+}
+
 /* header (wizard kicker + h2 + sub) */
 .ev-scroll {
   flex: 1;
