@@ -11,11 +11,12 @@ import { useCheckout, usePaygCheckout } from "@/features/billing/hooks/use-billi
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { usePublicPricing } from "@/features/billing/hooks/use-pricing";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
+import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import type { PaygGrantType } from "@/interfaces/billing.interface";
 import type { PublicPlan } from "@/interfaces/plan.interface";
-import { ACCOUNT_TYPE, PLAN_AUDIENCE } from "@/interfaces/enums";
+import { ACCOUNT_TYPE, PLAN_AUDIENCE, PLAN_TYPE } from "@/interfaces/enums";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Skeleton } from "@/ui/skeleton";
@@ -38,6 +39,7 @@ function formatPrice(cents: number): string {
 /** In-app upgrade screen: the caller's audience plans, current one marked, with
  * checkout for higher tiers. Plans come live from `/plans`. */
 export function UpgradeView() {
+  const t = useT();
   const { user } = useSession();
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>("month");
@@ -95,11 +97,19 @@ export function UpgradeView() {
     );
   }
 
-  const plans = [...data].sort(
+  const allPlans = [...data].sort(
     (a, b) => a.priceMonthlyCents - b.priceMonthlyCents,
   );
+  // Workers see ONLY the single Pro plan (one-time payment for now); employer
+  // surfaces keep their full catalog untouched.
+  const isWorkerAudience = audience === PLAN_AUDIENCE.WORKER;
+  const workerPro = allPlans.filter(
+    (plan) => plan.planType === PLAN_TYPE.PRO,
+  );
+  const plans =
+    isWorkerAudience && workerPro.length > 0 ? workerPro : allPlans;
   const currentPrice =
-    plans.find((plan) => plan.planType === currentPlan?.planType)
+    allPlans.find((plan) => plan.planType === currentPlan?.planType)
       ?.priceMonthlyCents ?? 0;
 
   const startCheckout = (plan: PublicPlan) => {
@@ -134,7 +144,12 @@ export function UpgradeView() {
         ) : null}
       </div>
 
-      <div className="grid items-stretch gap-6 lg:grid-cols-3">
+      <div
+        className={cn(
+          "grid items-stretch gap-6",
+          plans.length > 1 ? "lg:grid-cols-3" : "mx-auto w-full max-w-md",
+        )}
+      >
         {plans.map((plan) => {
           const isCurrent = plan.planType === currentPlan?.planType;
           const isUpgrade = plan.priceMonthlyCents > currentPrice;
@@ -170,10 +185,20 @@ export function UpgradeView() {
                 </span>
                 {price > 0 ? (
                   <span className="text-muted-foreground text-sm">
-                    /{interval === "month" ? "mo" : "yr"}
+                    {/* Worker Pro is a one-time payment for now, not a cycle. */}
+                    {isWorkerAudience
+                      ? t("pro.oneTime")
+                      : `/${interval === "month" ? "mo" : "yr"}`}
                   </span>
                 ) : null}
               </div>
+              {/* UZS equivalent for Uzbekistan (Click checkout).
+                  TODO: serve from plan config once the Click gateway lands. */}
+              {isWorkerAudience && price > 0 ? (
+                <p className="text-muted-foreground mt-1 text-sm font-medium">
+                  {t("pro.priceUzs")}
+                </p>
+              ) : null}
 
               {plan.tagline || plan.description ? (
                 <p className="text-muted-foreground mt-2 text-sm">
@@ -229,6 +254,12 @@ export function UpgradeView() {
           );
         })}
       </div>
+
+      {isWorkerAudience ? (
+        <p className="text-muted-foreground text-center text-xs">
+          {t("pro.priceNote")}
+        </p>
+      ) : null}
 
       {audience === PLAN_AUDIENCE.EMPLOYER ? <PaygSection /> : null}
     </div>

@@ -1,8 +1,9 @@
 /**
- * Pricing content — ported verbatim from the _Peoplor_Design prototype
- * (Peoplor Landing.html pricing section). The prototype hardcodes these plans
- * in English, so they are reproduced exactly. Swapping to live `GET /plans`
- * data is a later step (see Plan.md §7.3).
+ * Pricing content for the public landing. The worker side mirrors the LIVE
+ * plan catalog (worker_free + worker_standard in the backend seed): Free is
+ * the freemium tier (browse, limited AI messages, unlimited profile edits,
+ * basic visa guidance), Standard is the single one-time purchase that unlocks
+ * the full AI toolkit. Swapping to live `GET /plans` data is a later step.
  */
 
 export interface PricingPlan {
@@ -25,19 +26,20 @@ interface PricingSubgroup {
 }
 
 export const FIND_PRICING = {
-  lead: "Find your next opportunity. Your first application is always free.",
+  lead: "Find your next opportunity. Browsing jobs is always free.",
   plans: [
     {
       name: "Free",
-      desc: "Try the platform — free forever.",
+      desc: "Browse the platform — free forever.",
       amount: "$0",
       per: "/ forever",
-      meta: "1 application, lifetime",
+      meta: "Free forever",
       features: [
-        "Apply to 1 job",
-        "Contact 1 employer",
-        "AI Career Assistant chat (limited)",
-        "AI CV builder",
+        "Browse & search jobs",
+        "AI assistant chat — 10 free messages / month",
+        "Unlimited profile updates",
+        "Basic visa guidance (free checklist sections)",
+        "CV editor — build & save drafts",
         "Save jobs",
         "Basic support",
       ],
@@ -45,45 +47,26 @@ export const FIND_PRICING = {
     },
     {
       name: "Standard",
-      desc: "Perfect for active job seekers.",
-      amount: "$8",
-      per: "/ month",
-      meta: "15 new applications / day · resets daily",
+      desc: "Unlock the full AI toolkit.",
+      amount: "$5",
+      per: "one-time",
+      meta: "≈ 69 999 UZS · one-time payment for now",
       features: [
-        "Contact up to 15 new employers per day",
-        "AI Career Assistant chat",
-        "AI CV builder",
-        "AI CV edits (AI-assisted)",
-        "Save unlimited jobs",
-        "Application history",
-        "Job alerts",
-        "Standard support",
+        "AI Job Search — apply links & employer contacts",
+        "AI CV Builder — generate & download",
+        "AI Career Assistant — 500 messages / month",
+        "Full visa & document guidance",
+        "Up to 10 saved resumes",
+        "Apply to 30 jobs / day",
+        "Priority support",
       ],
       cta: "Choose Standard",
-    },
-    {
-      name: "Premium",
-      desc: "For serious job seekers who want more results.",
-      amount: "$13",
-      per: "/ month",
-      meta: "30 new applications / day · resets daily",
-      features: [
-        "Contact up to 30 new employers per day",
-        "Everything in Standard",
-        "Priority profile visibility",
-        "Advanced AI assistance",
-        "Early access to new jobs",
-        "Priority support (faster replies)",
-        "Feature updates first",
-      ],
-      cta: "Choose Premium",
       featured: true,
       tag: "Most popular",
     },
   ] satisfies PricingPlan[],
   fineprint: [
-    "Limits apply only to new applications and new employers.",
-    "Message and continue conversations with all previous contacts — no limits.",
+    "Standard is a one-time payment for now — the price may change at any time.",
     "One application per vacancy — no repeated spam applications.",
   ],
 };

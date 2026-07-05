@@ -18,7 +18,8 @@ function isActive(pathname: string, item: NavItem): boolean {
 /**
  * Primary navigation as flat, borderless rows. The first item ("New job" /
  * "New search") carries the plus affordance. Labels are localised. Closes the
- * mobile drawer on select.
+ * mobile drawer on select. Every destination is free to open — plan gating
+ * happens on value-consuming actions inside the screens themselves.
  */
 export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();

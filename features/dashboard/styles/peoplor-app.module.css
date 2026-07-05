@@ -173,6 +173,17 @@
   height: 18px;
   color: var(--icon-primary);
 }
+/* Pro-lock suffix on gated nav rows (e.g. Visa documents): pushed to the row's
+   right edge; hidden with the labels when the rail collapses to icons. */
+.sb-btn .sb-lock {
+  width: 13px;
+  height: 13px;
+  margin-left: auto;
+  color: var(--icon-secondary);
+}
+.app[data-collapsed="true"] .sb-btn .sb-lock {
+  display: none;
+}
 .sb-btn:hover {
   background: var(--bg-secondary-hover);
 }
@@ -1163,6 +1174,24 @@
   border-radius: var(--radius-fill);
   line-height: 1.2;
 }
+/* Free-tier reach lock pill — replaces the match pill on locked cards. */
+.jc-lock {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 4px 9px;
+  border-radius: var(--radius-fill);
+  line-height: 1.2;
+}
+.jc-lock .jc-lock-ic {
+  width: 12px;
+  height: 12px;
+}
 .jc-salary {
   margin-top: 14px;
   font-size: 15px;
@@ -1766,6 +1795,16 @@
   color: var(--text-accent);
   background: var(--accent-50);
   box-shadow: none;
+}
+/* Pro-lock marker on gated landing chips — smaller than the mode glyph and kept
+   neutral (it must read as a lock, so no brand tint on hover/active). */
+.landing .hero-chips button .chip-lock,
+.landing .hero-chips button:hover .chip-lock,
+.landing .hero-chips button[aria-pressed="true"] .chip-lock {
+  width: 13px;
+  height: 13px;
+  margin-left: -2px;
+  background: var(--text-tertiary);
 }
 /* Mobile: keep all four mode chips comfortably tappable on small screens. */
 @media (max-width: 560px) {

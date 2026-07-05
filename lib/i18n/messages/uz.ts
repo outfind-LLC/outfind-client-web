@@ -246,6 +246,10 @@ export const uz: Messages = {
     jdOnlineNote:
       "Outfind AI internetdan topilgan ishlarga siz uchun ariza bera olmaydi. Har doim ish beruvchini tekshiring, ish uchun pul to‘lamang va ishonch hosil qilmaguningizcha hujjat ulashmang.",
     jdNoChannel: "Bu ish uchun ariza berish kanali ko‘rsatilmagan.",
+    lockedBadge: "Yopiq",
+    jdLockedNote:
+      "Bu ish uchun ariza havolasi va ish beruvchining kontaktlari Standard tarifiga kiradi.",
+    jdLockedCta: "Standard bilan ochish",
     close: "Yopish",
     save: "Saqlash",
     saved: "Saqlangan",
@@ -570,6 +574,31 @@ export const uz: Messages = {
     ariaOpenMenu: "Menyuni ochish",
     headerSub: "Outfind AI’da qanday ko‘rinasiz.",
     loadError: "Profilingizni yuklab bo‘lmadi. Qayta urinib ko‘ring.",
+    // Birinchi sozlash oynasi
+    setupTitle: "Profilingizni sozlang",
+    setupTitleNamed: "Profilingizni sozlaymiz, {name}",
+    setupSubtitle:
+      "Asosiylardan boshlang — sizga mos ishlarni topamiz. Tajriba, ta’lim va tillarni keyin qo‘shishingiz mumkin.",
+    setupProfession: "Kasb",
+    setupProfessionPh: "masalan, Yuk mashinasi haydovchisi",
+    setupYears: "Ish tajribasi (yil)",
+    setupSalary: "Kutilayotgan maosh (min, USD/oy)",
+    setupSkills: "Ko‘nikmalar",
+    setupSkillsPh: "masalan, Pogruzchik, CNC",
+    setupSkillsHint: "Har bir ko‘nikmadan so‘ng Enter bosing",
+    setupCountries: "Maqsadli davlatlar",
+    setupCountriesPh: "masalan, Germaniya",
+    setupCountriesHint: "Qayerda ishlamoqchisiz (ixtiyoriy)",
+    setupAbroad: "Chet elga ko‘chishga tayyorman",
+    setupCta: "Profil yaratish",
+    setupCreating: "Profil yaratilmoqda…",
+    setupNeedProfession: "Boshlash uchun kasbingizni kiriting",
+    setupSuccess: "Profil yaratildi — qolganini to‘ldiramiz",
+    setupError: "Profil yaratib bo‘lmadi — qayta urinib ko‘ring",
+    setupEmptyTitle: "Profil yarating",
+    setupEmptyDesc:
+      "Nima ish qilishingizni ayting — sizga mos ishlarni topamiz.",
+    setupEmptyCta: "Profilni sozlash",
     accountSettings: "Hisob sozlamalari",
     myResumes: "Mening rezyumelarim",
     createResume: "Rezyume yaratish",
@@ -903,7 +932,7 @@ export const uz: Messages = {
   },
   upgrade: {
     title: "Tarifni yangilash",
-    note: "Siz bepul tarifdasiz. Cheksiz arizalar va ustuvor moslik uchun Pro’ga o‘ting.",
+    note: "Siz bepul tarifdasiz. Cheksiz arizalar va ustuvor moslik uchun Standard’ga o‘ting.",
     noteHire:
       "Bepul tarifdasiz. Ko‘proq vakansiya, AI-skrining va ustuvor tanlov uchun Pro’ga o‘ting.",
     current: "Joriy",
@@ -923,7 +952,24 @@ export const uz: Messages = {
     proF3Hire: "Ustuvor nomzod tanlovi",
     proF4Hire: "Jamoa uchun umumiy pochta",
     maybeLater: "Keyinroq",
-    toPro: "Pro’ga o‘tish",
+    toPro: "Standard’ga o‘tish",
+  },
+  pro: {
+    title: "Standard tarifiga kiradi",
+    subtitle: "Ish topish uchun kerak bo‘lgan hamma narsa — ilg‘or AI asosida.",
+    featCv: "AI CV yaratuvchi",
+    featSearch: "AI ish qidiruvi",
+    featAssistant: "AI karyera yordamchisi",
+    featVisa: "Viza va hujjatlar bo‘yicha yo‘riqnoma",
+    oneTime: "bir martalik to‘lov",
+    priceUzs: "≈ 69 999 soʻm (UZS)",
+    priceNote:
+      "Hozircha bir martalik to‘lov — narx istalgan vaqtda o‘zgarishi mumkin.",
+    upgradeCta: "Standard’ga o‘tish",
+    notNow: "Hozir emas",
+    lockedToast: "Bu funksiya Standard tarifiga kiradi.",
+    limitToast:
+      "Bepul limitga yetdingiz — davom etish uchun Standard’ga o‘ting.",
   },
   career: {
     introH: "Chet elda ishlash uchun AI rejangiz",

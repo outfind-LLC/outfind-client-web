@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/client";
+import { api, fetchWithAuthRetry } from "@/lib/api/client";
 import { buildQuery } from "@/lib/api/query";
 import { ApiClientError } from "@/lib/api/error";
 import { env } from "@/lib/env";
@@ -86,16 +86,21 @@ export const chatService = {
     idempotencyKey: string,
     signal?: AbortSignal,
   ): Promise<Response> {
-    const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/chat`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": idempotencyKey,
+    // 401 → single-flight session refresh → one retry (same as apiFetch), so
+    // an expired access cookie mid-session never surfaces as "unauthorized".
+    const response = await fetchWithAuthRetry(
+      `${env.NEXT_PUBLIC_API_URL}/chat`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify(payload),
+        signal,
       },
-      body: JSON.stringify(payload),
-      signal,
-    });
+    );
 
     if (!response.ok) {
       // Stream endpoint surfaces JSON errors with the standard envelope.

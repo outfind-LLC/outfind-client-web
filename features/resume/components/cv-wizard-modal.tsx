@@ -21,6 +21,8 @@ import { useT, type TranslateFn } from "@/providers/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 
 import { useSession } from "@/features/auth/hooks/use-session";
+import { handleFeatureLockedError } from "@/features/billing/lib/feature-locked";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import {
   useUpdateProfileInfo,
@@ -552,6 +554,7 @@ export function CvWizardModal() {
 
   const open = useCvWizardStore((st) => st.open);
   const close = useCvWizardStore((st) => st.close);
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
 
   const profile = useWorkerProfile(open && Boolean(isWorker));
   const createResume = useCreateResume();
@@ -656,6 +659,8 @@ export function CvWizardModal() {
 
   const submit = async () => {
     if (submitting) return;
+    // Filling in + saving a CV is free — the backend's 403 (FEATURE_LOCKED /
+    // LIMIT_REACHED, e.g. the free CV limit) is caught below and upsells.
     setSubmitting(true);
     try {
       const firstName = data.firstName.trim();
@@ -682,6 +687,11 @@ export function CvWizardModal() {
       close();
       router.push(routes.resumeEditor(view.id));
     } catch (error) {
+      // 403 FEATURE_LOCKED / LIMIT_REACHED → upsell instead of an error toast.
+      if (handleFeatureLockedError(error, openUpgrade, "ai_cv_builder")) {
+        close();
+        return;
+      }
       toast.error(
         isApiClientError(error) ? error.message : t("cv.wizCreateError"),
       );

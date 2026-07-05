@@ -1,34 +1,62 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Loader2, UserRound } from "lucide-react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { toast } from "sonner";
 
 import { track } from "@/lib/analytics/client";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import { useUpdateJobSearchInfo } from "@/features/profile/hooks/use-worker-profile-mutations";
 import { useSession } from "@/features/auth/hooks/use-session";
-import { useParseProfile } from "@/features/ai-tools/hooks/use-worker-ai";
-import { useSpeechRecognition } from "@/features/chat/hooks/use-speech-recognition";
-import { VoiceInputButton } from "@/features/chat/components/voice-input-button";
-import type { ParsedWorkerProfile } from "@/interfaces/worker-ai.interface";
+import { Ic } from "@/features/dashboard/components/app-icons";
+import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
-import {
-  FormField,
-  SwitchField,
-  TagInput,
-} from "@/components/form/form-fields";
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
+import { cn } from "@/lib/utils";
+import s from "@/features/profile/styles/profile-setup.module.css";
 
 /**
- * First-time worker profile setup. A worker has no profile until they save the
- * core job-search fields — the backend `PATCH /worker/profile/job-search`
- * endpoint upserts (creates) the profile. Once it succeeds the worker-profile
- * query is invalidated and the full editable profile view takes over, where the
- * rest (experience, education, languages, personal info) can be managed.
+ * First-time worker profile setup — the app's bottom-sheet design system (same
+ * shell as the CV wizard / job-search modals). A worker has no profile until
+ * they save the core job-search fields; `PATCH /worker/profile/job-search`
+ * upserts (creates) the profile, after which the full editable profile view
+ * takes over. The modal opens automatically; closing it leaves an empty-state
+ * card that reopens it, so the page is never a dead end.
  */
 export function WorkerProfileSetup() {
+  const t = useT();
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.PROFILE_STARTED, { input_mode: "form" });
+  }, []);
+
+  return (
+    <>
+      <div className={s.empty}>
+        <span className={s.emptyBadge}>
+          <Ic name="user" />
+        </span>
+        <h2 className={s.emptyTitle}>{t("profile.setupEmptyTitle")}</h2>
+        <p className={s.emptyDesc}>{t("profile.setupEmptyDesc")}</p>
+        <button
+          type="button"
+          className={s.emptyCta}
+          onClick={() => setOpen(true)}
+        >
+          {t("profile.setupEmptyCta")}
+        </button>
+      </div>
+      {open ? <SetupModal onClose={() => setOpen(false)} /> : null}
+    </>
+  );
+}
+
+function SetupModal({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const { user } = useSession();
   const mutation = useUpdateJobSearchInfo();
 
@@ -41,78 +69,25 @@ export function WorkerProfileSetup() {
 
   const firstName = user?.name?.split(" ")[0];
 
+  // Escape closes; body scroll locks while open (matches the shared modals).
   useEffect(() => {
-    track(ANALYTICS_EVENTS.PROFILE_STARTED, { input_mode: "form" });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Voice → fields: speak a self-description, the AI maps it to the form, the
-  // worker reviews/edits, then saves. Only fields the AI actually returned are
-  // filled (never overwrites with a blank). ────────────────────────────────────
-  const parse = useParseProfile();
-  const transcriptRef = useRef("");
-
-  const applyParsed = (data: ParsedWorkerProfile) => {
-    if (data.profession) setProfession(data.profession);
-    if (data.experienceYears != null) {
-      setExperienceYears(String(data.experienceYears));
-    }
-    if (data.skills?.length) setSkills(data.skills);
-    if (data.targetCountries?.length) setTargetCountries(data.targetCountries);
-    if (data.expectedSalaryMin != null) {
-      setSalaryMin(String(data.expectedSalaryMin));
-    }
-    if (data.abroadExperience != null) setAbroad(data.abroadExperience);
-    track(ANALYTICS_EVENTS.VOICE_RECORDING_COMPLETED, {
-      surface: "worker_profile",
-    });
-    toast.success("Filled in what we heard — review and edit, then save.");
-  };
-
-  const runParse = () => {
-    const text = transcriptRef.current.trim();
-    if (!text) {
-      toast.error("Say a bit about yourself first, then tap the mic to stop.");
-      return;
-    }
-    parse.mutate(text, {
-      onSuccess: applyParsed,
-      onError: (error) =>
-        toast.error(
-          isApiClientError(error)
-            ? error.message
-            : "Couldn't read your description — please try again.",
-        ),
-    });
-  };
-
-  const { supported, listening, start, stop } = useSpeechRecognition({
-    onTranscript: (t) => {
-      transcriptRef.current = t;
-    },
-    onError: (code) =>
-      toast.error(
-        code === "not-allowed"
-          ? "Microphone access is blocked — enable it in your browser."
-          : code === "no-speech"
-            ? "Didn't catch that — try speaking again."
-            : "Voice input isn't available right now.",
-      ),
-  });
-
-  const toggleVoice = () => {
-    if (parse.isPending) return;
-    if (listening) {
-      stop();
-      runParse();
-    } else {
-      transcriptRef.current = "";
-      start();
-    }
-  };
-
-  const submit = () => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!profession.trim()) {
-      toast.error("Tell us your profession to get started");
+      toast.error(t("profile.setupNeedProfession"));
       return;
     }
     mutation.mutate(
@@ -125,140 +100,231 @@ export function WorkerProfileSetup() {
         expectedSalaryMin: Math.max(0, parseInt(salaryMin, 10) || 0),
       },
       {
-        onSuccess: () =>
-          toast.success("Profile created — let's fill in the rest"),
+        onSuccess: () => toast.success(t("profile.setupSuccess")),
         onError: (error) =>
           toast.error(
-            isApiClientError(error)
-              ? error.message
-              : "Couldn't create your profile — please try again",
+            isApiClientError(error) ? error.message : t("profile.setupError"),
           ),
       },
     );
   };
 
   return (
-    <div className="mx-auto max-w-xl">
-      <div className="bg-card rounded-2xl border p-6 sm:p-8">
-        <span className="bg-brand/10 text-brand mb-4 flex size-12 items-center justify-center rounded-2xl">
-          <UserRound className="size-6" />
-        </span>
-        <h2 className="text-xl font-semibold tracking-tight">
-          {firstName
-            ? `Let's set up your profile, ${firstName}`
-            : "Set up your profile"}
-        </h2>
-        <p className="text-muted-foreground mt-1.5 text-sm">
-          Start with the basics so we can match you to the right jobs. You can
-          add your experience, education and languages right after.
-        </p>
-
-        {supported && (
-          <div className="bg-muted/40 mt-5 flex items-center gap-3 rounded-xl border p-3">
-            <VoiceInputButton
-              listening={listening}
-              disabled={parse.isPending}
-              onClick={toggleVoice}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">
-                {parse.isPending
-                  ? "Reading your description…"
-                  : listening
-                    ? "Listening — tap to stop"
-                    : "Speak to autofill"}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                Describe yourself in any language — your job, experience,
-                skills, and where you'd like to work. We'll fill the form; you
-                can edit before saving.
-              </p>
-            </div>
-            {parse.isPending && (
-              <Loader2 className="text-muted-foreground size-4 animate-spin" />
-            )}
-          </div>
-        )}
-
-        <div className="mt-6 space-y-5">
-          <FormField label="Profession" htmlFor="profession" required>
-            <Input
-              id="profession"
-              value={profession}
-              onChange={(event) => setProfession(event.target.value)}
-              placeholder="e.g. Truck Driver"
-              autoFocus
-            />
-          </FormField>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <FormField label="Years of experience" htmlFor="experienceYears">
-              <Input
-                id="experienceYears"
-                type="number"
-                min={0}
-                max={50}
-                value={experienceYears}
-                onChange={(event) => setExperienceYears(event.target.value)}
-              />
-            </FormField>
-            <FormField
-              label="Expected salary (min, USD/mo)"
-              htmlFor="salaryMin"
-            >
-              <Input
-                id="salaryMin"
-                type="number"
-                min={0}
-                value={salaryMin}
-                onChange={(event) => setSalaryMin(event.target.value)}
-              />
-            </FormField>
-          </div>
-
-          <FormField label="Skills" hint="Press Enter to add each skill">
-            <TagInput
-              value={skills}
-              onChange={setSkills}
-              placeholder="e.g. Forklift, CNC"
-            />
-          </FormField>
-
-          <FormField
-            label="Target countries"
-            hint="Where you'd like to work (optional)"
+    <div
+      className={s.scrim}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className={s.sheet}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("profile.setupTitle")}
+      >
+        <div className={s.head}>
+          <button
+            type="button"
+            className={s.iconBtn}
+            aria-label={t("chat.close")}
+            onClick={onClose}
           >
-            <TagInput
-              value={targetCountries}
-              onChange={setTargetCountries}
-              placeholder="e.g. Germany"
-            />
-          </FormField>
-
-          <SwitchField
-            label="Open to relocating abroad"
-            checked={abroad}
-            onChange={setAbroad}
-          />
+            <Ic name="close" />
+          </button>
         </div>
 
-        <Button
-          variant="brand"
-          size="lg"
-          className="mt-6 w-full"
-          onClick={submit}
-          disabled={mutation.isPending}
-        >
-          {mutation.isPending ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Creating profile…
-            </>
-          ) : (
-            "Create my profile"
-          )}
-        </Button>
+        <div className={s.badge}>
+          <Ic name="user" className={s.badgeIc} />
+        </div>
+        <div className={s.intro}>
+          <h2 className={s.title}>
+            {firstName
+              ? t("profile.setupTitleNamed", { name: firstName })
+              : t("profile.setupTitle")}
+          </h2>
+          <p className={s.subtitle}>{t("profile.setupSubtitle")}</p>
+        </div>
+
+        <form onSubmit={submit} className={s.form}>
+          <div className={s.body}>
+            <div className={s.fields}>
+              <div className={s.field}>
+                <label className={s.label} htmlFor="setup-profession">
+                  {t("profile.setupProfession")} <span className={s.req}>*</span>
+                </label>
+                <input
+                  id="setup-profession"
+                  className={s.input}
+                  value={profession}
+                  onChange={(event) => setProfession(event.target.value)}
+                  placeholder={t("profile.setupProfessionPh")}
+                  autoFocus
+                  autoComplete="off"
+                  maxLength={100}
+                />
+              </div>
+
+              <div className={s.grid2}>
+                <div className={s.field}>
+                  <label className={s.label} htmlFor="setup-years">
+                    {t("profile.setupYears")}
+                  </label>
+                  <input
+                    id="setup-years"
+                    className={s.input}
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={experienceYears}
+                    onChange={(event) =>
+                      setExperienceYears(event.target.value)
+                    }
+                  />
+                </div>
+                <div className={s.field}>
+                  <label className={s.label} htmlFor="setup-salary">
+                    {t("profile.setupSalary")}
+                  </label>
+                  <input
+                    id="setup-salary"
+                    className={s.input}
+                    type="number"
+                    min={0}
+                    value={salaryMin}
+                    onChange={(event) => setSalaryMin(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className={s.field}>
+                <label className={s.label} htmlFor="setup-skills">
+                  {t("profile.setupSkills")}
+                </label>
+                <TagField
+                  id="setup-skills"
+                  value={skills}
+                  onChange={setSkills}
+                  placeholder={t("profile.setupSkillsPh")}
+                />
+                <span className={s.hint}>{t("profile.setupSkillsHint")}</span>
+              </div>
+
+              <div className={s.field}>
+                <label className={s.label} htmlFor="setup-countries">
+                  {t("profile.setupCountries")}
+                </label>
+                <TagField
+                  id="setup-countries"
+                  value={targetCountries}
+                  onChange={setTargetCountries}
+                  placeholder={t("profile.setupCountriesPh")}
+                />
+                <span className={s.hint}>
+                  {t("profile.setupCountriesHint")}
+                </span>
+              </div>
+
+              <div className={s.switchRow}>
+                <span className={s.switchLabel}>
+                  {t("profile.setupAbroad")}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={abroad}
+                  aria-label={t("profile.setupAbroad")}
+                  className={cn(s.switch, abroad && s.switchOn)}
+                  onClick={() => setAbroad((v) => !v)}
+                >
+                  <span className={s.knob} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={s.foot}>
+            <button
+              type="submit"
+              className={s.cta}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending
+                ? t("profile.setupCreating")
+                : t("profile.setupCta")}
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Minimal design-system tag input: Enter (or comma) adds the draft as a chip,
+ * Backspace on an empty draft removes the last chip.
+ */
+function TagField({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  value: string[];
+  onChange: (next: string[]) => void;
+  placeholder: string;
+}) {
+  const [draft, setDraft] = useState("");
+
+  const addDraft = () => {
+    const next = draft.trim().replace(/,+$/, "");
+    if (next && !value.includes(next)) onChange([...value, next]);
+    setDraft("");
+  };
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      addDraft();
+    } else if (event.key === "Backspace" && draft === "" && value.length > 0) {
+      onChange(value.slice(0, -1));
+    }
+  };
+
+  return (
+    <div
+      className={s.tags}
+      onClick={(event) =>
+        (event.currentTarget.querySelector("input") as HTMLInputElement | null)?.focus()
+      }
+    >
+      {value.map((tag) => (
+        <span key={tag} className={s.chip}>
+          {tag}
+          <button
+            type="button"
+            className={s.chipX}
+            aria-label={`${tag} ×`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onChange(value.filter((item) => item !== tag));
+            }}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        id={id}
+        className={s.tagInput}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={onKeyDown}
+        onBlur={addDraft}
+        placeholder={value.length === 0 ? placeholder : ""}
+        autoComplete="off"
+        maxLength={60}
+      />
     </div>
   );
 }

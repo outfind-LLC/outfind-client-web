@@ -11,6 +11,9 @@ import {
   useUpdateResume,
 } from "@/features/resume/hooks/use-resumes";
 import { computeAts } from "@/features/resume/lib/ats";
+import { useFeature } from "@/features/billing/hooks/use-my-access";
+import { handleFeatureLockedError } from "@/features/billing/lib/feature-locked";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { useT } from "@/providers/i18n-provider";
 import { isApiClientError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
@@ -56,6 +59,8 @@ export function ResumeEditor({ id }: { id: string }) {
   const query = useResume(id);
   const update = useUpdateResume(id);
   const generate = useGenerateResume(id);
+  const cvAccess = useFeature("ai_cv_builder");
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
 
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
   const [style, setStyle] = useState<StyleConfig | null>(null);
@@ -105,7 +110,11 @@ export function ResumeEditor({ id }: { id: string }) {
               showContacts: saved.showContacts,
             });
           },
-          onError: () => setSaveState("error"),
+          onError: (error) => {
+            setSaveState("error");
+            // Backend-gated save: 403 FEATURE_LOCKED / LIMIT_REACHED → upsell.
+            handleFeatureLockedError(error, openUpgrade, "ai_cv_builder");
+          },
         },
       );
     }, 800);
@@ -158,15 +167,24 @@ export function ResumeEditor({ id }: { id: string }) {
         setSaveState("saved");
         toast.success(t("cv.generateDone"));
       },
-      onError: (error) =>
+      onError: (error) => {
+        if (handleFeatureLockedError(error, openUpgrade, "ai_cv_builder"))
+          return;
         toast.error(
           isApiClientError(error) ? error.message : t("cv.generateError"),
-        ),
+        );
+      },
     });
   };
 
   const download = async () => {
     if (downloading) return;
+    // Pro gate: exporting the PDF needs ai_cv_builder (browsing/preview stays
+    // open to everyone) — locked users get the upsell instead of the download.
+    if (cvAccess.locked) {
+      openUpgrade("ai_cv_builder");
+      return;
+    }
     setDownloading(true);
     try {
       const { downloadResumePdf } =

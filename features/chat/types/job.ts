@@ -44,6 +44,11 @@ export interface JobCardData {
   source?: string | null;
   /** True for Outfind AI-posted jobs (one-tap in-app apply); false for sourced. */
   isPlatform?: boolean;
+  /**
+   * Free-tier reach lock (server-set): apply/contact channels were stripped
+   * for this caller — render the card locked and upsell Standard on apply.
+   */
+  locked?: boolean;
 }
 
 /** A platform vacancy, as returned by the `findJobs` tool. */
@@ -65,6 +70,7 @@ interface InternalVacancyOutput {
   isPlatform?: boolean;
   applyUrl?: string | null;
   source?: string | null;
+  locked?: boolean;
 }
 
 /** A broadened web result, as returned by the `findMoreJobs` tool. */
@@ -84,6 +90,7 @@ interface ExternalJobOutput {
   postedAt?: string | null;
   applyUrl?: string | null;
   sourceBoard?: string | null;
+  locked?: boolean;
 }
 
 const EMPTY_CONTACT: JobContact = {
@@ -133,6 +140,7 @@ function normaliseInternal(item: InternalVacancyOutput): JobCardData {
     isPlatform: item.isPlatform ?? true,
     applyUrl: item.applyUrl ?? null,
     source: item.source ?? null,
+    locked: item.locked === true,
   };
 }
 
@@ -155,6 +163,7 @@ function normaliseExternal(item: ExternalJobOutput): JobCardData {
     isPlatform: false,
     applyUrl: item.applyUrl ?? null,
     source: item.sourceBoard ?? null,
+    locked: item.locked === true,
   };
 }
 

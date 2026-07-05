@@ -136,7 +136,12 @@ export function JobCard({ job }: { job: JobCardData }) {
             </div>
           ) : null}
         </div>
-        {job.matchScore != null ? (
+        {job.locked ? (
+          <div className={s["jc-lock"]} title={t("chat.lockedBadge")}>
+            <Ic name="lock" className={s["jc-lock-ic"]} />
+            <span>{t("chat.lockedBadge")}</span>
+          </div>
+        ) : job.matchScore != null ? (
           <div className={s["jc-match"]}>
             <span className={s.pct}>
               {t("chat.cardMatch", { n: job.matchScore })}

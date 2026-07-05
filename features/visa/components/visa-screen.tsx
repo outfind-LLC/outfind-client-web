@@ -12,6 +12,7 @@ import { useI18n } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { MessageKey } from "@/lib/i18n/translate";
 
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { Flag } from "@/features/visa/components/flag";
 import { pickLoc } from "@/features/visa/lib/localized";
 import { useVisaModalStore } from "@/features/visa/store/visa-modal.store";
@@ -47,6 +48,7 @@ export function VisaScreen() {
   const router = useRouter();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
   const openModal = useVisaModalStore((st) => st.openModal);
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
 
   const preference = useVisaPreference(true);
   const destinationId = preference.data?.destination?.id ?? null;
@@ -57,7 +59,8 @@ export function VisaScreen() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Once the preference resolves without a destination, open the onboarding
-  // modal over the empty state so the user can pick a route.
+  // modal over the empty state so the user can pick a route. The checklist is
+  // free for everyone; only its premium sections render locked (API `locked`).
   useEffect(() => {
     if (!preference.isLoading && !destinationId) openModal();
   }, [preference.isLoading, destinationId, openModal]);
@@ -267,6 +270,7 @@ export function VisaScreen() {
                       )
                     }
                     onToggleDoc={onToggleDoc}
+                    onLocked={() => openUpgrade("visa_guidance")}
                   />
                 ))}
               </div>
@@ -314,6 +318,7 @@ function SectionRow({
   expanded,
   onToggle,
   onToggleDoc,
+  onLocked,
 }: {
   section: VisaSection;
   t: TFn;
@@ -321,13 +326,15 @@ function SectionRow({
   expanded: boolean;
   onToggle: () => void;
   onToggleDoc: (doc: VisaDocument) => void;
+  /** Premium sections upsell on tap instead of expanding. */
+  onLocked: () => void;
 }) {
   const ready = section.documents.filter((d) => d.checked).length;
   const isOpen = expanded && !section.locked;
 
   const onHeaderClick = () => {
     if (section.locked) {
-      toast.message(t("visa.lockedToast"));
+      onLocked();
       return;
     }
     onToggle();

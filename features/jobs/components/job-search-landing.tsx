@@ -9,9 +9,12 @@ import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import { useResumes } from "@/features/resume/hooks/use-resumes";
 import { useCvWizardStore } from "@/features/resume/store/cv-wizard.store";
 import { useSession } from "@/features/auth/hooks/use-session";
+import { handleFeatureLockedError } from "@/features/billing/lib/feature-locked";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { ChatComposer } from "@/features/chat/components/chat-composer";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
+import type { FeatureKey } from "@/interfaces/access.interface";
 import {
   ChatMark,
   Ic,
@@ -60,6 +63,15 @@ const MODE_PLACEHOLDER: Record<LandingMode, MessageKey> = {
   visa: "chat.visaPlaceholder",
 };
 
+/** Feature behind each mode — the upgrade modal's preselect when a value-
+ * consuming action later 403s (entry points themselves are free). */
+const MODE_FEATURE: Record<LandingMode, FeatureKey> = {
+  cv: "ai_cv_builder",
+  assist: "ai_assistant",
+  search: "ai_job_search",
+  visa: "visa_guidance",
+};
+
 /**
  * Job Search "New job" landing — the animated brand mark, the lead question,
  * the composer, and four modes at the bottom: CV builder, AI assistance,
@@ -79,11 +91,14 @@ export function JobSearchLanding() {
   const resumesQuery = useResumes(Boolean(isWorker));
   const openCvWizard = useCvWizardStore((st) => st.openModal);
   const startConversation = useStartConversation(routes.jobsThread);
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
 
   const [mode, setMode] = useState<LandingMode>("search");
   const [seedProfession, setSeedProfession] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Entry points are free — the backend's 403 FEATURE_LOCKED on value-consuming
+  // actions is the enforcement (caught below and routed to the upgrade modal).
   const openSearch = (profession: string | null) => {
     setSeedProfession(profession);
     setModalOpen(true);
@@ -94,10 +109,13 @@ export function JobSearchLanding() {
     startConversation.mutate(
       { message, specialist },
       {
-        onError: (error) =>
+        onError: (error) => {
+          if (handleFeatureLockedError(error, openUpgrade, MODE_FEATURE[mode]))
+            return;
           toast.error(
             isApiClientError(error) ? error.message : t("chat.startConvError"),
-          ),
+          );
+        },
       },
     );
   };

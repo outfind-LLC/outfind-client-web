@@ -9,6 +9,8 @@ import {
   hasAnyContact,
   primaryContactHref,
 } from "@/features/chat/components/contact-actions";
+import { useFeature } from "@/features/billing/hooks/use-my-access";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
 import { useJobBookmark } from "@/features/jobs/hooks/use-job-bookmark";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
@@ -115,6 +117,18 @@ function InternalSheet({
 }) {
   const t = useT();
   const actions = useJobActions(vacancyId);
+  const applyAccess = useFeature("ai_job_search");
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
+
+  // Applying consumes plan value: locked users get the upsell instead of the
+  // cover-letter step (the backend 403 in useJobActions stays as enforcement).
+  const onApply = () => {
+    if (applyAccess.locked) {
+      openUpgrade("ai_job_search");
+      return;
+    }
+    actions.applyToJob();
+  };
 
   const applySection = (
     <div className={s["jd-sec"]}>
@@ -136,7 +150,7 @@ function InternalSheet({
     <button
       type="button"
       className={cn(s.btn, s["btn-primary"], s["btn-md"])}
-      onClick={actions.applyToJob}
+      onClick={onApply}
       disabled={actions.applyPending}
     >
       {t("chat.applyCv")}
@@ -173,12 +187,21 @@ function ExternalSheet({
   onClose: () => void;
 }) {
   const t = useT();
+  const openUpgrade = useUpgradeProStore((st) => st.openModal);
   const { email, phone } = job.contact;
   const fallbackHref = primaryContactHref(job.contact);
   // Board / company-page jobs deep-link to their original posting.
   const applyHref = job.applyUrl ?? null;
+  // Free-tier reach lock (server-set): the payload carries NO apply URL or
+  // contacts — show the Standard upsell instead of apply channels.
+  const locked = job.locked === true;
 
-  const applySection = (
+  const applySection = locked ? (
+    <div className={s["jd-sec"]}>
+      <h3>{t("chat.jdHowApply")}</h3>
+      <p>{t("chat.jdLockedNote")}</p>
+    </div>
+  ) : (
     <div className={s["jd-sec"]}>
       <h3>{t("chat.jdHowApply")}</h3>
       <p>
@@ -217,7 +240,16 @@ function ExternalSheet({
     </div>
   );
 
-  const footer = (
+  const footer = locked ? (
+    <button
+      type="button"
+      className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+      onClick={() => openUpgrade("ai_job_search")}
+    >
+      <Ic name="lock" />
+      {t("chat.jdLockedCta")}
+    </button>
+  ) : (
     <>
       {email ? (
         <a

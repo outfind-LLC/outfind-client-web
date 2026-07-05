@@ -6,6 +6,8 @@
 export const qk = {
   session: ["session"] as const,
   myEntitlements: ["plan", "entitlements"] as const,
+  /** Pro-feature access map (`GET /me/access`) — drives lock indicators. */
+  myAccess: ["access", "me"] as const,
   pricing: (audience?: string) =>
     ["plan", "pricing", audience ?? "all"] as const,
   subscription: ["billing", "subscription"] as const,

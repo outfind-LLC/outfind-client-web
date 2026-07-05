@@ -7,6 +7,7 @@ import { qk } from "@/config/query-keys";
 import { CandidateDetailSheet } from "@/features/applications/components/candidate-detail-sheet";
 import { ChatPanel } from "@/features/applications/components/chat-panel";
 import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue";
+import { UpgradeProModal } from "@/features/billing/components/upgrade-pro-modal";
 import { JobDetailPanel } from "@/features/jobs/components/job-detail-panel";
 import { JobToolPanel } from "@/features/jobs/components/job-tool-panel";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
@@ -57,6 +58,8 @@ export function AppShell({ user, children }: AppShellProps) {
       <VisaWizardModal />
       {/* Guided "Create CV" wizard — opened from the CV chip + resume manager. */}
       <CvWizardModal />
+      {/* "Included with Pro" upsell — opened by any locked surface / 403 gate. */}
+      <UpgradeProModal />
       {/* Forces brand-new employers to set up + verify their company before they
           can use the app (overlays every surface; no-op for workers). */}
       <EmployerVerifyGate />

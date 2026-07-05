@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { useApplyToVacancy } from "@/features/applications/hooks/use-applications";
 import { useChatPanelStore } from "@/features/applications/store/chat-panel.store";
+import { handleFeatureLockedError } from "@/features/billing/lib/feature-locked";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import {
   useAddBookmark,
   useRemoveBookmark,
@@ -99,7 +101,15 @@ export function useJobActions(vacancyId: string) {
             coverLetter: trimmed || null,
           });
         },
-        onError: (e) => toast.error(message(e, "Couldn't send the application")),
+        onError: (e) => {
+          // 403 FEATURE_LOCKED / LIMIT_REACHED → the upgrade modal, not a toast.
+          const openUpgrade = useUpgradeProStore.getState().openModal;
+          if (handleFeatureLockedError(e, openUpgrade, "ai_job_search")) {
+            setApplyDialogOpen(false);
+            return;
+          }
+          toast.error(message(e, "Couldn't send the application"));
+        },
       },
     );
   };

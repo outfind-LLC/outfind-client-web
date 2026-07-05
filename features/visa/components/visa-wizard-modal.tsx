@@ -61,6 +61,8 @@ export function VisaWizardModal() {
   const presetDestination = useVisaModalStore((s) => s.presetDestination);
   const close = useVisaModalStore((s) => s.close);
 
+  // Onboarding is free for everyone — only the checklist's premium sections
+  // carry a lock (opened from the checklist, not here).
   const bootstrap = useVisaBootstrap(open);
   const preference = useVisaPreference(open);
   const savePref = useSaveVisaPreference();

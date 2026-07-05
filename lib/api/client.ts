@@ -23,7 +23,14 @@ function resolveUrl(path: string): string {
   return path.startsWith("http") ? path : `${env.NEXT_PUBLIC_API_URL}${path}`;
 }
 
-async function refreshSession(): Promise<boolean> {
+/**
+ * Rotate the session cookies via `POST /auth/refresh`. Single-flight: every
+ * caller in this tab (typed fetches AND the chat stream transport) shares one
+ * in-flight refresh, so a burst of 401s never races the rotation. Exported so
+ * non-`apiFetch` transports (the chat stream) reuse the SAME promise instead
+ * of firing their own refresh.
+ */
+export async function refreshSession(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = fetch(`${env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
       method: "POST",
@@ -36,6 +43,25 @@ async function refreshSession(): Promise<boolean> {
       });
   }
   return refreshPromise;
+}
+
+/**
+ * `fetch` with the same transparent 401 → refresh → retry-once behaviour as
+ * `apiFetch`, for callers that need the raw Response (streaming). Auth rides
+ * on httpOnly cookies, so retrying the same init is safe.
+ */
+export async function fetchWithAuthRetry(
+  input: string | URL | Request,
+  init?: RequestInit,
+): Promise<Response> {
+  let res = await fetch(input, init);
+  if (res.status === 401) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      res = await fetch(input, init);
+    }
+  }
+  return res;
 }
 
 function buildInit({ body, headers, ...rest }: RequestOptions): RequestInit {

@@ -20,9 +20,9 @@ import {
   FeedbackModal,
   HelpModal,
   LogoutModal,
-  UpgradeModal,
 } from "@/features/dashboard/components/account-menu-modals";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import s from "@/features/dashboard/styles/peoplor-app.module.css";
 
 function initial(name: string): string {
@@ -64,7 +64,7 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
   const [langOpen, setLangOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [modal, setModal] = useState<
-    null | "help" | "logout" | "upgrade" | "feedback"
+    null | "help" | "logout" | "feedback"
   >(null);
   const footRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +106,9 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
     setMenuOpen(false);
     setMobileOpen(false);
   };
-  const openModal = (name: "help" | "logout" | "upgrade" | "feedback") => {
+  const openUpgradePro = useUpgradeProStore((st) => st.openModal);
+
+  const openModal = (name: "help" | "logout" | "feedback") => {
     setMenuOpen(false);
     setModal(name);
   };
@@ -169,7 +171,10 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
         <button
           type="button"
           className={cn(s["pm-item"], s["pm-upgrade"])}
-          onClick={() => openModal("upgrade")}
+          onClick={() => {
+            setMenuOpen(false);
+            openUpgradePro();
+          }}
         >
           <Ic name="zap" />
           <span>{t("accountMenu.upgradePlan")}</span>
@@ -228,9 +233,6 @@ export function SidebarFooter({ user }: { user: SessionUser }) {
         <span className={s["upgrade-badge"]}>{t("common.upgrade")}</span>
       </button>
 
-      {modal === "upgrade" ? (
-        <UpgradeModal onClose={() => setModal(null)} />
-      ) : null}
       {modal === "help" ? <HelpModal onClose={() => setModal(null)} /> : null}
       {modal === "feedback" ? (
         <FeedbackModal onClose={() => setModal(null)} />

@@ -83,7 +83,8 @@ export function PricingView() {
             <div className={styles.priceGroupHead}>
               <p>{FIND_PRICING.lead}</p>
             </div>
-            <div className={styles.plans}>
+            {/* Two live worker plans (Free + Standard) → the centered 2-up grid. */}
+            <div className={styles.plans2}>
               {FIND_PRICING.plans.map((plan) => (
                 <PlanCard
                   key={plan.name}

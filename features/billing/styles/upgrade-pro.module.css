@@ -1,0 +1,263 @@
+/* "Included with Pro" upgrade modal — mirrors the CV/visa wizard shell: a
+   bottom sheet that slides up on mobile, a centered card on ≥640px viewports.
+   App design tokens throughout so it themes light/dark. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 15, 16, 0.5);
+  backdrop-filter: blur(2px);
+  animation: fade 160ms var(--ease-out, ease);
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: slideUp 220ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+@media (min-width: 640px) {
+  .scrim {
+    align-items: center;
+    padding: 24px;
+  }
+  .sheet {
+    max-width: 440px;
+    max-height: 88vh;
+    border-radius: var(--radius-3xl);
+    animation: pop 200ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+}
+
+/* ─── Header (close only) ───────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 16px 0;
+  flex-shrink: 0;
+}
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.iconBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ─── Body ──────────────────────────────────────────────────────────────── */
+
+.body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 24px 8px;
+  text-align: center;
+}
+
+.lockBadge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 2px auto 16px;
+  border-radius: var(--radius-fill);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+.lockBadge .lockIc {
+  width: 26px;
+  height: 26px;
+}
+
+.title {
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* ─── Feature list ──────────────────────────────────────────────────────── */
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 18px 0 0;
+  padding: 6px 16px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+  list-style: none;
+  text-align: left;
+}
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.feature:last-child {
+  border-bottom: none;
+}
+.featureHl {
+  font-weight: 700;
+}
+/* Scoped under .feature so it out-specifies the shared `.ic` base sizing. */
+.feature .checkIc {
+  width: 16px;
+  height: 16px;
+  color: var(--accent-brand, var(--text-primary));
+}
+
+/* ─── Price ─────────────────────────────────────────────────────────────── */
+
+.price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 18px;
+}
+.priceValue {
+  font-family: var(--font-display, inherit);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.priceInterval {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+/* Local-currency (UZS) equivalent under the USD price. */
+.priceUzs {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.priceNote {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+/* ─── Footer CTAs ───────────────────────────────────────────────────────── */
+
+.foot {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-primary);
+}
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    background 120ms ease;
+}
+.cta:hover {
+  background: var(--bg-inverse-hover);
+}
+.cta:active {
+  transform: scale(0.99);
+}
+.ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+.ghost:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}

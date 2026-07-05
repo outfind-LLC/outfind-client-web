@@ -5,6 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 
 import { env } from "@/lib/env";
+import { fetchWithAuthRetry } from "@/lib/api/client";
 import { useComposerStore } from "@/features/chat/store/composer.store";
 import { readStoredLocale } from "@/lib/i18n/store";
 
@@ -50,6 +51,10 @@ export function useChatThread(
       new DefaultChatTransport<UIMessage>({
         api: `${env.NEXT_PUBLIC_API_URL}/chat`,
         credentials: "include",
+        // The 15-min access cookie can lapse mid-session with no navigation to
+        // refresh it — without this, the next send just 401s and the user looks
+        // logged out. Shares apiFetch's single-flight refresh, retries once.
+        fetch: fetchWithAuthRetry,
         prepareSendMessagesRequest: ({ messages }) => {
           const body: SendBody = {
             conversationId,

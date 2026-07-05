@@ -9,6 +9,11 @@ import type { UIMessage } from "ai";
 import { Button } from "@/ui/button";
 
 import { qk } from "@/config/query-keys";
+import {
+  extractLockCode,
+  handleFeatureLockedError,
+} from "@/features/billing/lib/feature-locked";
+import { useUpgradeProStore } from "@/features/billing/store/upgrade-pro.store";
 import { chatService } from "@/features/chat/services/chat.service";
 import { useChatThread } from "@/features/chat/hooks/use-chat-thread";
 import { toUIMessages } from "@/features/chat/lib/map-messages";
@@ -93,6 +98,7 @@ function ChatRuntime({
   const t = useT();
   const chat = useChatThread(conversationId, initialMessages);
   const takePending = useComposerStore((s) => s.takePending);
+  const openUpgrade = useUpgradeProStore((s) => s.openModal);
   const autoSent = useRef(false);
 
   // Auto-send the message handed over from the new-chat screen, exactly once.
@@ -104,8 +110,23 @@ function ChatRuntime({
   }, [conversationId, takePending, chat]);
 
   useEffect(() => {
-    if (chat.error) toast.error("Something went wrong. Please try again.");
-  }, [chat.error]);
+    if (!chat.error) return;
+    // 403 FEATURE_LOCKED / LIMIT_REACHED on send → toast + the upgrade modal
+    // (the AI-SDK transport error carries the raw response body text).
+    const lockCode = extractLockCode(chat.error);
+    if (lockCode) {
+      handleFeatureLockedError(
+        chat.error,
+        openUpgrade,
+        surface === "jobs" ? "ai_job_search" : "ai_assistant",
+      );
+      toast(
+        t(lockCode === "LIMIT_REACHED" ? "pro.limitToast" : "pro.lockedToast"),
+      );
+      return;
+    }
+    toast.error("Something went wrong. Please try again.");
+  }, [chat.error, openUpgrade, surface, t]);
 
   // Chime when a reply finishes streaming (respects the user's sound settings).
   const prevStatus = useRef(chat.status);
