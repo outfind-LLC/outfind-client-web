@@ -117,19 +117,29 @@ function buildStyles(style: StyleConfig, family: string) {
       marginBottom: style.sectionSpacing,
     },
     header: { marginBottom: style.sectionSpacing },
-    name: { fontSize: 20 * k, fontWeight: "bold", color: ink },
-    nameBanner: { fontSize: 20 * k, fontWeight: "bold", color: "#ffffff" },
+    // A tight line-height on the name keeps its (large) line box from bleeding
+    // into the headline; without it the name inherits the page line-height (up
+    // to 2.0) and the two overlap on export.
+    name: { fontSize: 20 * k, fontWeight: "bold", color: ink, lineHeight: 1.15 },
+    nameBanner: {
+      fontSize: 20 * k,
+      fontWeight: "bold",
+      color: "#ffffff",
+      lineHeight: 1.15,
+    },
     headline: {
       fontSize: 10.5 * k,
       fontWeight: "bold",
       color: accent,
-      marginTop: 3,
+      lineHeight: 1.2,
+      marginTop: 5,
     },
     headlineBanner: {
       fontSize: 10.5 * k,
       fontWeight: "bold",
       color: "#ffffff",
-      marginTop: 3,
+      lineHeight: 1.2,
+      marginTop: 5,
     },
     contacts: {
       flexDirection: "row",

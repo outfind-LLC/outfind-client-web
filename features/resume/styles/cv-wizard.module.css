@@ -1,0 +1,690 @@
+/* Guided "Create CV" wizard — mobile-first bottom sheet that becomes a centered
+   card on wider viewports. Mirrors the visa wizard shell and uses the app design
+   tokens so it themes light/dark. Visuals follow the `_Peoplor_Design` cv.js
+   prototype: segmented steppers, 2-col job grid, skill chips, language rows. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 15, 16, 0.5);
+  backdrop-filter: blur(2px);
+  animation: fade 160ms var(--ease-out, ease);
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  height: 92vh;
+  max-height: 92vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: slideUp 220ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+@media (min-width: 640px) {
+  .scrim {
+    align-items: center;
+    padding: 24px;
+  }
+  .sheet {
+    max-width: 560px;
+    height: auto;
+    max-height: 88vh;
+    border-radius: var(--radius-3xl);
+    animation: pop 200ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0;
+  flex-shrink: 0;
+}
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 120ms ease;
+}
+.iconBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ─── Progress (6 segmented bars) ───────────────────────────────────────── */
+
+.progress {
+  display: flex;
+  gap: 6px;
+  padding: 14px 24px 0;
+  flex-shrink: 0;
+}
+.progressBar {
+  flex: 1;
+  height: 5px;
+  border-radius: var(--radius-fill);
+  background: var(--gray-200);
+  transition: background 200ms ease;
+}
+.progressOn {
+  background: var(--text-primary);
+}
+
+/* ─── Intro ─────────────────────────────────────────────────────────────── */
+
+.intro {
+  padding: 16px 24px 4px;
+  flex-shrink: 0;
+}
+.title {
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* ─── Body (scroll region) ──────────────────────────────────────────────── */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 24px 20px;
+}
+
+/* ─── Fields ────────────────────────────────────────────────────────────── */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 460px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.req {
+  color: var(--error-600);
+}
+.opt {
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 15px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+.input:hover {
+  border-color: var(--border-default-hover);
+}
+.input:focus {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(120, 120, 128, 0.16);
+}
+
+/* ─── Photo row ─────────────────────────────────────────────────────────── */
+
+.photoRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.photoBtn {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius-fill);
+  border: 1.5px dashed var(--border-default-hover);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 120ms ease;
+}
+.photoBtn:hover {
+  border-color: var(--text-primary);
+}
+.photoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-fill);
+}
+.photoText {
+  flex: 1;
+  min-width: 0;
+}
+.photoTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.photoDesc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.photoRemove {
+  margin-top: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--error-600);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── Segmented control ─────────────────────────────────────────────────── */
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+/* Equal-width, non-stretching cells (used for citizenship so "Turkmenistan"
+   doesn't balloon wider than the others). auto-fill keeps empty tracks so a lone
+   item on the last row stays one column wide instead of stretching full-width. */
+.segEqual {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+.segBtn {
+  flex: 1 1 auto;
+  min-width: fit-content;
+  padding: 11px 16px;
+  border-radius: var(--radius-fill);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+.segBtn:hover {
+  border-color: var(--border-default-hover);
+  color: var(--text-primary);
+}
+.segOn {
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  border-color: transparent;
+}
+.segOn:hover {
+  color: var(--text-inverse);
+}
+.segSm .segBtn {
+  flex: 1 1 0;
+  padding: 7px 10px;
+  font-size: 12.5px;
+}
+
+/* ─── Job grid (2-col selectable cards with icon + right radio) ─────────── */
+
+.jobs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 460px) {
+  .jobs {
+    grid-template-columns: 1fr;
+  }
+}
+.job {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.job:hover {
+  border-color: var(--border-default-hover);
+}
+.jobOn {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--text-primary);
+}
+.jobIc {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius-fill);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 18px;
+}
+.jobName {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.jobRadio {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  transition: border-color 120ms ease;
+}
+.jobOn .jobRadio {
+  border-color: var(--text-primary);
+}
+.jobOn .jobRadio::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+
+/* ─── Reassurance hint ──────────────────────────────────────────────────── */
+
+.hint {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ─── Section labels between blocks ─────────────────────────────────────── */
+
+.blockLabel {
+  margin: 22px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ─── Experience entry cards ────────────────────────────────────────────── */
+
+.xpList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.xp {
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 14px;
+  background: var(--bg-primary);
+}
+.xpHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.xpTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.xpDel {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+.xpDel:hover {
+  background: var(--error-50);
+  color: var(--error-600);
+}
+
+/* ─── Add button ────────────────────────────────────────────────────────── */
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  height: 46px;
+  border-radius: var(--radius-xl);
+  border: 1.5px dashed var(--border-default-hover);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.addBtn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+/* ─── Skill chips ───────────────────────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: var(--radius-fill);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+.chip:hover {
+  border-color: var(--border-default-hover);
+  color: var(--text-primary);
+}
+.chipOn {
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  border-color: transparent;
+}
+.chipOn:hover {
+  color: var(--text-inverse);
+}
+/* The little × shown on a selected skill chip (click the chip to remove it). */
+.chipX {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-right: -3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.addSkill {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.addSkill .input {
+  flex: 1;
+}
+.addSkillBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.addSkillBtn:hover {
+  background: var(--bg-secondary);
+}
+
+/* ─── Languages ─────────────────────────────────────────────────────────── */
+
+.langs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lang {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.check:hover {
+  border-color: var(--border-default-hover);
+}
+.checkOn {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--text-primary);
+}
+.checkBox {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  border: 2px solid var(--gray-300);
+  background: var(--bg-primary);
+  color: #fff;
+  font-size: 13px;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.checkOn .checkBox {
+  background: var(--bg-inverse);
+  border-color: var(--bg-inverse);
+  color: var(--text-inverse);
+}
+.checkText {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.lvl {
+  padding-left: 36px;
+}
+
+/* ─── Review summary ────────────────────────────────────────────────────── */
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+  padding: 6px 16px;
+}
+.revRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.revRow:last-child {
+  border-bottom: none;
+}
+.revLabel {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.revVal {
+  min-width: 0;
+  text-align: right;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* ─── Footer CTA ────────────────────────────────────────────────────────── */
+
+.foot {
+  flex-shrink: 0;
+  padding: 12px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-primary);
+}
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 54px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    background 120ms ease;
+}
+.cta:hover:not(:disabled) {
+  background: var(--bg-inverse-hover);
+}
+.cta:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.cta:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}

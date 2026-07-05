@@ -55,6 +55,7 @@ export const ICONS = {
   // job detail actions
   share: REG.share,
   flag: REG.flag,
+  trash: REG.trash,
   // visa guidance
   back: REG.back,
   lock: REG.lock,
@@ -72,6 +73,7 @@ export const ICONS = {
   health: REG.health,
   box: REG.box,
   concierge: REG.concierge,
+  grid: REG.grid,
 } as const;
 
 export type IconName = keyof typeof ICONS;

@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { routes } from "@/config/routes";
 import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
+import { useResumes } from "@/features/resume/hooks/use-resumes";
+import { useCvWizardStore } from "@/features/resume/store/cv-wizard.store";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ChatComposer } from "@/features/chat/components/chat-composer";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
@@ -33,8 +35,8 @@ const MODES: {
   icon: IconName;
   labelKey: MessageKey;
 }[] = [
-  // CV builder opens the guided builder screen (gate → AI → templates →
-  // download → public link) at /profile/cv.
+  // CV builder opens the guided "Create CV" wizard for first-timers, or the
+  // resume list (/profile/cv) for workers who already have one.
   { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
   { key: "assist", icon: "brain", labelKey: "chat.modeAssist" },
   // "Search jobs" is the default composer mode, so it needs no chip.
@@ -74,6 +76,8 @@ export function JobSearchLanding() {
   const router = useRouter();
   const { user, isWorker } = useSession();
   const profileQuery = useWorkerProfile(Boolean(isWorker));
+  const resumesQuery = useResumes(Boolean(isWorker));
+  const openCvWizard = useCvWizardStore((st) => st.openModal);
   const startConversation = useStartConversation(routes.jobsThread);
 
   const [mode, setMode] = useState<LandingMode>("search");
@@ -104,9 +108,11 @@ export function JobSearchLanding() {
   };
 
   const pickMode = (next: LandingMode) => {
-    // CV builder is a guided screen, not a chat — navigate straight to it.
+    // CV builder: returning workers with a CV go to their list; first-timers get
+    // the guided "Create CV" wizard.
     if (next === "cv") {
-      router.push(routes.profileCv);
+      if ((resumesQuery.data?.length ?? 0) > 0) router.push(routes.profileCv);
+      else openCvWizard();
       return;
     }
     // Visa documents opens the full-screen /visa experience (checklist if a

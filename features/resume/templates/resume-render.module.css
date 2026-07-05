@@ -80,6 +80,9 @@
   margin: 0;
   font-size: 1.75em;
   font-weight: 800;
+  /* Tight line-height so the name's box doesn't overlap the headline when the
+     user raises the sheet line-height (inherited otherwise). */
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--r-ink);
 }
@@ -87,9 +90,10 @@
   color: #fff;
 }
 .headline {
-  margin: 3px 0 0;
+  margin: 5px 0 0;
   font-size: 1.05em;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--r-accent);
 }
 .sheet[data-header="banner"] .headline {

@@ -131,6 +131,7 @@ import plant from "./plant";
 import health from "./health";
 import box from "./box";
 import concierge from "./concierge";
+import grid from "./grid";
 
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
@@ -260,6 +261,7 @@ const DEFS = {
   health,
   box,
   concierge,
+  grid,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

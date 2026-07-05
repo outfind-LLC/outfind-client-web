@@ -9,11 +9,11 @@ import { qk } from "@/config/query-keys";
 import { routes } from "@/config/routes";
 import { resumeService } from "@/features/resume/services/resume.service";
 import {
-  useCreateResume,
   useDeleteResume,
   useDuplicateResume,
   useResumes,
 } from "@/features/resume/hooks/use-resumes";
+import { useCvWizardStore } from "@/features/resume/store/cv-wizard.store";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { formatRelativeTime } from "@/lib/format";
@@ -28,26 +28,11 @@ import s from "@/features/resume/styles/resume.module.css";
 /** Resume manager at /profile/cv — create, open, rename, duplicate, delete. */
 export function ResumeManager() {
   const t = useT();
-  const router = useRouter();
   const { isWorker } = useSession();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
 
   const query = useResumes(Boolean(isWorker));
-  const create = useCreateResume();
-
-  const startCreate = (fromProfile: boolean) => {
-    if (create.isPending) return;
-    create.mutate(
-      { fromProfile },
-      {
-        onSuccess: (resume) => router.push(routes.resumeEditor(resume.id)),
-        onError: (error) =>
-          toast.error(
-            isApiClientError(error) ? error.message : t("cv.createError"),
-          ),
-      },
-    );
-  };
+  const openCvWizard = useCvWizardStore((st) => st.openModal);
 
   const resumes = query.data ?? [];
 
@@ -71,29 +56,14 @@ export function ResumeManager() {
             <button
               type="button"
               className={s.createCard}
-              disabled={create.isPending}
-              onClick={() => startCreate(false)}
+              onClick={openCvWizard}
             >
               <span className={s.createIc}>
                 <Ic name="plusBold" />
               </span>
               <span>
-                <span className={s.createT}>{t("cv.blankResume")}</span>
-                <span className={s.createD}>{t("cv.blankDesc")}</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={s.createCard}
-              disabled={create.isPending}
-              onClick={() => startCreate(true)}
-            >
-              <span className={s.createIc}>
-                <Ic name="zap" />
-              </span>
-              <span>
-                <span className={s.createT}>{t("cv.fromProfile")}</span>
-                <span className={s.createD}>{t("cv.fromProfileDesc")}</span>
+                <span className={s.createT}>{t("cv.wizardCardTitle")}</span>
+                <span className={s.createD}>{t("cv.wizardCardDesc")}</span>
               </span>
             </button>
           </div>
