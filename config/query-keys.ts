@@ -44,4 +44,10 @@ export const qk = {
   /** Per-job AI tool result, cached so reopening a tool doesn't re-spend quota. */
   jobAiTool: (tool: string, jobKey: string) =>
     ["worker-ai", "job-tool", tool, jobKey] as const,
+
+  /** Visa guide: the wizard bootstrap (citizenships/destinations/professions),
+   * a country's checklist, and the user's saved selection. */
+  visaBootstrap: ["visa", "bootstrap"] as const,
+  visaChecklist: (key: string) => ["visa", "checklist", key] as const,
+  visaPreference: ["visa", "preference"] as const,
 } as const;

@@ -51,6 +51,23 @@ export const ICONS = {
   copy: REG.copy,
   thumbUp: REG.thumbUp,
   thumbDown: REG.thumbDown,
+  // visa guidance
+  back: REG.back,
+  lock: REG.lock,
+  arrowRight: REG.arrowRight,
+  chevronRight: REG.chevronRight,
+  chevronUp: REG.chevronUp,
+  externalLink: REG.externalLink,
+  hardHat: REG.hardHat,
+  utensils: REG.utensils,
+  factory: REG.factory,
+  truck: REG.truck,
+  spray: REG.spray,
+  code: REG.code,
+  plant: REG.plant,
+  health: REG.health,
+  box: REG.box,
+  concierge: REG.concierge,
 } as const;
 
 export type IconName = keyof typeof ICONS;

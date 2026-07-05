@@ -114,6 +114,18 @@ import thumbDown from "./thumb-down";
 // Resume builder
 import chevronUp from "./chevron-up";
 
+// Visa guidance — profession glyphs
+import hardHat from "./hard-hat";
+import utensils from "./utensils";
+import factory from "./factory";
+import truck from "./truck";
+import spray from "./spray";
+import code from "./code";
+import plant from "./plant";
+import health from "./health";
+import box from "./box";
+import concierge from "./concierge";
+
 /**
  * The icon registry. Add a glyph by dropping `components/icons/<name>.ts` (a
  * default-exported `IconDef`) and registering it here. Names are unique per
@@ -227,6 +239,17 @@ const DEFS = {
   thumbDown,
   // resume builder
   chevronUp,
+  // visa guidance — profession glyphs
+  hardHat,
+  utensils,
+  factory,
+  truck,
+  spray,
+  code,
+  plant,
+  health,
+  box,
+  concierge,
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof DEFS;

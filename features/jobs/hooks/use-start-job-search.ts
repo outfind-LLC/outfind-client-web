@@ -8,11 +8,16 @@ import { AI_SPECIALIST } from "@/interfaces/enums";
 export interface JobSearchParams {
   profession: string;
   city: string;
+  /** Bias the search toward roles offering work-visa sponsorship (visa flow). */
+  visaSponsorship?: boolean;
 }
 
 /** Compose the opening prompt sent to the Job Finder specialist. */
-function buildPrompt({ profession, city }: JobSearchParams): string {
-  return `Find me ${profession.trim()} jobs in ${city.trim()}. Show the best matches with key details for each role.`;
+function buildPrompt({ profession, city, visaSponsorship }: JobSearchParams): string {
+  const base = `Find me ${profession.trim()} jobs in ${city.trim()}. Show the best matches with key details for each role.`;
+  return visaSponsorship
+    ? `${base} Prioritise employers that offer work-visa sponsorship for foreign workers.`
+    : base;
 }
 
 /**

@@ -10,6 +10,7 @@ import { BillingSoundCue } from "@/features/billing/components/billing-sound-cue
 import { JobDetailPanel } from "@/features/jobs/components/job-detail-panel";
 import { JobToolPanel } from "@/features/jobs/components/job-tool-panel";
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { VisaWizardModal } from "@/features/visa/components/visa-wizard-modal";
 import { EmployerVerifyGate } from "@/features/vacancies/components/employer-verify-gate";
 import type { SessionUser } from "@/interfaces/auth.interface";
 import { DashboardTopbar } from "./dashboard-topbar";
@@ -51,6 +52,8 @@ export function AppShell({ user, children }: AppShellProps) {
       <ChatPanel />
       <JobToolPanel />
       <CandidateDetailSheet />
+      {/* Visa guidance wizard — opened from the sidebar item + search chip. */}
+      <VisaWizardModal />
       {/* Forces brand-new employers to set up + verify their company before they
           can use the app (overlays every surface; no-op for workers). */}
       <EmployerVerifyGate />

@@ -9,6 +9,7 @@ import { useWorkerProfile } from "@/features/profile/hooks/use-profile";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ChatComposer } from "@/features/chat/components/chat-composer";
 import { JobSearchModal } from "@/features/jobs/components/job-search-modal";
+import { useVisaModalStore } from "@/features/visa/store/visa-modal.store";
 import { useStartConversation } from "@/features/chat/hooks/use-conversations";
 import {
   ChatMark,
@@ -75,6 +76,7 @@ export function JobSearchLanding() {
   const { user, isWorker } = useSession();
   const profileQuery = useWorkerProfile(Boolean(isWorker));
   const startConversation = useStartConversation(routes.jobsThread);
+  const openVisa = useVisaModalStore((st) => st.openModal);
 
   const [mode, setMode] = useState<LandingMode>("search");
   const [seedProfession, setSeedProfession] = useState<string | null>(null);
@@ -107,6 +109,11 @@ export function JobSearchLanding() {
     // CV builder is a guided screen, not a chat — navigate straight to it.
     if (next === "cv") {
       router.push(routes.profileCv);
+      return;
+    }
+    // Visa documentation opens the guided wizard modal (not a chat).
+    if (next === "visa") {
+      openVisa();
       return;
     }
     setMode(next);

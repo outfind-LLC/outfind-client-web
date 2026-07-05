@@ -1,0 +1,731 @@
+/* Visa guidance wizard — mobile-first bottom sheet that becomes a centered card
+   on wider viewports. Uses the app design tokens so it themes light/dark. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 15, 16, 0.5);
+  backdrop-filter: blur(2px);
+  animation: fade 160ms var(--ease-out, ease);
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: 94vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: slideUp 220ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+@media (min-width: 640px) {
+  .scrim {
+    align-items: center;
+    padding: 24px;
+  }
+  .sheet {
+    max-height: 88vh;
+    border-radius: var(--radius-3xl);
+    animation: pop 200ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0;
+  flex-shrink: 0;
+}
+.headTitled {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-default);
+}
+.headTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 120ms ease;
+}
+.iconBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ─── Progress (steps 1–3) ──────────────────────────────────────────────── */
+
+.progress {
+  display: flex;
+  gap: 6px;
+  padding: 14px 24px 0;
+  flex-shrink: 0;
+}
+.progressBar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-fill);
+  background: var(--gray-200);
+  transition: background 200ms ease;
+}
+.progressOn {
+  background: var(--text-primary);
+}
+
+.intro {
+  padding: 14px 24px 6px;
+  flex-shrink: 0;
+}
+.title {
+  font-family: var(--font-display, inherit);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 24px 16px;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+.retry {
+  padding: 8px 18px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── Region chips (step 2) ─────────────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+.chipOn {
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  border-color: transparent;
+}
+
+/* ─── Option rows ───────────────────────────────────────────────────────── */
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.option:hover {
+  border-color: var(--border-default-hover);
+}
+.optionOn {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--text-primary);
+}
+.optionMark {
+  flex-shrink: 0;
+}
+.flag {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-fill);
+  background: var(--bg-secondary);
+  overflow: hidden;
+  font-size: 26px;
+  line-height: 1;
+}
+.optionIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-fill);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 18px;
+}
+.optionText {
+  flex: 1;
+  min-width: 0;
+}
+.optionLabel {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.optionSub {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.radio {
+  position: relative;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  transition: border-color 120ms ease;
+}
+.radioOn {
+  border-color: var(--text-primary);
+}
+.radioOn::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+
+/* ─── Footer CTA ────────────────────────────────────────────────────────── */
+
+.foot {
+  flex-shrink: 0;
+  padding: 12px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-primary);
+}
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 54px;
+  border: none;
+  border-radius: var(--radius-fill);
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 16px;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+.cta:hover:not(:disabled) {
+  background: var(--bg-inverse-hover);
+}
+.cta:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.cta:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* ─── Step 4: checklist ─────────────────────────────────────────────────── */
+
+.checklistBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 20px;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.routeFlags {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.routeFlags .flag:last-child {
+  margin-left: -10px;
+  box-shadow: 0 0 0 2px var(--bg-primary);
+}
+.routeText {
+  flex: 1;
+  min-width: 0;
+}
+.routeTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.routeSub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.changeBtn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.changeBtn:hover {
+  background: var(--bg-secondary);
+}
+
+.offer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+}
+.offerIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--accent-brand);
+  font-size: 20px;
+}
+.offerText {
+  flex: 1;
+  min-width: 0;
+}
+.offerTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.offerDesc {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.offerBtn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.offerBtn:hover {
+  background: var(--bg-primary-hover);
+}
+
+.progressCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+}
+.progressInfo {
+  flex: 1;
+  min-width: 0;
+}
+.progressLabel {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.progressTrack {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: var(--radius-fill);
+  background: var(--gray-200);
+  overflow: hidden;
+}
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-fill);
+  background: var(--accent-brand);
+  transition: width 260ms var(--ease-out, ease);
+}
+
+.ring {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.ringTrack {
+  fill: none;
+  stroke: var(--gray-200);
+  stroke-width: 3;
+}
+.ringFill {
+  fill: none;
+  stroke: var(--accent-brand);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 260ms var(--ease-out, ease);
+}
+.ringText {
+  fill: var(--text-primary);
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.verify {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.verify > span:global(.ic),
+.verify :global(.ic) {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-tertiary);
+}
+.verifyLink {
+  color: var(--accent-600);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-word;
+}
+.verifyLink:hover {
+  text-decoration: underline;
+}
+
+/* ─── Sections / documents ──────────────────────────────────────────────── */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.section {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+.sectionLocked {
+  background: var(--bg-secondary);
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.sectionIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  font-size: 16px;
+}
+.sectionLocked .sectionIcon {
+  background: var(--bg-primary);
+}
+.sectionMain {
+  flex: 1;
+  min-width: 0;
+}
+.sectionTitle {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.sectionMeta {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.section:not(.sectionLocked) .sectionMeta {
+  color: var(--accent-600);
+}
+.sectionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+.importantBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.freeBadge {
+  padding: 3px 10px;
+  border-radius: var(--radius-fill);
+  background: var(--accent-100);
+  color: var(--accent-600);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.docs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 14px 16px;
+}
+.doc {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.check {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 7px;
+  border: 2px solid var(--gray-300);
+  background: var(--bg-primary);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.checkOn {
+  background: var(--accent-brand);
+  border-color: var(--accent-brand);
+}
+.docText {
+  flex: 1;
+  min-width: 0;
+}
+.docTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.docTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.docDone {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+.docDesc {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.docTip {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--accent-600);
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: var(--radius-fill);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag_REQUIRED {
+  background: var(--error-50);
+  color: var(--error-600);
+}
+.tag_PAYABLE {
+  background: var(--warning-50);
+  color: var(--warning);
+}
+.tag_IMPORTANT_2026 {
+  background: var(--accent-100);
+  color: var(--accent-600);
+}
+.tag_RECOMMENDED,
+.tag_ONSITE {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+
+/* ─── Job sites ─────────────────────────────────────────────────────────── */
+
+.jobSites {
+  padding-top: 2px;
+}
+.jobSitesTitle {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.jobSitesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.jobSite {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-fill);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.jobSite :global(.ic) {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+.jobSite:hover {
+  background: var(--bg-secondary);
+}
+
+.disclaimer {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}

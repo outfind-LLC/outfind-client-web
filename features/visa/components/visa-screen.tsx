@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { useVisaModalStore } from "@/features/visa/store/visa-modal.store";
 import { Ic } from "@/features/dashboard/components/app-icons";
 import { useI18n } from "@/providers/i18n-provider";
 import s from "@/features/visa/styles/visa.module.css";
@@ -14,6 +17,13 @@ import s from "@/features/visa/styles/visa.module.css";
 export function VisaScreen() {
   const { t } = useI18n();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+  const openVisa = useVisaModalStore((st) => st.openModal);
+
+  // Visiting /visa directly (deep link / refresh) opens the wizard over this
+  // page; the sidebar item and search chip open it in place without navigating.
+  useEffect(() => {
+    openVisa();
+  }, [openVisa]);
 
   const points: string[] = [
     t("visa.point1"),

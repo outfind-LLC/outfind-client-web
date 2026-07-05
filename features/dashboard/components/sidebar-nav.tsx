@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useSidebarStore } from "@/features/dashboard/store/sidebar.store";
+import { useVisaModalStore } from "@/features/visa/store/visa-modal.store";
 import type { NavItem } from "@/features/dashboard/constants/nav";
 import { useT } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ function isActive(pathname: string, item: NavItem): boolean {
 export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const setMobileOpen = useSidebarStore((st) => st.setMobileOpen);
+  const openVisa = useVisaModalStore((st) => st.openModal);
   const t = useT();
 
   return (
@@ -30,6 +32,25 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
       {items.map((item) => {
         const active = isActive(pathname, item);
         const label = t(item.labelKey);
+
+        // Items with an `action` open an overlay instead of navigating.
+        if (item.action === "visa") {
+          return (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                openVisa();
+              }}
+              className={cn(s["sb-btn"], active && s.active)}
+            >
+              <Ic name={item.icon} />
+              <span>{label}</span>
+            </button>
+          );
+        }
+
         return (
           <Link
             key={item.href}
