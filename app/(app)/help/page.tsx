@@ -10,8 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
 const FAQS = [
   {
-    q: "How does Peoplor work?",
-    a: "Tell Peoplor what you need — find a job, build a resume, prepare for an interview, or hire — and it takes care of the rest.",
+    q: "How does Outfind AI work?",
+    a: "Tell Outfind AI what you need — find a job, build a resume, prepare for an interview, or hire — and it takes care of the rest.",
   },
   {
     q: "Is it free to use?",

@@ -1,10 +1,10 @@
-# Peoplor Pulse — the proactive engine (plan)
+# Outfind AI Pulse — the proactive engine (plan)
 
 _Status: PLAN (not built). Written 2026-07-04. Backend repo: `../jobsterr-backend`._
 
 ## 1. What it is
 
-Today Peoplor is **reactive**: a worker must open the app and search; an employer
+Today Outfind AI is **reactive**: a worker must open the app and search; an employer
 must open Candidates to see who applied. **Pulse makes the platform come to the
 user**:
 

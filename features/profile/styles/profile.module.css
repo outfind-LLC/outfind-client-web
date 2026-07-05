@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — Worker profile ("My resumes"). Ported verbatim from the
+   Outfind AI — Worker profile ("My resumes"). Ported verbatim from the
    _Peoplor_Design prototype (profile.scoped.css). `#profile-screen` → `.screen`;
    bare `var(--accent)` mapped to the app's `var(--accent-brand)`. Phase 1 =
    Overview (account card + My resumes + ⋯ menu). Detail/modals follow.

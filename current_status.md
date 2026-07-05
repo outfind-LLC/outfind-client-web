@@ -1,4 +1,4 @@
-# Peoplor — MVP Current Status
+# Outfind AI — MVP Current Status
 
 > **Purpose:** single source of truth for *what is built vs not* against the MVP
 > launch test plan. Verified by reading actual code in both repos on **2026-07-02**

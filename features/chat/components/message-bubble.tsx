@@ -117,7 +117,7 @@ function hasVisibleContent(message: UIMessage): boolean {
   return false;
 }
 
-/** Animated Peoplor brand mark beside an assistant turn (the prototype's
+/** Animated Outfind AI brand mark beside an assistant turn (the prototype's
  * "lego" mark: pulses while thinking, settles once the reply is done). */
 function ResponseMark({ done }: { done: boolean }) {
   return (

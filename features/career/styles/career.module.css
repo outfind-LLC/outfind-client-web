@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — Career & migration (worker) / Global hiring (employer).
+   Outfind AI — Career & migration (worker) / Global hiring (employer).
    Ported verbatim from the _Peoplor_Design prototype (career.scoped.css);
    `#career-screen` → `.screen`, bare `var(--accent)` → `var(--accent-brand)`.
    Toasts use the app's sonner layer instead of the prototype's .cr-toast.

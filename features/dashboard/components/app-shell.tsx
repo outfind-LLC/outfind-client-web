@@ -24,7 +24,7 @@ interface AppShellProps {
 }
 
 /**
- * Authenticated app frame, re-skinned to the Peoplor prototype: a single
+ * Authenticated app frame, re-skinned to the Outfind AI prototype: a single
  * `.sidebar` that collapses to an icon rail on desktop (`data-collapsed`) and
  * becomes a transform-driven drawer on mobile (`data-mobile-open` + `.scrim`).
  * Seeds the React Query session cache with the server-resolved user so client

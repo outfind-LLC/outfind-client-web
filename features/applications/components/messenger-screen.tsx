@@ -1501,7 +1501,7 @@ function MessengerCvView({
       <div className={cn(s["sv-scroll"], s["sv-cv-scroll"])}>
         <div className={s["sv-cv-url"]}>
           <MIc name="doc" />
-          <span>peoplor.uz/cv/{slugName(name)}</span>
+          <span>outfind.ai/cv/{slugName(name)}</span>
         </div>
         <div className={s["sv-cv-paper"]}>
           <div className={s["sv-cv-head"]}>

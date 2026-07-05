@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — Settings modal. Ported verbatim from the _Peoplor_Design prototype
+   Outfind AI — Settings modal. Ported verbatim from the _Peoplor_Design prototype
    (settings.scoped.css). The `#settings-screen` root becomes `.screen`; dark mode
    flips via the global `.dark` token overrides (not `data-theme`). Toasts use the
    app's sonner; the option dropdown keeps the prototype's `.set-pop` look.

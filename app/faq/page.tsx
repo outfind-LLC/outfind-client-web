@@ -7,7 +7,7 @@ import { LandingProvider } from "@/features/marketing/context/landing-context";
 
 export const metadata: Metadata = {
   title: "Help center",
-  description: "Answers to common questions about Peoplor for job seekers and employers.",
+  description: "Answers to common questions about Outfind AI for job seekers and employers.",
 };
 
 /** Public help center / FAQ. The prototype hides the nav here and shows a back arrow. */

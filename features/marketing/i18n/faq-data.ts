@@ -13,16 +13,16 @@ export interface FaqItem {
 export const FAQ_DATA: Record<Lang, FaqItem[]> = {
   en: [
     {
-      q: "Is Peoplor really free for job seekers?",
+      q: "Is Outfind AI really free for job seekers?",
       a: "Yes. Searching, building your CV, and applying through the assistant are free for job seekers, with no limits and no credit card. Employers pay for posting and hiring tools.",
     },
     {
       q: "How does the assistant apply to jobs for me?",
-      a: "You review each match and approve it. Peoplor tailors your CV to the role, fills in the application, and submits it on your behalf — you stay in control of every send.",
+      a: "You review each match and approve it. Outfind AI tailors your CV to the role, fills in the application, and submits it on your behalf — you stay in control of every send.",
     },
     {
       q: "Where do the candidate matches come from?",
-      a: "Peoplor ranks candidates by how well their experience fits the role you described — not just keyword overlap. Every profile is verified before it reaches your shortlist.",
+      a: "Outfind AI ranks candidates by how well their experience fits the role you described — not just keyword overlap. Every profile is verified before it reaches your shortlist.",
     },
     {
       q: "Can I edit what the AI writes?",
@@ -34,21 +34,21 @@ export const FAQ_DATA: Record<Lang, FaqItem[]> = {
     },
     {
       q: "Do I need to install anything?",
-      a: "No. Peoplor runs in your browser on desktop and mobile. Start a conversation and pick up right where you left off on any device.",
+      a: "No. Outfind AI runs in your browser on desktop and mobile. Start a conversation and pick up right where you left off on any device.",
     },
   ],
   ru: [
     {
-      q: "Peoplor действительно бесплатен для соискателей?",
+      q: "Outfind AI действительно бесплатен для соискателей?",
       a: "Да. Поиск, составление резюме и отклики через ассистента бесплатны для соискателей, без лимитов и без карты. Работодатели платят за размещение и инструменты найма.",
     },
     {
       q: "Как ассистент откликается на вакансии за меня?",
-      a: "Вы просматриваете каждое совпадение и одобряете его. Peoplor подгоняет резюме под вакансию, заполняет отклик и отправляет от вашего имени — вы контролируете каждую отправку.",
+      a: "Вы просматриваете каждое совпадение и одобряете его. Outfind AI подгоняет резюме под вакансию, заполняет отклик и отправляет от вашего имени — вы контролируете каждую отправку.",
     },
     {
       q: "Откуда берутся подходящие кандидаты?",
-      a: "Peoplor ранжирует кандидатов по тому, насколько их опыт подходит описанной вакансии, а не просто по совпадению ключевых слов. Каждый профиль проверяется перед попаданием в шортлист.",
+      a: "Outfind AI ранжирует кандидатов по тому, насколько их опыт подходит описанной вакансии, а не просто по совпадению ключевых слов. Каждый профиль проверяется перед попаданием в шортлист.",
     },
     {
       q: "Могу ли я редактировать то, что пишет ИИ?",
@@ -60,21 +60,21 @@ export const FAQ_DATA: Record<Lang, FaqItem[]> = {
     },
     {
       q: "Нужно ли что-то устанавливать?",
-      a: "Нет. Peoplor работает в браузере на компьютере и телефоне. Начните разговор и продолжайте с того же места на любом устройстве.",
+      a: "Нет. Outfind AI работает в браузере на компьютере и телефоне. Начните разговор и продолжайте с того же места на любом устройстве.",
     },
   ],
   uz: [
     {
-      q: "Peoplor ish izlovchilar uchun rostdan ham bepulmi?",
+      q: "Outfind AI ish izlovchilar uchun rostdan ham bepulmi?",
       a: "Ha. Qidiruv, rezyume tuzish va yordamchi orqali ariza yuborish ish izlovchilar uchun bepul, cheklovsiz va kartasiz. Ish beruvchilar e'lon joylash va yollash vositalari uchun to'laydi.",
     },
     {
       q: "Yordamchi men uchun qanday ariza yuboradi?",
-      a: "Siz har bir moslikni ko'rib chiqasiz va tasdiqlaysiz. Peoplor rezyumeni ishga moslaydi, arizani to'ldiradi va sizning nomingizdan yuboradi — har bir yuborish sizning nazoratingizda.",
+      a: "Siz har bir moslikni ko'rib chiqasiz va tasdiqlaysiz. Outfind AI rezyumeni ishga moslaydi, arizani to'ldiradi va sizning nomingizdan yuboradi — har bir yuborish sizning nazoratingizda.",
     },
     {
       q: "Mos nomzodlar qayerdan keladi?",
-      a: "Peoplor nomzodlarni siz tasvirlagan ishga tajribasi qanchalik mos kelishiga qarab saralaydi, shunchaki kalit so'zlar bo'yicha emas. Har bir profil shortlistga tushishidan oldin tekshiriladi.",
+      a: "Outfind AI nomzodlarni siz tasvirlagan ishga tajribasi qanchalik mos kelishiga qarab saralaydi, shunchaki kalit so'zlar bo'yicha emas. Har bir profil shortlistga tushishidan oldin tekshiriladi.",
     },
     {
       q: "AI yozgan narsani tahrirlay olamanmi?",
@@ -86,7 +86,7 @@ export const FAQ_DATA: Record<Lang, FaqItem[]> = {
     },
     {
       q: "Biror narsa o'rnatishim kerakmi?",
-      a: "Yo'q. Peoplor brauzeringizda, kompyuter va telefonda ishlaydi. Suhbatni boshlang va istalgan qurilmada qoldirgan joyingizdan davom eting.",
+      a: "Yo'q. Outfind AI brauzeringizda, kompyuter va telefonda ishlaydi. Suhbatni boshlang va istalgan qurilmada qoldirgan joyingizdan davom eting.",
     },
   ],
 };

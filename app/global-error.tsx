@@ -21,7 +21,7 @@ export default function GlobalError({
       <body className="bg-background text-foreground flex min-h-screen flex-col antialiased">
         <ErrorState
           title="Something went wrong"
-          description="Peoplor ran into an unexpected error. Please try again."
+          description="Outfind AI ran into an unexpected error. Please try again."
           onRetry={unstable_retry}
           digest={error.digest}
         />

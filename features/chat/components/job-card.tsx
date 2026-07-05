@@ -39,8 +39,8 @@ function toExternalPayload(job: JobCardData): SaveExternalJobPayload {
 
 /**
  * A single job result inside an assistant message — a compact, tappable summary
- * that opens the right-side detail sheet. Platform vacancies carry the Peoplor
- * brand mark + a verified badge; roles Peoplor found online carry neither. Any
+ * that opens the right-side detail sheet. Platform vacancies carry the Outfind AI
+ * brand mark + a verified badge; roles Outfind AI found online carry neither. Any
  * job backed by a vacancy id (platform OR a sourced job saved in our DB) can be
  * saved with the bookmark button — saved jobs appear under Saved & applied.
  */

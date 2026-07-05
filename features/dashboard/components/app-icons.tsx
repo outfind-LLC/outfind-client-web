@@ -1,5 +1,5 @@
 /**
- * Peoplor chat-app icons. Glyph data now lives in the central registry
+ * Outfind AI chat-app icons. Glyph data now lives in the central registry
  * (`@/components/icons`, one file per icon); this module keeps the dashboard's
  * local names + the feature `.ic` CSS context, plus the few inline/structural
  * marks (brand mark, language-dropdown chrome) that aren't mask icons.
@@ -98,7 +98,7 @@ export function Ic({
   );
 }
 
-/** Peoplor tri-square brand mark. Inline so CSS can drive fill + per-path anim. */
+/** Outfind AI tri-square brand mark. Inline so CSS can drive fill + per-path anim. */
 export function ChatMark({ className }: { className?: string }) {
   return (
     <svg

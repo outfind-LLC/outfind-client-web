@@ -22,7 +22,7 @@ export default function AppError({
   return (
     <ErrorState
       title="This page hit a snag"
-      description="We couldn't load this part of Peoplor. Try again, or head back to your dashboard."
+      description="We couldn't load this part of Outfind AI. Try again, or head back to your dashboard."
       onRetry={unstable_retry}
       digest={error.digest}
       action={

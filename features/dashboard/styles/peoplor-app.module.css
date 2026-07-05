@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — authenticated chat-app styles. Ported VERBATIM from the
+   Outfind AI — authenticated chat-app styles. Ported VERBATIM from the
    _Peoplor_Design prototype (Peoplor Chat.html inline <style>). Design tokens
    live globally in app/globals.css; dark mode flips via the `.dark` class
    (next-themes), so component dark overrides use `:global(.dark) …`.

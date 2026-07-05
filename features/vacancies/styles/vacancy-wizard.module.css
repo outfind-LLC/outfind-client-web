@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — Vacancy creation wizard. Ported from the _Peoplor_Design prototype
+   Outfind AI — Vacancy creation wizard. Ported from the _Peoplor_Design prototype
    (Vacancy Wizard.html inline <style>). The wizard is its own blue/ink sub-app,
    so its design tokens are scoped to `.root` (kept intentionally separate from
    the app's green). Dark mode flips via the global `.dark` class (the prototype

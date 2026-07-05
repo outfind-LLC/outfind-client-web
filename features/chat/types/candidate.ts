@@ -27,7 +27,7 @@ export interface CandidateCardData {
   years: number | null;
   /** 0–100 fit score, when the backend provides one. */
   matchScore: number | null;
-  /** Verified-by-Peoplor candidate (has a platform profile). */
+  /** Verified-by-Outfind AI candidate (has a platform profile). */
   verified: boolean;
   summary: string | null;
   experience: string[];

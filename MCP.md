@@ -1,4 +1,4 @@
-# Peoplor MCP Server — plan
+# Outfind AI MCP Server — plan
 
 _Status: PLAN (not built). Written 2026-07-04. Backend: `../jobsterr-backend`
 (NestJS REST at `/api/v1`, httpOnly-cookie auth)._
@@ -9,7 +9,7 @@ _Status: PLAN (not built). Written 2026-07-04. Backend: `../jobsterr-backend`
 (introduced by Anthropic, late 2024; since adopted across the industry —
 Claude, ChatGPT, Cursor, VS Code Copilot, and many agent frameworks) that lets
 AI assistants talk to external systems in a standard way. Think "USB-C for AI
-integrations": we build **one** MCP server for Peoplor, and every MCP-capable
+integrations": we build **one** MCP server for Outfind AI, and every MCP-capable
 chatbot/agent can use it without custom integration work.
 
 Core concepts:
@@ -20,7 +20,7 @@ Core concepts:
 - **Primitives we can expose:**
   - **Tools** — functions the model can call (`search_jobs`,
     `create_vacancy_draft`, …). This is 90% of our value.
-  - **Resources** — readable documents by URI (e.g. `peoplor://job/{id}`).
+  - **Resources** — readable documents by URI (e.g. `outfind://job/{id}`).
   - **Prompts** — reusable prompt templates ("write a cover letter for job X").
 - **Transports:**
   - **stdio** — the client launches the server as a local process (good for a
@@ -29,15 +29,15 @@ Core concepts:
     connectors, ChatGPT connectors) require this. Auth via OAuth 2.1 or
     bearer tokens.
 
-Why Peoplor wants one: workers could ask *any* assistant "find me warehouse
-jobs in Tashkent on Peoplor and apply to the top one"; employers could say
-"post a forklift-driver draft on Peoplor from this text". It turns every AI
-chat surface into a Peoplor client — distribution we don't have to build UI
+Why Outfind AI wants one: workers could ask *any* assistant "find me warehouse
+jobs in Tashkent on Outfind AI and apply to the top one"; employers could say
+"post a forklift-driver draft on Outfind AI from this text". It turns every AI
+chat surface into a Outfind AI client — distribution we don't have to build UI
 for.
 
 ## 2. Architecture decision
 
-**Build a thin, standalone TypeScript package (`@peoplor/mcp`) that calls the
+**Build a thin, standalone TypeScript package (`@outfind/mcp`) that calls the
 existing REST API.** Do NOT embed MCP inside the NestJS app in v1.
 
 Why thin-client:
@@ -51,10 +51,10 @@ Why thin-client:
 AI host (Claude/ChatGPT/Cursor)
    │  MCP (stdio or Streamable HTTP)
    ▼
-@peoplor/mcp  (Node, @modelcontextprotocol/sdk)
+@outfind/mcp  (Node, @modelcontextprotocol/sdk)
    │  HTTPS + Authorization: Bearer pplr_…
    ▼
-api.peoplor.com/api/v1  (existing NestJS backend, unchanged routes)
+api.outfind.ai/api/v1  (existing NestJS backend, unchanged routes)
 ```
 
 ### Backend prerequisite: API keys (the only real backend work)
@@ -116,8 +116,8 @@ fewer, well-described tools). Every description states *when to use it*.
 | `generate_vacancy_description` | `POST /employer/vacancies/generate-description` | already built |
 | `list_applicants` | `GET /employer/applications` | flat inbox rows |
 
-**Resources** (nice-to-have, v1.1): `peoplor://vacancy/{id}`,
-`peoplor://me/profile` as markdown documents.
+**Resources** (nice-to-have, v1.1): `outfind://vacancy/{id}`,
+`outfind://me/profile` as markdown documents.
 **Prompts** (v1.1): `tailor_cv_for_job`, `screen_applicants`.
 
 Safety rails baked into the server (defense in depth on top of API scopes):
@@ -131,11 +131,11 @@ Safety rails baked into the server (defense in depth on top of API scopes):
 
 ## 4. Implementation plan (concrete)
 
-### Repo layout — new folder `peoplor-mcp/` (own package, own repo or sibling dir)
+### Repo layout — new folder `outfind-mcp/` (own package, own repo or sibling dir)
 
 ```
-peoplor-mcp/
-  package.json          // name: "@peoplor/mcp", bin: { "peoplor-mcp": "dist/stdio.js" }
+outfind-mcp/
+  package.json          // name: "@outfind/mcp", bin: { "outfind-mcp": "dist/stdio.js" }
   src/
     api.ts              // tiny fetch client: baseUrl + bearer key + ok-envelope unwrap
     tools/worker.ts     // registerWorkerTools(server, api)
@@ -154,15 +154,15 @@ peoplor-mcp/
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-export function buildServer(api: PeoplorApi) {
-  const server = new McpServer({ name: "peoplor", version: "1.0.0" });
+export function buildServer(api: OutfindApi) {
+  const server = new McpServer({ name: "outfind", version: "1.0.0" });
 
   server.registerTool(
     "search_jobs",
     {
-      title: "Search Peoplor jobs",
+      title: "Search Outfind AI jobs",
       description:
-        "Search live vacancies on Peoplor. Use when the user asks to find " +
+        "Search live vacancies on Outfind AI. Use when the user asks to find " +
         "jobs. Returns id, title, company, city, salary, match score.",
       inputSchema: {
         profession: z.string().describe("Role to search, e.g. 'forklift driver'"),
@@ -182,12 +182,12 @@ export function buildServer(api: PeoplorApi) {
 
 // stdio.ts
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-const api = new PeoplorApi(process.env.PEOPLOR_API_URL ?? "https://api.peoplor.com/api/v1",
-                           process.env.PEOPLOR_API_KEY!);
+const api = new OutfindApi(process.env.OUTFIND_API_URL ?? "https://api.outfind.ai/api/v1",
+                           process.env.OUTFIND_API_KEY!);
 await buildServer(api).connect(new StdioServerTransport());
 ```
 
-Config via env only: `PEOPLOR_API_KEY` (required), `PEOPLOR_API_URL`
+Config via env only: `OUTFIND_API_KEY` (required), `OUTFIND_API_URL`
 (defaults to prod). No key → exit with a clear message pointing to
 Settings → API keys.
 
@@ -198,33 +198,33 @@ Settings → API keys.
 | **0. Backend keys** | ApiKey model + migration, bearer branch in the auth guard, scope guard, 3 endpoints, Settings UI section | 1 day |
 | **1. stdio server** | package scaffold, 6 worker tools + 4 employer tools, error mapping, README | 1–1.5 days |
 | **2. Publish** | npm publish + MCP Registry entry (below), test in Claude Desktop/Code + Cursor | 0.5 day |
-| **3. Remote HTTP** | `http.ts` with Streamable HTTP transport hosted at `mcp.peoplor.com` (same Node app, Express route `/mcp`), bearer auth per request; later OAuth 2.1 for claude.ai/ChatGPT connector store listing | 1–2 days |
+| **3. Remote HTTP** | `http.ts` with Streamable HTTP transport hosted at `mcp.outfind.ai` (same Node app, Express route `/mcp`), bearer auth per request; later OAuth 2.1 for claude.ai/ChatGPT connector store listing | 1–2 days |
 | **4. v1.1** | resources + prompts, `search_candidates` for employers once candidate search ships | later |
 
 ### Testing
 
 - `npx @modelcontextprotocol/inspector node dist/stdio.js` — interactive tool
   tester (run before every release).
-- One vitest per tool against a mocked `PeoplorApi`; one live smoke script
+- One vitest per tool against a mocked `OutfindApi`; one live smoke script
   against staging with a scoped key.
 
 ## 5. How to publish
 
 1. **npm** (primary for stdio): `npm publish --access public` as
-   `@peoplor/mcp`. Users then run it with `npx -y @peoplor/mcp` — no install
+   `@outfind/mcp`. Users then run it with `npx -y @outfind/mcp` — no install
    step. Keep `bin` + `files: ["dist"]` + Node ≥18 engines.
 2. **MCP Registry** (discoverability): add a `server.json` per the official
-   registry schema (name `com.peoplor/mcp`, package pointer to the npm
-   package, env-var declaration for `PEOPLOR_API_KEY`) and publish with the
+   registry schema (name `com.outfind/mcp`, package pointer to the npm
+   package, env-var declaration for `OUTFIND_API_KEY`) and publish with the
    `mcp-publisher` CLI to `registry.modelcontextprotocol.io`. Registry entries
    surface in client directories (Claude, Cursor, etc. pull from it).
 3. **Remote endpoint** (Phase 3): host Streamable HTTP at
-   `https://mcp.peoplor.com/mcp`, document it, and (optional, later) submit to
+   `https://mcp.outfind.ai/mcp`, document it, and (optional, later) submit to
    the Claude and ChatGPT connector directories — both require OAuth 2.1
    (authorization-code + PKCE, dynamic client registration) rather than raw
    API keys, so plan an OAuth layer in front of the key system when we want
    store listings.
-4. **Docs page**: `peoplor.com/developers` — how to mint a key, connect
+4. **Docs page**: `outfind.ai/developers` — how to mint a key, connect
    snippets (below), scopes table, rate limits.
 
 ## 6. How users connect it (put this in the README verbatim)
@@ -235,10 +235,10 @@ Settings → API keys.
 ```json
 {
   "mcpServers": {
-    "peoplor": {
+    "outfind": {
       "command": "npx",
-      "args": ["-y", "@peoplor/mcp"],
-      "env": { "PEOPLOR_API_KEY": "pplr_xxxxxxxx" }
+      "args": ["-y", "@outfind/mcp"],
+      "env": { "OUTFIND_API_KEY": "pplr_xxxxxxxx" }
     }
   }
 }
@@ -247,14 +247,14 @@ Settings → API keys.
 **Claude Code** (CLI):
 
 ```bash
-claude mcp add peoplor --env PEOPLOR_API_KEY=pplr_xxxxxxxx -- npx -y @peoplor/mcp
+claude mcp add outfind --env OUTFIND_API_KEY=pplr_xxxxxxxx -- npx -y @outfind/mcp
 # or, once the remote endpoint exists:
-claude mcp add --transport http peoplor https://mcp.peoplor.com/mcp \
+claude mcp add --transport http outfind https://mcp.outfind.ai/mcp \
   --header "Authorization: Bearer pplr_xxxxxxxx"
 ```
 
 **claude.ai (web/mobile)** — remote only: Settings → Connectors → *Add custom
-connector* → `https://mcp.peoplor.com/mcp` (needs Phase 3; OAuth for the
+connector* → `https://mcp.outfind.ai/mcp` (needs Phase 3; OAuth for the
 public listing).
 
 **Cursor** — `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
@@ -273,7 +273,7 @@ MCP client adapters — point them at the npx command or the HTTP URL.
 
 - Keys hashed at rest (sha256), shown once, revocable, optional expiry,
   `lastUsedAt` visible in Settings; scope-gated mutating routes.
-- MCP server sends the key ONLY to `PEOPLOR_API_URL` origin; never logs it;
+- MCP server sends the key ONLY to `OUTFIND_API_URL` origin; never logs it;
   redacts it from error output.
 - All writes are drafts/low-blast-radius by design (publish stays in-app).
 - Inherit backend rate limits; add per-key throttle bucket.

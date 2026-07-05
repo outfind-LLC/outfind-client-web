@@ -87,7 +87,7 @@ function JobDetailSheet({
   const { data: full } = useVacancyDetail(vacancyId ?? "", needsFetch);
   const job = full ? enrichJobWithVacancy(initialJob, full) : initialJob;
 
-  // In-app apply only for Peoplor-posted jobs; sourced jobs (from boards /
+  // In-app apply only for Outfind AI-posted jobs; sourced jobs (from boards /
   // company pages) deep-link to their original posting via the external sheet.
   const platform = job.isPlatform ?? true;
   return vacancyId && platform ? (

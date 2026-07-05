@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Peoplor — employer Vacancies screen. Full-bleed (owns its topbar, aligned
+   Outfind AI — employer Vacancies screen. Full-bleed (owns its topbar, aligned
    with the sidebar logo). Main content runs full-width per the redesign; the
    empty state stays centred. Tokens are global (app/globals.css); dark mode
    flips via the `.dark` class.

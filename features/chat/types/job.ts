@@ -42,7 +42,7 @@ export interface JobCardData {
   applyUrl?: string | null;
   /** Source board label for sourced jobs (e.g. "LinkedIn"). */
   source?: string | null;
-  /** True for Peoplor-posted jobs (one-tap in-app apply); false for sourced. */
+  /** True for Outfind AI-posted jobs (one-tap in-app apply); false for sourced. */
   isPlatform?: boolean;
 }
 

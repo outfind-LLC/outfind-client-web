@@ -70,7 +70,7 @@ export function SiteFooter() {
         <div className={styles.ftBottom}>
           <p>{ui.footRights}</p>
           <div className={styles.ftSocial}>
-            <a href="mailto:hello@peoplor.com" aria-label="Email">
+            <a href="mailto:hello@outfind.ai" aria-label="Email">
               <IconMail />
             </a>
             <a

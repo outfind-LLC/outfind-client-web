@@ -38,7 +38,7 @@ function initials(name: string): string {
 /**
  * A candidate result inside an employer assistant message — same card shape as a
  * job card, with a coloured avatar, availability tag, and skills. Opens the
- * candidate detail sheet. Verified candidates carry the Peoplor badge.
+ * candidate detail sheet. Verified candidates carry the Outfind AI badge.
  */
 export function CandidateCard({ candidate }: { candidate: CandidateCardData }) {
   const open = useCandidateDetailStore((st) => st.openCandidate);
@@ -56,7 +56,7 @@ export function CandidateCard({ candidate }: { candidate: CandidateCardData }) {
           <div className={s["jc-role"]}>
             <span>{candidate.name}</span>
             {candidate.verified ? (
-              <Ic name="verified" className={s["jc-verified"]} title="Verified by Peoplor" />
+              <Ic name="verified" className={s["jc-verified"]} title="Verified by Outfind AI" />
             ) : null}
           </div>
           {candidate.title || candidate.location ? (

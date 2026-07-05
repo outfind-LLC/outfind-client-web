@@ -8,7 +8,7 @@ import type { PublicResume } from "@/interfaces/resume.interface";
 import s from "./public-cv.module.css";
 
 /**
- * Public resume — peoplor.uz/cv/<slug>. No auth shell; the backend serves DATA
+ * Public resume — outfind.ai/cv/<slug>. No auth shell; the backend serves DATA
  * only (a whitelisted projection) and this page renders it with the worker's
  * saved template. Unknown or unpublished slugs 404.
  */
@@ -33,10 +33,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const resume = await fetchPublicResume(slug);
-  if (!resume) return { title: "Resume — Peoplor" };
+  if (!resume) return { title: "Resume — Outfind AI" };
   const b = resume.document.basics;
   return {
-    title: `${b.fullName || resume.name} — Resume | Peoplor`,
+    title: `${b.fullName || resume.name} — Resume | Outfind AI`,
     description: b.headline || b.summary.slice(0, 160),
   };
 }
@@ -54,7 +54,7 @@ export default async function PublicResumePage({
     <div className={s.page}>
       <header className={s.head}>
         <Link href="/" className={s.wordmark}>
-          Peoplor
+          Outfind AI
         </Link>
         <Link href="/" className={s.cta}>
           Find a job
@@ -64,7 +64,7 @@ export default async function PublicResumePage({
         <ResumeRender document={resume.document} style={resume.style} />
       </main>
       <footer className={s.foot}>
-        Powered by <Link href="/">Peoplor</Link>
+        Powered by <Link href="/">Outfind AI</Link>
       </footer>
     </div>
   );

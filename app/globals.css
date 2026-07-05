@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Peoplor design tokens — ported verbatim from the _Peoplor_Design prototype
+ * Outfind AI design tokens — ported verbatim from the _Peoplor_Design prototype
  * (peoplor-tokens.css + colors_and_type.css). Brand accent unified on GREEN
  * #58b685 across app and marketing. Two token layers live here:
  *   1. Prototype tokens (--accent, --bg-*, --text-*, --radius-*, type scale …)

@@ -29,7 +29,7 @@
 >   `<FullName>_CV.pdf`. Roboto + PT Serif fetched from a CDN (Latin+Cyrillic for
 >   RU/UZ) with a Helvetica/Times fallback so a download never throws. NOT a
 >   screenshot/print.
-> - **Public share** — `peoplor.uz/cv/<slug>` from data-only
+> - **Public share** — `outfind.ai/cv/<slug>` from data-only
 >   `GET /cv/public/:slug`; contacts gated behind a toggle.
 > - Mobile: bottom tab bar (Edit / Design / Preview), large touch targets,
 >   left-aligned desktop split (form + sticky preview). App tokens only.
@@ -109,9 +109,9 @@
      from the transliterated latin name (`getachew-m`, `-2`… on collision),
      stores it on the row, returns it. Slug is stable; flipping private keeps
      it reserved.
-   - Public page **`peoplor.uz/cv/<slug>`** → `app/cv/[slug]/page.tsx`
+   - Public page **`outfind.ai/cv/<slug>`** → `app/cv/[slug]/page.tsx`
      OUTSIDE the auth shell (no sidebar, branded header + "Powered by
-     Peoplor" footer). Server component fetches `GET /cv/public/:slug`
+     Outfind AI" footer). Server component fetches `GET /cv/public/:slug`
      (public, no auth) and renders with the CV's saved template. Branded 404
      when the slug doesn't exist or the CV is private.
    - The public endpoint returns a **whitelisted projection only**: CV content
@@ -181,5 +181,5 @@ i18n keys under a new `cv.*` namespace in `lib/i18n/messages/{en,ru,uz}.ts`.
 - [ ] Generated CV arrives in the worker's preferred language; the worker can edit every field; everything persists in Postgres.
 - [ ] API responses contain JSON data only — no markup, no files.
 - [ ] Templates render correctly at 360px, 768px, and in print preview (A4).
-- [ ] `peoplor.uz/cv/<slug>` renders publicly with the chosen template; private CVs 404; contacts hidden unless opted in.
+- [ ] `outfind.ai/cv/<slug>` renders publicly with the chosen template; private CVs 404; contacts hidden unless opted in.
 - [ ] All UI uses existing tokens and passes the visual-diff sanity check; typecheck green; no new UI colors.

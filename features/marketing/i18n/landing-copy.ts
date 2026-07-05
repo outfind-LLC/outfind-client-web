@@ -83,7 +83,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navSignin: "Sign in",
       langLabel: "Language",
       soonBadge: "Coming soon",
-      hireSoonTitle: "Hiring on Peoplor is coming soon",
+      hireSoonTitle: "Hiring on Outfind AI is coming soon",
       hireSoonBody:
         "We're launching the job-seeker experience first. Our engineers are working tirelessly on the employer side — we'll update you very soon.",
       hireSoonCta: "Continue as a job seeker",
@@ -93,7 +93,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       modeVisa: "Visa documentation",
       authTitle: "Create your free account",
       authSub:
-        "Sign up to see your matches and let Peoplor apply for you — free for job seekers.",
+        "Sign up to see your matches and let Outfind AI apply for you — free for job seekers.",
       authGoogle: "Continue with Google",
       authTelegram: "Continue with Telegram",
       authPromptLabel: "You searched",
@@ -107,21 +107,21 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       footHelp: "Help center",
       footPrivacy: "Privacy",
       footTerms: "Terms",
-      footRights: "© 2026 Peoplor. All rights reserved.",
+      footRights: "© 2026 Outfind AI. All rights reserved.",
     },
     find: {
       h1: "What job are you looking for?",
       ph: "Search jobs...",
       chips: ["Truck driver", "Restaurant worker", "Care assistant"],
       safety:
-        "Never send money for documents or visas. Peoplor isn't responsible for off-platform payments. Report it — these accounts get banned instantly.",
+        "Never send money for documents or visas. Outfind AI isn't responsible for off-platform payments. Report it — these accounts get banned instantly.",
     },
     hire: {
       h1: "Who are you looking to hire?",
       ph: "Warehouse picker",
       chips: ["Warehouse picker", "Delivery driver", "Cleaner"],
       safety:
-        "Asking candidates for money = instant ban. Peoplor isn't liable for off-platform payments.",
+        "Asking candidates for money = instant ban. Outfind AI isn't liable for off-platform payments.",
     },
   },
   ru: {
@@ -132,7 +132,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navSignin: "Войти",
       langLabel: "Язык",
       soonBadge: "Скоро",
-      hireSoonTitle: "Найм на Peoplor скоро откроется",
+      hireSoonTitle: "Найм на Outfind AI скоро откроется",
       hireSoonBody:
         "Сначала мы запускаем платформу для соискателей. Наши инженеры без устали работают над стороной работодателя — совсем скоро всё будет готово.",
       hireSoonCta: "Продолжить как соискатель",
@@ -142,7 +142,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       modeVisa: "Виза и документы",
       authTitle: "Создайте бесплатный аккаунт",
       authSub:
-        "Зарегистрируйтесь, чтобы увидеть совпадения и поручить отклики Peoplor — бесплатно для соискателей.",
+        "Зарегистрируйтесь, чтобы увидеть совпадения и поручить отклики Outfind AI — бесплатно для соискателей.",
       authGoogle: "Продолжить с Google",
       authTelegram: "Продолжить с Telegram",
       authPromptLabel: "Вы искали",
@@ -156,21 +156,21 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       footHelp: "Центр помощи",
       footPrivacy: "Конфиденциальность",
       footTerms: "Условия",
-      footRights: "© 2026 Peoplor. Все права защищены.",
+      footRights: "© 2026 Outfind AI. Все права защищены.",
     },
     find: {
       h1: "Какую работу вы ищете?",
       ph: "Поиск вакансий...",
       chips: ["Водитель грузовика", "Работник ресторана", "Сиделка"],
       safety:
-        "Не отправляйте деньги за документы или визы. Peoplor не отвечает за переводы вне платформы. Сообщите — такие аккаунты блокируются сразу.",
+        "Не отправляйте деньги за документы или визы. Outfind AI не отвечает за переводы вне платформы. Сообщите — такие аккаунты блокируются сразу.",
     },
     hire: {
       h1: "Кого вы хотите нанять?",
       ph: "Сборщик на склад",
       chips: ["Сборщик на склад", "Курьер", "Уборщик"],
       safety:
-        "Запрос денег у кандидатов = мгновенный бан. Peoplor не отвечает за платежи вне платформы.",
+        "Запрос денег у кандидатов = мгновенный бан. Outfind AI не отвечает за платежи вне платформы.",
     },
   },
   uz: {
@@ -181,7 +181,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       navSignin: "Kirish",
       langLabel: "Til",
       soonBadge: "Tez orada",
-      hireSoonTitle: "Peoplorʼda xodim yollash tez orada",
+      hireSoonTitle: "Outfind AIʼda xodim yollash tez orada",
       hireSoonBody:
         "Avval ish izlovchilar uchun ishga tushiryapmiz. Muhandislarimiz ish beruvchilar tomoni ustida tinimsiz ishlamoqda — tez orada yangilik boʻladi.",
       hireSoonCta: "Ish izlovchi sifatida davom etish",
@@ -191,7 +191,7 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       modeVisa: "Viza hujjatlari",
       authTitle: "Bepul hisob yarating",
       authSub:
-        "Mosliklarni koʻrish va arizalarni Peoplorʼga topshirish uchun roʻyxatdan oʻting — ish izlovchilar uchun bepul.",
+        "Mosliklarni koʻrish va arizalarni Outfind AIʼga topshirish uchun roʻyxatdan oʻting — ish izlovchilar uchun bepul.",
       authGoogle: "Google bilan davom etish",
       authTelegram: "Telegram bilan davom etish",
       authPromptLabel: "Siz qidirdingiz",
@@ -205,21 +205,21 @@ export const LANDING_COPY: Record<Lang, LandingCopy> = {
       footHelp: "Yordam markazi",
       footPrivacy: "Maxfiylik",
       footTerms: "Shartlar",
-      footRights: "© 2026 Peoplor. Barcha huquqlar himoyalangan.",
+      footRights: "© 2026 Outfind AI. Barcha huquqlar himoyalangan.",
     },
     find: {
       h1: "Qanday ish qidiryapsiz?",
       ph: "Ish qidirish...",
       chips: ["Haydovchi", "Restoran xodimi", "Enaga"],
       safety:
-        "Hujjatlar yoki vizalar uchun hech qachon pul yubormang. Peoplor platformadan tashqari toʻlovlar uchun javobgar emas. Xabar bering — bunday akkauntlar darhol bloklanadi.",
+        "Hujjatlar yoki vizalar uchun hech qachon pul yubormang. Outfind AI platformadan tashqari toʻlovlar uchun javobgar emas. Xabar bering — bunday akkauntlar darhol bloklanadi.",
     },
     hire: {
       h1: "Kimni yollamoqchisiz?",
       ph: "Ombor yigʻuvchisi",
       chips: ["Ombor yigʻuvchisi", "Kuryer", "Farrosh"],
       safety:
-        "Nomzodlardan pul soʻrash = darhol bloklash. Peoplor platformadan tashqari toʻlovlar uchun javobgar emas.",
+        "Nomzodlardan pul soʻrash = darhol bloklash. Outfind AI platformadan tashqari toʻlovlar uchun javobgar emas.",
     },
   },
 };

@@ -349,9 +349,9 @@ const D: Record<string, [string, string, string]> = {
     "Vakansiya darhol nomzodlar qidiruvida paydo bo‘ladi.",
   ],
   "s7.note2": [
-    "Peoplor automatically matches suitable candidates to you.",
-    "Peoplor автоматически подбирает подходящих кандидатов.",
-    "Peoplor mos nomzodlarni avtomatik tanlaydi.",
+    "Outfind AI automatically matches suitable candidates to you.",
+    "Outfind AI автоматически подбирает подходящих кандидатов.",
+    "Outfind AI mos nomzodlarni avtomatik tanlaydi.",
   ],
   "s7.note3": [
     "You can edit, pause or close it any time from Vacancies.",
@@ -369,9 +369,9 @@ const D: Record<string, [string, string, string]> = {
     "Vakansiya e’lon qilindi",
   ],
   "s7.successP": [
-    "Peoplor is now matching candidates to your role. You can edit or pause it any time from Vacancies.",
-    "Peoplor уже подбирает кандидатов на вашу вакансию. Вы можете изменить или приостановить её в разделе «Вакансии».",
-    "Peoplor allaqachon nomzod tanlamoqda. Uni «Vakansiyalar» bo‘limida tahrirlashingiz mumkin.",
+    "Outfind AI is now matching candidates to your role. You can edit or pause it any time from Vacancies.",
+    "Outfind AI уже подбирает кандидатов на вашу вакансию. Вы можете изменить или приостановить её в разделе «Вакансии».",
+    "Outfind AI allaqachon nomzod tanlamoqda. Uni «Vakansiyalar» bo‘limida tahrirlashingiz mumkin.",
   ],
   "s7.successBtn": [
     "View candidates",
