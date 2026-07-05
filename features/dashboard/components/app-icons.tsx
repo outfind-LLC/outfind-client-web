@@ -52,6 +52,9 @@ export const ICONS = {
   thumbUp: REG.thumbUp,
   thumbDown: REG.thumbDown,
   notification: REG.notification,
+  // job detail actions
+  share: REG.share,
+  flag: REG.flag,
   // visa guidance
   back: REG.back,
   lock: REG.lock,

@@ -37,7 +37,7 @@ const MODES: {
   // download → public link) at /profile/cv.
   { key: "cv", icon: "fileText", labelKey: "chat.modeCv" },
   { key: "assist", icon: "brain", labelKey: "chat.modeAssist" },
-  { key: "search", icon: "search", labelKey: "chat.modeSearch" },
+  // "Search jobs" is the default composer mode, so it needs no chip.
   { key: "visa", icon: "docCheck", labelKey: "chat.modeVisa" },
 ];
 

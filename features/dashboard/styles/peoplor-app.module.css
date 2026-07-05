@@ -1122,9 +1122,18 @@
   line-height: 1.3;
 }
 .jc-verified {
-  width: 15px;
-  height: 15px;
-  color: var(--icon-accent);
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent-brand);
+  color: #fff;
+}
+.jc-verified-ic {
+  width: 10px;
+  height: 10px;
 }
 .jc-co {
   font-size: 13px;
@@ -2257,6 +2266,71 @@
 .jd-close .ic {
   width: 20px;
   height: 20px;
+}
+/* Top-right action cluster: bookmark · share · close */
+.jd-actions {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.jd-abtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  color: var(--icon-secondary);
+  cursor: pointer;
+  transition:
+    background var(--dur-base),
+    color var(--dur-base),
+    border-color var(--dur-base);
+}
+.jd-abtn:hover {
+  background: var(--bg-secondary);
+  color: var(--icon-primary);
+  border-color: var(--border-default-hover);
+}
+.jd-abtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.jd-abtn .ic {
+  width: 19px;
+  height: 19px;
+}
+.jd-abtn-on {
+  background: var(--accent-50);
+  border-color: var(--accent-brand);
+  color: var(--accent-600);
+}
+.jd-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-base);
+}
+.jd-report:hover {
+  color: var(--error, #ef4444);
+}
+.jd-report .ic {
+  width: 15px;
+  height: 15px;
 }
 .jd-body {
   flex: 1;

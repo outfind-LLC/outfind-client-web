@@ -117,6 +117,9 @@ import notification from "./notification";
 // Resume builder
 import chevronUp from "./chevron-up";
 
+// Job detail actions
+import flag from "./flag";
+
 // Visa guidance — profession glyphs
 import hardHat from "./hard-hat";
 import utensils from "./utensils";
@@ -244,6 +247,8 @@ const DEFS = {
   notification,
   // resume builder
   chevronUp,
+  // job detail actions
+  flag,
   // visa guidance — profession glyphs
   hardHat,
   utensils,

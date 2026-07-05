@@ -10,6 +10,7 @@ import {
   primaryContactHref,
 } from "@/features/chat/components/contact-actions";
 import { useJobActions } from "@/features/jobs/hooks/use-job-actions";
+import { useJobBookmark } from "@/features/jobs/hooks/use-job-bookmark";
 import { useJobDetailPanelStore } from "@/features/jobs/store/job-detail-panel.store";
 import { useVacancyDetail } from "@/features/jobs/hooks/use-vacancy-detail";
 import { enrichJobWithVacancy } from "@/features/jobs/lib/vacancy-to-job";
@@ -122,6 +123,7 @@ function InternalSheet({
     </div>
   );
 
+  // Save now lives in the sheet header (bookmark); the footer is just the CTA.
   const footer = actions.applied ? (
     <button
       type="button"
@@ -131,24 +133,14 @@ function InternalSheet({
       {t("chat.done")}
     </button>
   ) : (
-    <>
-      <button
-        type="button"
-        className={cn(s.btn, s["btn-ghost"], s["btn-md"])}
-        onClick={actions.toggleSave}
-        disabled={actions.savePending}
-      >
-        {actions.saved ? t("chat.saved") : t("chat.save")}
-      </button>
-      <button
-        type="button"
-        className={cn(s.btn, s["btn-primary"], s["btn-md"])}
-        onClick={actions.applyToJob}
-        disabled={actions.applyPending}
-      >
-        {t("chat.applyCv")}
-      </button>
-    </>
+    <button
+      type="button"
+      className={cn(s.btn, s["btn-primary"], s["btn-md"])}
+      onClick={actions.applyToJob}
+      disabled={actions.applyPending}
+    >
+      {t("chat.applyCv")}
+    </button>
   );
 
   return (
@@ -299,6 +291,31 @@ function Sheet({
   children?: ReactNode;
 }) {
   const t = useT();
+  const bookmark = useJobBookmark(job);
+
+  const onShare = async () => {
+    const url = job.applyUrl ?? "";
+    const text = [job.title, job.company].filter(Boolean).join(" · ");
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: job.title, text, url: url || undefined });
+        return;
+      }
+    } catch {
+      return; // user dismissed the native share sheet
+    }
+    const payload = url || text;
+    try {
+      await navigator.clipboard.writeText(payload);
+      toast.success(t("chat.jdShareCopied"));
+    } catch {
+      toast.message(payload);
+    }
+  };
+
+  // TODO: wire to a backend report endpoint (IssueReport) when it ships.
+  const onReport = () => toast.success(t("chat.jdReportDone"));
+
   const facts: ReactNode[] = [];
   if (job.location)
     facts.push(
@@ -336,14 +353,34 @@ function Sheet({
           aria-modal="true"
           aria-label={`${job.title} details`}
         >
-          <button
-            type="button"
-            className={s["jd-close"]}
-            onClick={onClose}
-            aria-label={t("chat.close")}
-          >
-            <Ic name="close" />
-          </button>
+          <div className={s["jd-actions"]}>
+            <button
+              type="button"
+              className={cn(s["jd-abtn"], bookmark.saved && s["jd-abtn-on"])}
+              onClick={bookmark.toggleSave}
+              disabled={bookmark.savePending}
+              aria-pressed={bookmark.saved}
+              aria-label={bookmark.saved ? t("chat.saved") : t("chat.save")}
+            >
+              <Ic name="bookmark" />
+            </button>
+            <button
+              type="button"
+              className={s["jd-abtn"]}
+              onClick={onShare}
+              aria-label={t("chat.jdShare")}
+            >
+              <Ic name="share" />
+            </button>
+            <button
+              type="button"
+              className={s["jd-abtn"]}
+              onClick={onClose}
+              aria-label={t("chat.close")}
+            >
+              <Ic name="close" />
+            </button>
+          </div>
 
           <div className={s["jd-body"]}>
             <span className={s["jd-src"]}>
@@ -434,6 +471,15 @@ function Sheet({
             ) : null}
 
             {applySection}
+
+            <button
+              type="button"
+              className={s["jd-report"]}
+              onClick={onReport}
+            >
+              <Ic name="flag" />
+              <span>{t("chat.jdReport")}</span>
+            </button>
           </div>
 
           <div className={s["jd-foot"]}>{footer}</div>

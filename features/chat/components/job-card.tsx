@@ -118,11 +118,12 @@ export function JobCard({ job }: { job: JobCardData }) {
           <div className={s["jc-role"]}>
             <span>{job.title}</span>
             {isPlatform ? (
-              <Ic
-                name="verified"
+              <span
                 className={s["jc-verified"]}
                 title={t("chat.verifiedEmployer")}
-              />
+              >
+                <Ic name="checkBold" className={s["jc-verified-ic"]} />
+              </span>
             ) : null}
           </div>
           {job.company || job.location ? (

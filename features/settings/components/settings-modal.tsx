@@ -518,8 +518,13 @@ const SECTIONS: {
   },
   { id: "privacy", icon: "shield", label: () => "settings.secPrivacy" },
   { id: "account", icon: "user", label: () => "settings.secAccount" },
-  { id: "security", icon: "lock", label: () => "settings.secSecurity" },
+  // TODO: re-enable "Security & login" when its backend ships (content kept below).
+  // { id: "security", icon: "lock", label: () => "settings.secSecurity" },
 ];
+
+// TODO: re-enable the account-type switch when its backend flow is finalised.
+// Kept (not removed) so it can be turned back on step by step.
+const ACCOUNT_TYPE_SWITCH_ENABLED: boolean = false;
 
 /**
  * Settings — the prototype's modal-on-desktop / tabs-on-mobile surface, rendered
@@ -680,27 +685,32 @@ export function SettingsModal() {
           </div>
         ) : null}
 
-        <GroupLabel>{t("settings.acctType")}</GroupLabel>
-        <div className={s["set-acct"]}>
-          <button
-            type="button"
-            className={s["set-acct-opt"]}
-            aria-pressed={!employer}
-            onClick={() => switchTo("seeker")}
-          >
-            <span className={s.t}>{t("settings.acctSeeker")}</span>
-            <span className={s.d}>{t("settings.acctSeekerD")}</span>
-          </button>
-          <button
-            type="button"
-            className={s["set-acct-opt"]}
-            aria-pressed={employer}
-            onClick={() => switchTo("employer")}
-          >
-            <span className={s.t}>{t("settings.acctEmployer")}</span>
-            <span className={s.d}>{t("settings.acctEmployerD")}</span>
-          </button>
-        </div>
+        {/* TODO: Account type switch — hidden until its backend flow is ready. */}
+        {ACCOUNT_TYPE_SWITCH_ENABLED ? (
+          <>
+            <GroupLabel>{t("settings.acctType")}</GroupLabel>
+            <div className={s["set-acct"]}>
+              <button
+                type="button"
+                className={s["set-acct-opt"]}
+                aria-pressed={!employer}
+                onClick={() => switchTo("seeker")}
+              >
+                <span className={s.t}>{t("settings.acctSeeker")}</span>
+                <span className={s.d}>{t("settings.acctSeekerD")}</span>
+              </button>
+              <button
+                type="button"
+                className={s["set-acct-opt"]}
+                aria-pressed={employer}
+                onClick={() => switchTo("employer")}
+              >
+                <span className={s.t}>{t("settings.acctEmployer")}</span>
+                <span className={s.d}>{t("settings.acctEmployerD")}</span>
+              </button>
+            </div>
+          </>
+        ) : null}
 
         <Row
           label={t("settings.lang")}

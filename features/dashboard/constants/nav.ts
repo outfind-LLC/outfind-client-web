@@ -14,14 +14,14 @@ export interface NavItem {
   exact?: boolean;
 }
 
-/** Worker sidebar — mirrors the prototype: New job · Saved & applied · Profile ·
- * Career & migration. */
+/** Worker sidebar: Search job · Visa documents · Profile · Saved jobs. */
 const WORKER_NAV: NavItem[] = [
-  { labelKey: "nav.newJob", href: routes.jobs, icon: "plus", newChat: true },
+  { labelKey: "nav.newJob", href: routes.jobs, icon: "search", newChat: true },
   { labelKey: "nav.visa", href: routes.visa, icon: "passport" },
-  { labelKey: "nav.savedApplied", href: routes.applications, icon: "docCheck" },
   { labelKey: "nav.profile", href: routes.profile, icon: "user" },
-  { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },
+  { labelKey: "nav.savedApplied", href: routes.applications, icon: "bookmark" },
+  // TODO: re-enable Career & migration once its backend ships (component kept).
+  // { labelKey: "nav.careerMigration", href: routes.career, icon: "route" },
 ];
 
 /** Employer sidebar — AI search · Chat (conversations with workers) · Vacancies ·
