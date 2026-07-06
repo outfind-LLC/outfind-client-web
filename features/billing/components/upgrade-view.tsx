@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { qk } from "@/config/query-keys";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { useCheckout, usePaygCheckout } from "@/features/billing/hooks/use-billing";
+import { PaymentMethods } from "@/features/billing/components/payment-methods";
 import { useMyPlan } from "@/features/billing/hooks/use-my-plan";
 import { usePublicPricing } from "@/features/billing/hooks/use-pricing";
 import { EmptyState } from "@/features/dashboard/components/empty-state";
@@ -100,14 +101,14 @@ export function UpgradeView() {
   const allPlans = [...data].sort(
     (a, b) => a.priceMonthlyCents - b.priceMonthlyCents,
   );
-  // Workers see ONLY the single Pro plan (one-time payment for now); employer
-  // surfaces keep their full catalog untouched.
+  // Workers see ONLY the single Standard plan (one-time payment for now);
+  // employer surfaces keep their full catalog untouched.
   const isWorkerAudience = audience === PLAN_AUDIENCE.WORKER;
-  const workerPro = allPlans.filter(
-    (plan) => plan.planType === PLAN_TYPE.PRO,
+  const workerPaid = allPlans.filter(
+    (plan) => plan.planType === PLAN_TYPE.STANDARD,
   );
   const plans =
-    isWorkerAudience && workerPro.length > 0 ? workerPro : allPlans;
+    isWorkerAudience && workerPaid.length > 0 ? workerPaid : allPlans;
   const currentPrice =
     allPlans.find((plan) => plan.planType === currentPlan?.planType)
       ?.priceMonthlyCents ?? 0;
@@ -236,14 +237,23 @@ export function UpgradeView() {
                     Current plan
                   </Button>
                 ) : isUpgrade ? (
-                  <Button
-                    variant={plan.isFeatured ? "brand" : "default"}
-                    className="w-full"
-                    onClick={() => startCheckout(plan)}
-                    disabled={checkout.isPending}
-                  >
-                    Upgrade
-                  </Button>
+                  // Workers pick a payment rail (International → Polar, Local →
+                  // coming soon); employer surfaces keep the direct checkout button.
+                  isWorkerAudience ? (
+                    <PaymentMethods
+                      onInternational={() => startCheckout(plan)}
+                      isPending={checkout.isPending}
+                    />
+                  ) : (
+                    <Button
+                      variant={plan.isFeatured ? "brand" : "default"}
+                      className="w-full"
+                      onClick={() => startCheckout(plan)}
+                      disabled={checkout.isPending}
+                    >
+                      Upgrade
+                    </Button>
+                  )
                 ) : (
                   <Button variant="ghost" className="w-full" disabled>
                     Included

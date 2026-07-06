@@ -987,6 +987,15 @@ export const en = {
     limitToast:
       "You've reached your free limit — upgrade to Standard to continue.",
   },
+  pay: {
+    chooseMethod: "Choose how to pay",
+    intlTitle: "International card",
+    intlDesc: "Visa, Mastercard & more — secured by Polar",
+    intlCta: "Continue",
+    localTitle: "Local payment",
+    localDesc: "Click, Payme & Uzcard (UZS)",
+    comingSoon: "Coming soon",
+  },
   career: {
     introH: "Your AI plan to work abroad",
     introP:

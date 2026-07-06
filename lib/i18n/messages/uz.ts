@@ -971,6 +971,15 @@ export const uz: Messages = {
     limitToast:
       "Bepul limitga yetdingiz — davom etish uchun Standard’ga o‘ting.",
   },
+  pay: {
+    chooseMethod: "Toʻlov usuli",
+    intlTitle: "Xalqaro karta",
+    intlDesc: "Visa, Mastercard va boshqalar — Polar orqali",
+    intlCta: "Davom etish",
+    localTitle: "Mahalliy toʻlov",
+    localDesc: "Click, Payme va Uzcard (UZS)",
+    comingSoon: "Tez kunda",
+  },
   career: {
     introH: "Chet elda ishlash uchun AI rejangiz",
     introP:

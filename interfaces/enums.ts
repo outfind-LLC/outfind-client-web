@@ -34,7 +34,8 @@ export type PlanAudience = (typeof PLAN_AUDIENCE)[keyof typeof PLAN_AUDIENCE];
 
 export const PLAN_TYPE = {
   FREE: "FREE",
-  PRO: "PRO",
+  // The single paid worker plan (one-time $5). Mirrors the backend enum value.
+  STANDARD: "STANDARD",
   PREMIUM: "PREMIUM",
   EMPLOYER_FREE: "EMPLOYER_FREE",
   EMPLOYER_STARTER: "EMPLOYER_STARTER",

@@ -72,12 +72,12 @@ export function UpgradeProModal() {
 
   if (!open) return null;
 
-  const proPlan = pricing.data?.find(
-    (plan) => plan.planType === PLAN_TYPE.PRO,
+  const paidPlan = pricing.data?.find(
+    (plan) => plan.planType === PLAN_TYPE.STANDARD,
   );
   const priceUsd =
     access.data?.plan?.priceUsd ??
-    (proPlan ? proPlan.priceMonthlyCents / 100 : null);
+    (paidPlan ? paidPlan.priceMonthlyCents / 100 : null);
 
   const highlighted = feature ? FEATURE_ROW[feature] : undefined;
 

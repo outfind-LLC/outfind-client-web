@@ -969,6 +969,15 @@ export const ru: Messages = {
     limitToast:
       "Вы достигли бесплатного лимита — перейдите на Standard, чтобы продолжить.",
   },
+  pay: {
+    chooseMethod: "Способ оплаты",
+    intlTitle: "Международная карта",
+    intlDesc: "Visa, Mastercard и другие — через Polar",
+    intlCta: "Продолжить",
+    localTitle: "Локальная оплата",
+    localDesc: "Click, Payme и Uzcard (UZS)",
+    comingSoon: "Скоро",
+  },
   career: {
     introH: "Ваш AI-план для работы за рубежом",
     introP:
